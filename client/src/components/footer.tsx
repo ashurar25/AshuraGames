@@ -10,8 +10,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 mint-gradient rounded-lg flex items-center justify-center">
-                <Gamepad2 className="text-white text-xl" />
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img 
+                  src="/ashura-logo.png" 
+                  alt="ASHURA Games Logo" 
+                  className="w-12 h-12 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">ASHURA</h1>
