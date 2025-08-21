@@ -7,6 +7,12 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { Request, Response } from 'express';
+import { gameStorage } from './storage';
+import { Game } from '../shared/schema';
+import { GameImageGenerator } from './gameImageGenerator';
+import fs from 'fs';
+import path from 'path';
 
 // สร้างโฟลเดอร์สำหรับเก็บไฟล์เกม
 const gamesUploadDir = path.join(process.cwd(), 'public', 'games');
@@ -32,10 +38,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // เสิร์ฟไฟล์สแตติกสำหรับเกม
   app.use('/games', express.static(path.join(process.cwd(), 'public', 'games')));
-  
+
   // Get all games
   app.get("/api/games", async (_req, res) => {
     try {
@@ -78,16 +84,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search games
-  app.get("/api/games/search", async (req, res) => {
+  app.get('/api/games/search', async (req: Request, res: Response) => {
     try {
       const query = req.query.q as string;
       if (!query) {
-        return res.status(400).json({ message: "Search query is required" });
+        return res.json([]);
       }
-      const games = await storage.searchGames(query);
-      res.json(games);
+
+      const results = gameStorage.searchGames(query);
+      res.json(results);
     } catch (error) {
-      res.status(500).json({ message: "Failed to search games" });
+      console.error('Search error:', error);
+      res.status(500).json({ error: 'Search failed' });
+    }
+  });
+
+  // Generate game thumbnail
+  app.get('/api/games/:id/thumbnail', async (req: Request, res: Response) => {
+    try {
+      const gameId = parseInt(req.params.id);
+      const game = gameStorage.getGameById(gameId);
+
+      if (!game) {
+        return res.status(404).json({ error: 'Game not found' });
+      }
+
+      // Check if generated image already exists
+      const imagePath = path.join(process.cwd(), 'public', 'generated-thumbnails', `${gameId}.png`);
+
+      if (fs.existsSync(imagePath)) {
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+        return res.sendFile(imagePath);
+      }
+
+      // Generate new image
+      await GameImageGenerator.ensureDirectoryExists(path.dirname(imagePath));
+
+      const imageBuffer = await GameImageGenerator.generateGameImage({
+        title: game.title,
+        category: game.category,
+        width: 800,
+        height: 450
+      });
+
+      // Save generated image
+      fs.writeFileSync(imagePath, imageBuffer);
+
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error('Thumbnail generation error:', error);
+      res.status(500).json({ error: 'Failed to generate thumbnail' });
     }
   });
 
@@ -141,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExtension = path.extname(originalName);
       const newFileName = `${req.file.filename}${fileExtension}`;
       const newFilePath = path.join(gamesUploadDir, newFileName);
-      
+
       // เปลี่ยนชื่อไฟล์ให้มี extension
       fs.renameSync(req.file.path, newFilePath);
 
@@ -160,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = insertGameSchema.parse(gameData);
       const game = await storage.createGame(validatedData);
-      
+
       res.status(201).json(game);
     } catch (error) {
       // ลบไฟล์ที่อัพโหลดถ้าเกิดข้อผิดพลาด
@@ -171,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('ไม่สามารถลบไฟล์ได้:', unlinkError);
         }
       }
-      
+
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "ข้อมูลเกมไม่ถูกต้อง", errors: error.errors });
       }

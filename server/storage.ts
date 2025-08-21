@@ -29,7 +29,7 @@ export class MemStorage implements IStorage {
   {
     title: '3D Cube Runner',
     description: 'เกมวิ่งหลบสิ่งกีดขวางแบบ 3D ด้วย WebGL กราฟิกสุดล้ำ วิ่งไปข้างหน้าและหลบอุปสรรค',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/1/thumbnail',
     gameUrl: '/games/3d-cube-runner.html',
     gameFile: null,
     isEmbedded: false,
@@ -42,7 +42,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Particle Explosion WebGL',
     description: 'เกมอนุภาคระเบิดสุดมันส์ด้วย WebGL เอฟเฟกต์สวยงาม คลิกเพื่อสร้างการระเบิดสีสัน',
-    thumbnail: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/2/thumbnail',
     gameUrl: '/games/particle-explosion.html',
     gameFile: null,
     isEmbedded: false,
@@ -55,7 +55,7 @@ export class MemStorage implements IStorage {
   {
     title: '3D Racing WebGL',
     description: 'เกมแข่งรถ 3D สุดเร้าใจ ขับรถหลบคู่แข่ง ใช้บูสเตอร์ และแซงหน้าเพื่อคะแนนสูง',
-    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/3/thumbnail',
     gameUrl: '/games/3d-racing-webgl.html',
     gameFile: null,
     isEmbedded: false,
@@ -68,7 +68,7 @@ export class MemStorage implements IStorage {
   {
     title: '3D Space Invaders',
     description: 'เกมยิงอวกาศ 3D สุดมันส์ ยิงยานมนุษย์ต่างดาว เก็บพาวเวอร์อัพ และปกป้องโลก',
-    thumbnail: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/4/thumbnail',
     gameUrl: '/games/space-invaders-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -81,7 +81,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Neon Maze 3D',
     description: 'เขาวงกต 3D สุดล้ำ เดินทางผ่านเขาวงกตนีออน เก็บของสะสม และหาทางออก',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/5/thumbnail',
     gameUrl: '/games/neon-maze-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -94,7 +94,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Neon Platformer WebGL',
     description: 'เกมกระโดดข้ามแพลตฟอร์ม WebGL สุดสวย นีออนเอฟเฟกต์ เก็บเพชร หลีกเลี่ยงศัตรู',
-    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/6/thumbnail',
     gameUrl: '/games/neon-platformer-webgl.html',
     gameFile: null,
     isEmbedded: false,
@@ -107,7 +107,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Cyber Runner 3D',
     description: 'วิ่งผ่านเมืองไซเบอร์ 3D หลีกเลี่ยงสิ่งกีดขวาง เปลี่ยนเลน และสะสมคะแนนสูง',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/7/thumbnail',
     gameUrl: '/games/cyber-runner-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -120,7 +120,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Quantum Shooter WebGL',
     description: 'เกมยิงควอนตัม WebGL ด้วยเอฟเฟกต์พิเศษ พาวเวอร์อัพ และศัตรูหลากหลาย',
-    thumbnail: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/8/thumbnail',
     gameUrl: '/games/quantum-shooter-webgl.html',
     gameFile: null,
     isEmbedded: false,
@@ -133,7 +133,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Galactic Defender 3D',
     description: 'เกมปกป้องกาแล็กซี่ 3D สุดอลังการ อาวุธหลากหลาย ศัตรูมากมาย และเอฟเฟกต์สุดตระการตา',
-    thumbnail: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/9/thumbnail',
     gameUrl: '/games/galactic-defender-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -146,7 +146,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Crystal Caverns 3D',
     description: 'สำรวจถ้ำคริสตัล 3D มหัศจรรย์ เก็บอัญมณี หลีกเลี่ยงอันตราย และเปิดเส้นทางลับ',
-    thumbnail: 'https://images.unsplash.com/photo-1551739440-5dd934d3a94a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/10/thumbnail',
     gameUrl: '/games/crystal-caverns-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -159,7 +159,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Neural Network 3D',
     description: 'เกมเครือข่ายประสาทเทียม 3D เชื่อมต่อโหนด ประมวลผลข้อมูล และต่อสู้กับไวรัส',
-    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/11/thumbnail',
     gameUrl: '/games/neural-network-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -172,7 +172,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Neon Maze 3D',
     description: 'เขาวงกตนีออน 3D แบบ First-Person ใช้เทคนิค Ray Casting หาเป้าหมายในเขาวงกต',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/12/thumbnail',
     gameUrl: '/games/neon-maze-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -185,7 +185,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Space Mining 3D',
     description: 'เกมขุดแร่ในอวกาศ 3D ใช้เครื่องมือเจาะ เก็บแร่ธาตุ หลีกเลี่ยงอุกกาบาต',
-    thumbnail: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/13/thumbnail',
     gameUrl: '/games/space-mining-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -198,7 +198,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Cosmic Defender WebGL',
     description: 'เกมปกป้องจักรวาล WebGL มีระบบโล่พลังงาน อาวุธอัพเกรด และศัตรูหลากหลาย',
-    thumbnail: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/14/thumbnail',
     gameUrl: '/games/cosmic-defender-webgl.html',
     gameFile: null,
     isEmbedded: false,
@@ -211,7 +211,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Snake Enhanced Pro',
     description: 'เกมงูสุดพิเศษ มีระบบเลเวล อาหารพิเศษ อนุภาคสวยงาม และเอฟเฟกต์ตัวเก่าด้วยกราฟิกแบบไล่สี',
-    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/15/thumbnail',
     gameUrl: '/games/snake-enhanced.html',
     gameFile: null,
     isEmbedded: false,
@@ -224,7 +224,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Snake Game Classic',
     description: 'เกมงูคลาสสิกที่ทุกคนเคยเล่น กินจุดเติบโต หลีกเลี่ยงตัวเอง',
-    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/16/thumbnail',
     gameUrl: '/games/snake.html',
     gameFile: null,
     isEmbedded: false,
@@ -237,7 +237,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Tetris Enhanced Pro',
     description: 'เกม Tetris สุดพิเศษ เอฟเฟกต์อนุภาค กราฟิกไล่สี ระบบเลเวลใหม่ และการแสดงผลที่สวยงาม',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/17/thumbnail',
     gameUrl: '/games/tetris-enhanced.html',
     gameFile: null,
     isEmbedded: false,
@@ -250,7 +250,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Tetris Rush',
     description: 'เกม Tetris คลาสสิกที่ไม่มีวันล้าสมัย จัดบล็อกให้เต็มแถว',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/18/thumbnail',
     gameUrl: '/games/tetris.html',
     gameFile: null,
     isEmbedded: false,
@@ -263,7 +263,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Space Shooter',
     description: 'เกมยิงเอเลี่ยนในอวกาศสุดมันส์ กราฟิกสวยและเล่นลื่น',
-    thumbnail: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
+    thumbnail: '/api/games/19/thumbnail',
     gameUrl: '/games/space-shooter.html',
     gameFile: null,
     isEmbedded: false,
@@ -276,7 +276,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Flappy Bird',
     description: 'เกมบินผ่านท่อที่ยากแต่เสพติด เกมที่ทำให้โลกกลับมาฮิตอีกครั้ง',
-    thumbnail: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/20/thumbnail',
     gameUrl: '/games/flappy-bird.html',
     gameFile: null,
     isEmbedded: false,
@@ -289,7 +289,7 @@ export class MemStorage implements IStorage {
   {
     title: '2048',
     description: 'เกมปริศนาตัวเลขที่ทำให้ติดไม่หยุด รวมตัวเลขให้ได้ 2048',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/21/thumbnail',
     gameUrl: '/games/2048.html',
     gameFile: null,
     isEmbedded: false,
@@ -302,7 +302,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Bubble Shooter',
     description: 'เกมยิงบอลสีเพื่อจับคู่สีเดียวกัน เล่นง่าย สนุก ผ่อนคลาย',
-    thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop',
+    thumbnail: '/api/games/22/thumbnail',
     gameUrl: '/games/bubble-shooter.html',
     gameFile: null,
     isEmbedded: false,
@@ -315,7 +315,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Racing Rush',
     description: 'เกมขับรถแข่งสุดเร้าใจ หลบหลีกการจราจร พุ่งไปให้ไกลที่สุด',
-    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    thumbnail: '/api/games/23/thumbnail',
     gameUrl: '/games/racing-rush.html',
     gameFile: null,
     isEmbedded: false,
@@ -328,7 +328,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Pong Classic',
     description: 'เกมปิงปองคลาสสิกตัวแรกของโลก เล่น 2 คน ควบคุมไม้ตีไปมา เกมที่เริ่มต้นยุคเกม',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/24/thumbnail',
     gameUrl: '/games/pong-classic.html',
     gameFile: null,
     isEmbedded: false,
@@ -341,7 +341,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Breakout Retro',
     description: 'เกมทำลายอิฐคลาสสิก ใช้ลูกบอลและไม้ตีทำลายอิฐทุกแผ่น เกมที่สร้างแรงบันดาลใจให้เกมยุคใหม่',
-    thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/25/thumbnail',
     gameUrl: '/games/breakout-retro.html',
     gameFile: null,
     isEmbedded: false,
@@ -354,7 +354,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Connect Four',
     description: 'เกมเรียงหมากครุย 4 เม็ดติดกัน เล่น 2 คน วางหมากเป็นเส้นตรง แนวตั้ง แนวนอน หรือแนวทแยงมุม',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/26/thumbnail',
     gameUrl: '/games/connect-four.html',
     gameFile: null,
     isEmbedded: false,
@@ -367,7 +367,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Tic Tac Toe',
     description: 'เกม OX คลาสสิก เล่น 2 คน เรียง X หรือ O ให้ได้ 3 เม็ดติดกัน เกมง่ายๆ ที่ทุกคนรู้จัก',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/27/thumbnail',
     gameUrl: '/games/tic-tac-toe.html',
     gameFile: null,
     isEmbedded: false,
@@ -380,7 +380,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Pac-Man Adventure',
     description: 'เกมผีน้อยสุดคลาสสิก กินจุดหลบผี เก็บผลไม้พิเศษ และเคลียร์เขาวงกตทุกด่าน',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/28/thumbnail',
     gameUrl: '/games/pacman-adventure.html',
     gameFile: null,
     isEmbedded: false,
@@ -393,7 +393,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Asteroid Shooter',
     description: 'เกมยิงดาวเคราะห์น้อยคลาสสิก หมุนยานอวกาศยิงทำลายอุกกาบาต หลีกเลี่ยงการชน',
-    thumbnail: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/29/thumbnail',
     gameUrl: '/games/asteroid-shooter.html',
     gameFile: null,
     isEmbedded: false,
@@ -406,7 +406,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Memory Cards',
     description: 'เกมจับคู่การ์ดที่ฝึกความจำ เล่นง่าย เหมาะสำหรับทุกเพศทุกวัย',
-    thumbnail: 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=300&fit=crop',
+    thumbnail: '/api/games/30/thumbnail',
     gameUrl: '/games/memory-cards.html',
     gameFile: null,
     isEmbedded: false,
@@ -419,7 +419,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Puzzle Blocks',
     description: 'เกมปริศนาจิ๊กซอว์บล็อก วางชิ้นส่วนให้เข้าที่ ฝึกสมอง',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/31/thumbnail',
     gameUrl: '/games/puzzle-blocks.html',
     gameFile: null,
     isEmbedded: false,
@@ -432,7 +432,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Tower Defense 3D',
     description: 'เกมป้องกันหอคอย 3D ที่มีศัตรูหลายประเภท อาวุธอัพเกรดได้ และกลยุทธ์สุดล้ำ',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/32/thumbnail',
     gameUrl: '/games/tower-defense-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -445,7 +445,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Portal Escape 3D',
     description: 'เกมหลบหนี 3D ผ่านพอร์ทัลมหัศจรรย์ เก็บอัญมณี หลีกเลี่ยงกับดัก และพิชิตด่าน',
-    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/33/thumbnail',
     gameUrl: '/games/portal-escape-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -458,7 +458,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Dragon Flight 3D',
     description: 'เกมบินมังกร 3D สุดมันส์ พ่นไฟ เก็บอัญมณี บินผ่านภูเขาและเมฆ',
-    thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/34/thumbnail',
     gameUrl: '/games/dragon-flight-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -471,7 +471,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Soccer Penalty Shootout',
     description: 'เกมยิงจุดโทษฟุตบอลสุดมันส์ เลือกทิศทาง ใช้พลัง และยิงเข้าประตู',
-    thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/35/thumbnail',
     gameUrl: '/games/soccer-penalty.html',
     gameFile: null,
     isEmbedded: false,
@@ -484,7 +484,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Basketball Shots 3D',
     description: 'เกมยิงบาสเกตบอล 3D ทดสอบทักษะการยิง มุมต่างๆ และระยะทางหลากหลาย',
-    thumbnail: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/36/thumbnail',
     gameUrl: '/games/basketball-shots-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -497,7 +497,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Chess Master 3D',
     description: 'เกมหมากรุกคลาสสิก 3D เล่นกับ AI หรือเพื่อน ระดับความยากปรับได้',
-    thumbnail: 'https://images.unsplash.com/photo-1560174038-da43ac74f01b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/37/thumbnail',
     gameUrl: '/games/chess-master-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -510,7 +510,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Medieval Kingdom Strategy',
     description: 'เกมกลยุทธ์สร้างอาณาจักรยุคกลาง สร้างกองทัพ ขยายดินแดน และพิชิตศัตรู',
-    thumbnail: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/38/thumbnail',
     gameUrl: '/games/medieval-kingdom.html',
     gameFile: null,
     isEmbedded: false,
@@ -523,7 +523,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Jungle Adventure Quest',
     description: 'ผจญภัยในป่าลึก เก็บสมบัติ หลบสัตว์ป่า ไขปริศนาโบราณ และค้นหาทางออก',
-    thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/39/thumbnail',
     gameUrl: '/games/jungle-adventure.html',
     gameFile: null,
     isEmbedded: false,
@@ -536,7 +536,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Underwater Treasure Hunt',
     description: 'ดำน้ำลึกเพื่อหาสมบัติ หลบปลาฉลาม เก็บไข่มุก และสำรวจโลกใต้ทะเล',
-    thumbnail: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/40/thumbnail',
     gameUrl: '/games/underwater-treasure.html',
     gameFile: null,
     isEmbedded: false,
@@ -549,7 +549,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Mountain Climbing 3D',
     description: 'เกมปีนเขา 3D สุดท้าทาย เลือกเส้นทาง หลีกเลี่ยงอันตราย และไปถึงยอดเขา',
-    thumbnail: 'https://images.unsplash.com/photo-1464822759844-d150baec4f25?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/41/thumbnail',
     gameUrl: '/games/mountain-climbing-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -562,7 +562,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Rhythm Beat Master',
     description: 'เกมดนตรีเคาะจังหวะ ตามจังหวะเพลง สะสมคะแนน และปลดล็อกเพลงใหม่',
-    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/42/thumbnail',
     gameUrl: '/games/rhythm-beat-master.html',
     gameFile: null,
     isEmbedded: false,
@@ -575,7 +575,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Word Search Puzzle',
     description: 'เกมหาคำศัพท์ในตาราง ฝึกสมอง เพิ่มพูนความรู้ และทดสอบความเร็วในการค้นหา',
-    thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/43/thumbnail',
     gameUrl: '/games/word-search-puzzle.html',
     gameFile: null,
     isEmbedded: false,
@@ -588,7 +588,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Dancing Beat Challenge',
     description: 'เกมเต้นตามจังหวะ เคลื่อนไหวตามแสง สะสมคะแนนเต้น และปลดล็อกเพลงใหม่',
-    thumbnail: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/44/thumbnail',
     gameUrl: '/games/dancing-beat-challenge.html',
     gameFile: null,
     isEmbedded: false,
@@ -601,7 +601,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Cooking Master 3D',
     description: 'เกมทำอาหาร 3D จัดการร้านอาหาร ปรุงอาหารอร่อยและบริการลูกค้า',
-    thumbnail: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/45/thumbnail',
     gameUrl: '/games/cooking-master-3d.html',
     gameFile: null,
     isEmbedded: false,
@@ -614,7 +614,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Fashion Designer Studio',
     description: 'เกมออกแบบแฟชั่น เลือกเสื้อผ้า แต่งตัวโมเดล และจัดแสดงแฟชั่นโชว์',
-    thumbnail: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/46/thumbnail',
     gameUrl: '/games/fashion-designer-studio.html',
     gameFile: null,
     isEmbedded: false,
@@ -627,7 +627,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Pixel Art Creator',
     description: 'เกมวาดภาพพิกเซล สร้างสรรค์งานศิลปะ ระบายสี และแชร์ผลงาน',
-    thumbnail: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/47/thumbnail',
     gameUrl: '/games/pixel-art-creator.html',
     gameFile: null,
     isEmbedded: false,
@@ -640,7 +640,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Neon Racing Circuit',
     description: 'เกมแข่งรถในเมืองอนาคต ไฟนีออน ความเร็วสูง และลูปแบบสามมิติ',
-    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/48/thumbnail',
     gameUrl: '/games/neon-racing-circuit.html',
     gameFile: null,
     isEmbedded: false,
@@ -653,7 +653,7 @@ export class MemStorage implements IStorage {
   {
     title: 'Desert Rally Championship',
     description: 'เกมแข่งรถในทะเลทราย ผ่านเนินทรายและโค้งอันตราย พร้อมรถที่หลากหลาย',
-    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+    thumbnail: '/api/games/49/thumbnail',
     gameUrl: '/games/desert-rally-championship.html',
     gameFile: null,
     isEmbedded: false,
@@ -665,7 +665,7 @@ export class MemStorage implements IStorage {
   },
 ];
 
-    defaultGames.forEach(gameData => {
+    defaultGames.forEach((gameData, index) => {
       const id = randomUUID();
       const game: Game = {
         ...gameData,
