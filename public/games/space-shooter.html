@@ -298,14 +298,29 @@
 
             if (gameState === 'playing') {
                 update();
-                draw();
             }
+            draw(); // วาดเสมอเพื่อให้ UI อัพเดท
             requestAnimationFrame(gameLoop);
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+            enemies = [];
+            lastEnemySpawn = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 60;
+            player.bullets = [];
         }
 
         // Event listeners
         document.addEventListener('keydown', (e) => {
             keys[e.key] = true;
+            if (e.key === ' ' && gameState === 'gameOver') {
+                resetGame();
+            }
             e.preventDefault();
         });
 
@@ -314,7 +329,7 @@
         });
 
         // เริ่มเกม
-        gameLoop(0); // เริ่มต้นด้วยเวลา 0 เพื่อให้เฟรมแรกทำงาน
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>

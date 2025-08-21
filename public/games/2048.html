@@ -240,17 +240,24 @@
                 for (let j = 0; j < 4; j++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
+                    cell.style.gridRow = i + 1;
+                    cell.style.gridColumn = j + 1;
 
                     const value = grid[i][j];
                     if (value > 0) {
                         cell.textContent = value;
                         cell.classList.add(`cell-${value}`);
 
-                        // เอฟเฟกต์การปรากฏ
-                        cell.style.transform = 'scale(0)';
-                        setTimeout(() => {
+                        // เอฟเฟกต์การปรากฏแบบนุ่มนวล
+                        cell.style.transform = 'scale(0.8)';
+                        cell.style.opacity = '0';
+                        
+                        // ใช้ requestAnimationFrame สำหรับการแอนิเมชั่น
+                        requestAnimationFrame(() => {
+                            cell.style.transition = 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)';
                             cell.style.transform = 'scale(1)';
-                        }, 10);
+                            cell.style.opacity = '1';
+                        });
                     }
 
                     gridElement.appendChild(cell);

@@ -432,21 +432,18 @@
         function gameLoop(currentTime) {
             // Frame rate control
             if (currentTime - lastTime < frameTime) {
-                if (gameRunning) {
-                    requestAnimationFrame(gameLoop);
-                }
+                requestAnimationFrame(gameLoop);
                 return;
             }
             lastTime = currentTime;
 
             update();
             draw();
-            if (gameRunning) {
-                requestAnimationFrame(gameLoop);
-            }
+            requestAnimationFrame(gameLoop);
         }
 
-        gameLoop();
+        // เริ่มต้น gameLoop
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
