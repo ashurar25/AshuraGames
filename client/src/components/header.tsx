@@ -32,10 +32,10 @@ export default function Header({ onSearch }: HeaderProps) {
           
           <div className="hidden md:flex items-center space-x-6">
             <nav className="flex space-x-6" data-testid="navigation-menu">
-              <a href="#" className="text-white hover:text-mint-300 transition-colors" data-testid="link-home">Home</a>
-              <a href="#categories" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-categories">Categories</a>
-              <a href="#trending" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-trending">Trending</a>
-              <a href="#new" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-new">New</a>
+              <a href="#" className="text-white hover:text-mint-300 transition-colors" data-testid="link-home">หน้าแรก</a>
+              <a href="#categories" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-categories">หมวดหมู่</a>
+              <a href="#trending" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-trending">ยอดนิยม</a>
+              <a href="#new" className="text-gray-300 hover:text-mint-300 transition-colors" data-testid="link-new">เกมส์ใหม่</a>
             </nav>
           </div>
 
@@ -43,7 +43,7 @@ export default function Header({ onSearch }: HeaderProps) {
             <div className="relative" data-testid="search-section">
               <Input
                 type="text"
-                placeholder="Search games..."
+                placeholder="ค้นหาเกมส์..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="glass w-64 px-4 py-2 pl-10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mint-500 transition-all border-0 bg-white/10"

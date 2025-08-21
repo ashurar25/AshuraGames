@@ -19,7 +19,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 mb-6">
-              Play the best free HTML5 games online. No downloads, no registration required.
+              เล่นเกมส์ HTML5 ฟรีที่ดีที่สุดออนไลน์ ไม่ต้องดาวน์โหลด ไม่ต้องสมัครสมาชิก
             </p>
             <div className="flex space-x-4">
               <Button variant="ghost" size="icon" className="glass w-10 h-10 rounded-full text-gray-400 hover:text-mint-300" data-testid="link-twitter">
@@ -35,33 +35,33 @@ export default function Footer() {
           </div>
           
           <div>
-            <h4 className="text-white font-semibold mb-4">Categories</h4>
+            <h4 className="text-white font-semibold mb-4">หมวดหมู่</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-action-games">Action Games</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-puzzle-games">Puzzle Games</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-racing-games">Racing Games</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-strategy-games">Strategy Games</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-io-games">.IO Games</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-action-games">เกมส์แอคชั่น</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-puzzle-games">เกมส์ปริศนา</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-racing-games">เกมส์รถแข่ง</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-strategy-games">เกมส์กลยุทธ์</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-io-games">เกมส์ .IO</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-white font-semibold mb-4">Company</h4>
+            <h4 className="text-white font-semibold mb-4">บริษัท</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-about">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-contact">Contact</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-privacy">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-terms">Terms of Service</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-about">เกี่ยวกับเรา</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-contact">ติดต่อเรา</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-privacy">นโยบายความเป็นส่วนตัว</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-mint-300 transition-colors" data-testid="link-terms">เงื่อนไขการให้บริการ</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-white font-semibold mb-4">Stay Updated</h4>
-            <p className="text-gray-400 mb-4">Get notified about new games and updates.</p>
+            <h4 className="text-white font-semibold mb-4">รับข่าวสาร</h4>
+            <p className="text-gray-400 mb-4">รับการแจ้งเตือนเกี่ยวกับเกมส์ใหม่และอัพเดต</p>
             <div className="flex space-x-2">
               <Input
                 type="email"
-                placeholder="Your email"
+                placeholder="อีเมลของคุณ"
                 className="glass flex-1 px-4 py-2 rounded-lg text-white placeholder-gray-400 border-white/20 focus:ring-2 focus:ring-mint-500 bg-white/10"
                 data-testid="input-newsletter-email"
               />
@@ -74,7 +74,7 @@ export default function Footer() {
         
         <div className="border-t border-mint-500/20 mt-12 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 ASHURA Games. All rights reserved. | Powered by ASHURA Games Platform
+            © 2024 ASHURA Games. สงวนลิขสิทธิ์ทั้งหมด | ขับเคลื่อนโดย ASHURA Games Platform
           </p>
         </div>
       </div>
