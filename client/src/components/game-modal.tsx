@@ -31,7 +31,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         className="glass-dark w-[95vw] h-[95vh] max-w-none max-h-none overflow-hidden border border-mint-500/20 p-0"
         data-testid="modal-game"
       >
@@ -77,13 +77,17 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 src={game.gameUrl}
                 className="w-full h-full border-0"
                 title={game.title}
-                allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write"
+                allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope"
                 allowFullScreen
-                sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
                 data-testid="iframe-game"
-                onLoad={() => setIsLoading(false)}
+                onLoad={(e) => {
+                  console.log('Game loaded successfully:', game.title);
+                  setIsLoading(false);
+                }}
                 onError={(e) => {
                   console.error('Game loading error:', e);
+                  console.error('Failed to load game:', game.title, 'URL:', game.gameUrl);
                   setIsLoading(false);
                 }}
                 style={{ minHeight: '60vh' }}
