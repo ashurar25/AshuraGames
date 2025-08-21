@@ -2,7 +2,22 @@
 
 ## Overview
 
-ASHURA Games is a modern web-based gaming platform that provides users with access to a curated collection of HTML5 games. The platform features a sleek, responsive interface with categories for different game types including action, puzzle, racing, multiplayer, .IO, and strategy games. Users can browse games by category, search for specific titles, view trending and new releases, and play games directly within the platform through an embedded modal interface.
+ASHURA Games is a cutting-edge web-based gaming platform featuring an extensive collection of HTML5 and WebGL games. The platform showcases advanced 3D games, particle effects, and modern graphics alongside classic arcade games. With over 20 games including WebGL-powered 3D experiences, the platform offers categories for action, puzzle, racing, arcade, and strategy games. Users can enjoy stunning visual effects, responsive controls for both desktop and mobile, and seamless gameplay through an embedded modal interface.
+
+## Recent Changes (August 2025)
+
+### Major WebGL Game Additions:
+- **3D Cube Runner**: Advanced WebGL 3D obstacle course with real-time lighting
+- **Particle Explosion WebGL**: Interactive particle system with mouse/touch controls
+- **3D Racing WebGL**: Full 3D racing game with cars, track, and physics
+- **3D Space Invaders**: Modern space shooter with 3D graphics and power-ups
+- **Neon Maze 3D**: First-person 3D maze with ray-casting rendering
+- **Neon Platformer WebGL**: Side-scrolling platformer with particle effects
+
+### Enhanced Classic Games:
+- **Snake Enhanced Pro**: Added particle effects, special food, level progression
+- **Tetris Enhanced Pro**: Gradient blocks, particle effects, level-up animations
+- All games now feature improved graphics, particle systems, and mobile touch controls
 
 ## User Preferences
 
