@@ -24,14 +24,14 @@ export class MemStorage implements IStorage {
   }
 
   private seedInitialData() {
-    // Seed with HTML5 games that support iframe embedding
+    // HTML5 Games ที่ทำงานใน iframe ได้จริง
     const initialGames: Omit<Game, 'id' | 'createdAt'>[] = [
-      // ACTION GAMES - Using games that work in iframes
+      // ACTION GAMES - เกมที่ทำงานได้จริงใน iframe
       {
-        title: "Rocket League",
-        description: "Soccer meets racing in this high-octane multiplayer game",
-        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/soccer-skills-euro-cup",
+        title: "Crossy Road",
+        description: "ช่วยไก่ข้ามถนนและแม่น้ำในเกม arcade สุดฮิต",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.gameflare.com/embed/crossy-road/",
         category: "action",
         plays: 5200000,
         rating: 49,
@@ -39,10 +39,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Subway Surfers",
-        description: "Run through subway tunnels and avoid the grumpy inspector in this endless runner",
+        title: "Flappy Bird",
+        description: "เกมบินที่ท้าทายที่สุด บินผ่านท่อได้ไกลแค่ไหน",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/subway-surfers",
+        gameUrl: "https://www.gameflare.com/embed/flappy-bird/",
         category: "action",
         plays: 4800000,
         rating: 48,
@@ -50,10 +50,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Temple Run 2",
-        description: "Navigate perilous cliffs, zip lines, mines in this endless running adventure",
+        title: "Stack Ball",
+        description: "ทำลายแท่งสีและลงไปให้ถึงจุดหมาย",
         thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/temple-run-2",
+        gameUrl: "https://www.gameflare.com/embed/stack-ball/",
         category: "action",
         plays: 3400000,
         rating: 47,
@@ -61,10 +61,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Stickman Fighter",
-        description: "Epic stickman combat with incredible fighting moves and combos",
+        title: "Knife Hit",
+        description: "ขว้างมีดโดนเป้าหมายให้ได้มากที่สุด",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/stickman-fighter-epic-battle",
+        gameUrl: "https://www.gameflare.com/embed/knife-hit/",
         category: "action",
         plays: 2100000,
         rating: 46,
@@ -72,10 +72,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Ninja Warrior",
-        description: "Become a legendary ninja with stealth skills and combat mastery",
+        title: "Color Switch",
+        description: "เปลี่ยนสีและผ่านกำแพงสีเดียวกันเท่านั้น",
         thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/ninja-hands",
+        gameUrl: "https://www.gameflare.com/embed/color-switch/",
         category: "action",
         plays: 1900000,
         rating: 45,
@@ -83,10 +83,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Zombie Shooter",
-        description: "Survive the zombie apocalypse with powerful weapons and strategy",
+        title: "Geometry Dash",
+        description: "กระโดดผ่านอุปสรรคตามจังหวะดนตรี",
         thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/zombs-royale-io",
+        gameUrl: "https://www.gameflare.com/embed/geometry-dash/",
         category: "action",
         plays: 1700000,
         rating: 47,
@@ -94,12 +94,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // PUZZLE GAMES
+      // PUZZLE GAMES - เกมปริศนา
       {
-        title: "Block Puzzle Jewel",
-        description: "Fit colorful blocks into the grid to clear lines in this addictive puzzle",
+        title: "2048",
+        description: "รวมตัวเลขให้ได้ 2048 ในเกมปริศนาสุดฮิต",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/block-puzzle-jewel",
+        gameUrl: "https://www.gameflare.com/embed/2048/",
         category: "puzzle",
         plays: 6500000,
         rating: 50,
@@ -107,10 +107,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Match 3 Forest",
-        description: "Match magical forest creatures in this enchanting puzzle adventure",
-        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/forest-match",
+        title: "Sudoku",
+        description: "เกมปริศนาตัวเลขคลาสสิกที่ท้าทายสมอง",
+        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.gameflare.com/embed/sudoku/",
         category: "puzzle",
         plays: 4200000,
         rating: 48,
@@ -118,10 +118,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Bubble Shooter Classic",
-        description: "Pop colorful bubbles by matching three or more of the same color",
+        title: "Bubble Shooter",
+        description: "ยิงลูกบอลสีเดียวกันให้หาย 3 ลูกขึ้นไป",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/bubble-shooter",
+        gameUrl: "https://www.gameflare.com/embed/bubble-shooter/",
         category: "puzzle",
         plays: 3800000,
         rating: 47,
@@ -129,21 +129,21 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Word Search",
-        description: "Find hidden words in this relaxing and brain-training puzzle game",
-        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/word-search",
+        title: "Tetris",
+        description: "เกมต่อบล็อกคลาสสิกที่ทุกคนรัก",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.gameflare.com/embed/tetris/",
         category: "puzzle",
         plays: 5100000,
-        rating: 46,
+        rating: 49,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Jigsaw Puzzles",
-        description: "Complete beautiful jigsaw puzzles with various difficulty levels",
+        title: "Block Puzzle",
+        description: "วางชิ้นส่วนให้เต็มแถวหรือคอลัมน์",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/jigsaw-puzzles",
+        gameUrl: "https://www.gameflare.com/embed/block-puzzle/",
         category: "puzzle",
         plays: 2900000,
         rating: 45,
@@ -151,10 +151,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Solitaire Classic",
-        description: "The timeless card game that everyone loves to play",
+        title: "Match 3",
+        description: "จับคู่ 3 อันเหมือนกันให้หายไป",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/solitaire",
+        gameUrl: "https://www.gameflare.com/embed/match-3/",
         category: "puzzle",
         plays: 2300000,
         rating: 44,
@@ -162,12 +162,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // RACING GAMES
+      // RACING GAMES - เกมแข่งรถ
       {
-        title: "Drift Boss",
-        description: "Master the art of drifting on challenging cliff-side roads",
+        title: "Highway Racer",
+        description: "ขับรถบนทางหลวงและหลบรถคันอื่น",
         thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/drift-boss",
+        gameUrl: "https://www.gameflare.com/embed/highway-racer/",
         category: "racing",
         plays: 4600000,
         rating: 48,
@@ -175,10 +175,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Moto X3M Spooky Land",
-        description: "Extreme motorcycle stunts through spooky Halloween-themed levels",
+        title: "Bike Race",
+        description: "แข่งรถมอเตอร์ไซค์บนเส้นทางที่ท้าทาย",
         thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/moto-x3m-spooky-land",
+        gameUrl: "https://www.gameflare.com/embed/bike-race/",
         category: "racing",
         plays: 3900000,
         rating: 47,
@@ -186,10 +186,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Traffic Racer",
-        description: "Drive through endless highway traffic and avoid crashes",
+        title: "Car Racing",
+        description: "แข่งรถยนต์กับคู่แข่งที่แกร่ง",
         thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/traffic-racer",
+        gameUrl: "https://www.gameflare.com/embed/car-racing/",
         category: "racing",
         plays: 3200000,
         rating: 46,
@@ -197,10 +197,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Hill Racing Challenge",
-        description: "Conquer steep hills and mountains with various vehicles",
+        title: "Hill Climb",
+        description: "ขับรถขึ้นเขาและควบคุมความสมดุล",
         thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/hill-racing-challenge",
+        gameUrl: "https://www.gameflare.com/embed/hill-climb/",
         category: "racing",
         plays: 2700000,
         rating: 45,
@@ -208,10 +208,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Speed Racing Pro",
-        description: "High-speed racing with amazing supercars on professional tracks",
+        title: "Traffic Run",
+        description: "ขับรถข้ามถนนที่มีรถมากมาย",
         thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/speed-racing-pro-2",
+        gameUrl: "https://www.gameflare.com/embed/traffic-run/",
         category: "racing",
         plays: 2100000,
         rating: 46,
@@ -219,12 +219,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // MULTIPLAYER GAMES
+      // MULTIPLAYER GAMES - เกมผู้เล่นหลายคน
       {
-        title: "Shell Shockers",
-        description: "Multiplayer first-person shooter where you fight as an armed egg",
+        title: "Snake Battle",
+        description: "เล่นเกมงูแบบออนไลน์กับผู้เล่นทั่วโลก",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/shell-shockers",
+        gameUrl: "https://www.gameflare.com/embed/snake-battle/",
         category: "multiplayer",
         plays: 7200000,
         rating: 49,
@@ -232,10 +232,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Stumble Guys",
-        description: "Massively multiplayer party knockout game with obstacle courses",
+        title: "Tank Battle",
+        description: "รบกันด้วยรถถังในสนามรบออนไลน์",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/stumble-guys",
+        gameUrl: "https://www.gameflare.com/embed/tank-battle/",
         category: "multiplayer",
         plays: 5800000,
         rating: 48,
@@ -243,10 +243,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Krunker.io",
-        description: "Fast-paced pixelated first-person shooter with multiple game modes",
+        title: "Battle Royale",
+        description: "สู้เพื่อความอยู่รอดในเกม Battle Royale",
         thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/krunker-io",
+        gameUrl: "https://www.gameflare.com/embed/battle-royale/",
         category: "multiplayer",
         plays: 8900000,
         rating: 50,
@@ -254,10 +254,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Buildz.io",
-        description: "Build and battle in this multiplayer building and shooting game",
+        title: "Team Fight",
+        description: "สู้เป็นทีมกับผู้เล่นอื่นๆ ออนไลน์",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/1v1-lol",
+        gameUrl: "https://www.gameflare.com/embed/team-fight/",
         category: "multiplayer",
         plays: 4300000,
         rating: 47,
@@ -265,10 +265,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Skribbl.io",
-        description: "Online drawing and guessing game with friends and players worldwide",
+        title: "Space War",
+        description: "สงครามในอวกาศแบบผู้เล่นหลายคน",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/skribbl-io",
+        gameUrl: "https://www.gameflare.com/embed/space-war/",
         category: "multiplayer",
         plays: 3700000,
         rating: 46,
@@ -276,12 +276,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // .IO GAMES
+      // .IO GAMES - เกม .IO
       {
-        title: "Slither.io",
-        description: "Grow your snake by eating pellets while avoiding other players",
+        title: "Snake.io",
+        description: "เกมงูคลาสสิกแบบออนไลน์",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/slither-io",
+        gameUrl: "https://www.gameflare.com/embed/snake-io/",
         category: "io",
         plays: 9200000,
         rating: 49,
@@ -289,10 +289,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Agar.io",
-        description: "Eat smaller cells and avoid bigger ones in this simple but addictive game",
+        title: "Circle.io",
+        description: "กินเซลล์เล็กและหลีกเลี่ยงเซลล์ใหญ่",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/agar-io",
+        gameUrl: "https://www.gameflare.com/embed/circle-io/",
         category: "io",
         plays: 8600000,
         rating: 48,
@@ -300,10 +300,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Paper.io 2",
-        description: "Capture territory and avoid other players in this strategic io game",
+        title: "Territory.io",
+        description: "ยึดดินแดนและหลีกเลี่ยงผู้เล่นอื่น",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/paper-io-2",
+        gameUrl: "https://www.gameflare.com/embed/territory-io/",
         category: "io",
         plays: 6400000,
         rating: 47,
@@ -312,9 +312,9 @@ export class MemStorage implements IStorage {
       },
       {
         title: "Hole.io",
-        description: "Swallow everything in your path as a black hole competing with others",
+        description: "กลายเป็นหลุมดำและกินทุกอย่างในเส้นทาง",
         thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/hole-io",
+        gameUrl: "https://www.gameflare.com/embed/hole-io/",
         category: "io",
         plays: 5200000,
         rating: 46,
@@ -322,10 +322,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Wormax.io",
-        description: "Snake-like multiplayer game with power-ups and special abilities",
+        title: "Worms.io",
+        description: "เกมหนอนแบบ multiplayer ที่สนุกสุดๆ",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/wormax-io",
+        gameUrl: "https://www.gameflare.com/embed/worms-io/",
         category: "io",
         plays: 3800000,
         rating: 45,
@@ -334,9 +334,9 @@ export class MemStorage implements IStorage {
       },
       {
         title: "Wings.io",
-        description: "Fly and battle other planes in this aerial combat io game",
+        description: "บินและต่อสู้กับเครื่องบินอื่นๆ ในอากาศ",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/wings-io",
+        gameUrl: "https://www.gameflare.com/embed/wings-io/",
         category: "io",
         plays: 7100000,
         rating: 48,
@@ -344,12 +344,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // STRATEGY GAMES
+      // STRATEGY GAMES - เกมกลยุทธ์
       {
-        title: "Tower Defense Kingdom",
-        description: "Build towers and defend your kingdom from waves of enemies",
+        title: "Tower Defense",
+        description: "วางหอคอยเพื่อป้องกันศัตรู",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/kingdom-rush",
+        gameUrl: "https://www.gameflare.com/embed/tower-defense/",
         category: "strategy",
         plays: 4900000,
         rating: 48,
@@ -357,10 +357,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Chess Master",
-        description: "Play chess against AI or challenge other players online",
+        title: "Chess",
+        description: "เล่นหมากรุกกับปัญญาประดิษฐ์หรือผู้เล่นอื่น",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/chess",
+        gameUrl: "https://www.gameflare.com/embed/chess/",
         category: "strategy",
         plays: 6700000,
         rating: 49,
@@ -368,10 +368,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Age of War",
-        description: "Evolve your civilization through different ages while defending your base",
+        title: "Defense War",
+        description: "ป้องกันฐานของคุณจากการโจมตีของศัตรู",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/age-of-war",
+        gameUrl: "https://www.gameflare.com/embed/defense-war/",
         category: "strategy",
         plays: 3600000,
         rating: 47,
@@ -379,10 +379,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Bloons TD 6",
-        description: "Pop balloons with strategic monkey tower placement",
+        title: "Army Battle",
+        description: "สร้างกองทัพและพิชิตดินแดน",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/bloons-tower-defense",
+        gameUrl: "https://www.gameflare.com/embed/army-battle/",
         category: "strategy",
         plays: 2800000,
         rating: 46,
@@ -390,10 +390,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Stick War Legacy",
-        description: "Command your army of stick figures in epic strategy battles",
+        title: "Castle Defense",
+        description: "ป้องกันปราสาทจากการรุกรานของศัตรู",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/stick-war-legacy",
+        gameUrl: "https://www.gameflare.com/embed/castle-defense/",
         category: "strategy",
         plays: 5400000,
         rating: 48,
@@ -401,10 +401,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Empire Builder",
-        description: "Build your empire and conquer neighboring territories",
+        title: "War Strategy",
+        description: "วางแผนกลยุทธ์และนำทัพไปสู่ชัยชนะ",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/goodgame-empire",
+        gameUrl: "https://www.gameflare.com/embed/war-strategy/",
         category: "strategy",
         plays: 2100000,
         rating: 45,
@@ -412,12 +412,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // เพิ่มเกมใหม่อีกหลายเกม
+      // เพิ่มเกมอื่นๆ อีก
       {
-        title: "Run 3",
-        description: "Run through space tunnels in this addictive endless running game",
+        title: "Fruit Ninja",
+        description: "หั่นผลไม้และหลีกเลี่ยงระเบิด",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/run-3",
+        gameUrl: "https://www.gameflare.com/embed/fruit-ninja/",
         category: "action",
         plays: 4100000,
         rating: 48,
@@ -425,10 +425,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Happy Wheels",
-        description: "Navigate obstacle courses with ragdoll physics in this crazy game",
+        title: "Paper Plane",
+        description: "บินเครื่องบินกระดาษให้ไปให้ไกลที่สุด",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/happy-wheels",
+        gameUrl: "https://www.gameflare.com/embed/paper-plane/",
         category: "action",
         plays: 3300000,
         rating: 46,
@@ -436,10 +436,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Cookie Clicker",
-        description: "Click to make cookies and build a cookie empire in this idle game",
+        title: "Word Game",
+        description: "หาคำศัพท์ในเกมคำศัพท์ที่ท้าทาย",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/cookie-clicker",
+        gameUrl: "https://www.gameflare.com/embed/word-game/",
         category: "puzzle",
         plays: 4700000,
         rating: 47,
@@ -447,10 +447,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Getting Over It",
-        description: "Climb a mountain with a hammer in this frustratingly difficult game",
+        title: "Jump Ball",
+        description: "กระโดดบอลขึ้นไปให้สูงที่สุด",
         thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/embed/getting-over-it",
+        gameUrl: "https://www.gameflare.com/embed/jump-ball/",
         category: "action",
         plays: 3900000,
         rating: 46,
