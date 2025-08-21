@@ -24,14 +24,14 @@ export class MemStorage implements IStorage {
   }
 
   private seedInitialData() {
-    // Seed with 40+ real playable HTML5 games
+    // Seed with HTML5 games that support iframe embedding
     const initialGames: Omit<Game, 'id' | 'createdAt'>[] = [
-      // ACTION GAMES
+      // ACTION GAMES - Using games that work in iframes
       {
-        title: "Super Mario Bros",
-        description: "The classic platform adventure game with Mario jumping and running through amazing worlds",
-        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://mario-play.com/mario-games/super-mario-bros/",
+        title: "Rocket League",
+        description: "Soccer meets racing in this high-octane multiplayer game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/soccer-skills-euro-cup",
         category: "action",
         plays: 5200000,
         rating: 49,
@@ -39,10 +39,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Pac-Man",
-        description: "The iconic arcade game where you eat dots and avoid ghosts in this maze adventure",
-        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://pacman.live/",
+        title: "Subway Surfers",
+        description: "Run through subway tunnels and avoid the grumpy inspector in this endless runner",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/subway-surfers",
         category: "action",
         plays: 4800000,
         rating: 48,
@@ -50,10 +50,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Street Fighter 2",
-        description: "Classic fighting game with legendary characters like Ryu, Ken, and Chun-Li",
-        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://sf2.playretrogames.com/",
+        title: "Temple Run 2",
+        description: "Navigate perilous cliffs, zip lines, mines in this endless running adventure",
+        thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/temple-run-2",
         category: "action",
         plays: 3400000,
         rating: 47,
@@ -61,10 +61,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Mega Man X",
-        description: "Futuristic action platformer with incredible weapons and boss battles",
-        thumbnail: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://megamanx.playretrogames.com/",
+        title: "Stickman Fighter",
+        description: "Epic stickman combat with incredible fighting moves and combos",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/stickman-fighter-epic-battle",
         category: "action",
         plays: 2100000,
         rating: 46,
@@ -72,10 +72,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Contra",
-        description: "Run and gun military-themed action game with co-op gameplay",
+        title: "Ninja Warrior",
+        description: "Become a legendary ninja with stealth skills and combat mastery",
         thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://contra.playretrogames.com/",
+        gameUrl: "https://www.crazygames.com/embed/ninja-hands",
         category: "action",
         plays: 1900000,
         rating: 45,
@@ -83,10 +83,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Metal Slug",
-        description: "Side-scrolling run and gun game with amazing hand-drawn animation",
-        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://metalslug.playretrogames.com/",
+        title: "Zombie Shooter",
+        description: "Survive the zombie apocalypse with powerful weapons and strategy",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/zombs-royale-io",
         category: "action",
         plays: 1700000,
         rating: 47,
@@ -96,10 +96,10 @@ export class MemStorage implements IStorage {
 
       // PUZZLE GAMES
       {
-        title: "Tetris",
-        description: "The legendary block puzzle game that started it all - arrange falling blocks perfectly",
+        title: "Block Puzzle Jewel",
+        description: "Fit colorful blocks into the grid to clear lines in this addictive puzzle",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://tetris.com/play-tetris",
+        gameUrl: "https://www.crazygames.com/embed/block-puzzle-jewel",
         category: "puzzle",
         plays: 6500000,
         rating: 50,
@@ -107,10 +107,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Sudoku Master",
-        description: "Classic number puzzle game that challenges your logical thinking skills",
-        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://sudoku.com/",
+        title: "Match 3 Forest",
+        description: "Match magical forest creatures in this enchanting puzzle adventure",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/forest-match",
         category: "puzzle",
         plays: 4200000,
         rating: 48,
@@ -118,10 +118,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "2048",
-        description: "Slide numbered tiles to combine them and reach the magical 2048 tile",
+        title: "Bubble Shooter Classic",
+        description: "Pop colorful bubbles by matching three or more of the same color",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://play2048.co/",
+        gameUrl: "https://www.crazygames.com/embed/bubble-shooter",
         category: "puzzle",
         plays: 3800000,
         rating: 47,
@@ -129,10 +129,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Candy Crush",
-        description: "Match 3 sweet candies in this colorful and addictive puzzle adventure",
-        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/candy-crush",
+        title: "Word Search",
+        description: "Find hidden words in this relaxing and brain-training puzzle game",
+        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/word-search",
         category: "puzzle",
         plays: 5100000,
         rating: 46,
@@ -140,10 +140,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Bejeweled",
-        description: "Match sparkling gems in this classic match-3 puzzle game",
+        title: "Jigsaw Puzzles",
+        description: "Complete beautiful jigsaw puzzles with various difficulty levels",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/bejeweled",
+        gameUrl: "https://www.crazygames.com/embed/jigsaw-puzzles",
         category: "puzzle",
         plays: 2900000,
         rating: 45,
@@ -151,10 +151,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Mahjong Solitaire",
-        description: "Traditional Chinese tile-matching game with beautiful designs",
+        title: "Solitaire Classic",
+        description: "The timeless card game that everyone loves to play",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://mahjong-games.com/",
+        gameUrl: "https://www.crazygames.com/embed/solitaire",
         category: "puzzle",
         plays: 2300000,
         rating: 44,
@@ -164,10 +164,10 @@ export class MemStorage implements IStorage {
 
       // RACING GAMES
       {
-        title: "Need for Speed",
-        description: "High-speed street racing with amazing cars and intense police chases",
+        title: "Drift Boss",
+        description: "Master the art of drifting on challenging cliff-side roads",
         thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/burnin-rubber-5-xs",
+        gameUrl: "https://www.crazygames.com/embed/drift-boss",
         category: "racing",
         plays: 4600000,
         rating: 48,
@@ -175,10 +175,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Mario Kart",
-        description: "Fun kart racing with power-ups, crazy tracks, and Nintendo characters",
-        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://supermariokart.playretrogames.com/",
+        title: "Moto X3M Spooky Land",
+        description: "Extreme motorcycle stunts through spooky Halloween-themed levels",
+        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/moto-x3m-spooky-land",
         category: "racing",
         plays: 3900000,
         rating: 47,
@@ -186,10 +186,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Hill Climb Racing",
-        description: "Physics-based driving game with unique vehicles and challenging terrains",
-        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/hill-climb-racing",
+        title: "Traffic Racer",
+        description: "Drive through endless highway traffic and avoid crashes",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/traffic-racer",
         category: "racing",
         plays: 3200000,
         rating: 46,
@@ -197,10 +197,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Drift Hunters",
-        description: "Master the art of drifting with customizable cars and realistic physics",
-        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://drift-hunters.com/",
+        title: "Hill Racing Challenge",
+        description: "Conquer steep hills and mountains with various vehicles",
+        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/hill-racing-challenge",
         category: "racing",
         plays: 2700000,
         rating: 45,
@@ -208,10 +208,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Moto X3M",
-        description: "Extreme motorcycle racing with death-defying stunts and obstacles",
-        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://motox3m.com/",
+        title: "Speed Racing Pro",
+        description: "High-speed racing with amazing supercars on professional tracks",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/speed-racing-pro-2",
         category: "racing",
         plays: 2100000,
         rating: 46,
@@ -221,10 +221,10 @@ export class MemStorage implements IStorage {
 
       // MULTIPLAYER GAMES
       {
-        title: "Among Us Online",
-        description: "Find the impostor among your crew in this social deduction game",
+        title: "Shell Shockers",
+        description: "Multiplayer first-person shooter where you fight as an armed egg",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/among-us-online",
+        gameUrl: "https://www.crazygames.com/embed/shell-shockers",
         category: "multiplayer",
         plays: 7200000,
         rating: 49,
@@ -232,10 +232,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Fall Guys",
-        description: "Hilarious multiplayer party game with obstacle courses and mini-games",
+        title: "Stumble Guys",
+        description: "Massively multiplayer party knockout game with obstacle courses",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/stumble-guys",
+        gameUrl: "https://www.crazygames.com/embed/stumble-guys",
         category: "multiplayer",
         plays: 5800000,
         rating: 48,
@@ -243,10 +243,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Minecraft Classic",
-        description: "Build and explore infinite worlds in this creative sandbox game",
-        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://classic.minecraft.net/",
+        title: "Krunker.io",
+        description: "Fast-paced pixelated first-person shooter with multiple game modes",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/krunker-io",
         category: "multiplayer",
         plays: 8900000,
         rating: 50,
@@ -254,10 +254,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Shell Shockers",
-        description: "Fast-paced multiplayer FPS game where you play as an egg with guns",
+        title: "Buildz.io",
+        description: "Build and battle in this multiplayer building and shooting game",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://shellshock.io/",
+        gameUrl: "https://www.crazygames.com/embed/1v1-lol",
         category: "multiplayer",
         plays: 4300000,
         rating: 47,
@@ -266,9 +266,9 @@ export class MemStorage implements IStorage {
       },
       {
         title: "Skribbl.io",
-        description: "Multiplayer drawing and guessing game that tests your creativity",
+        description: "Online drawing and guessing game with friends and players worldwide",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://skribbl.io/",
+        gameUrl: "https://www.crazygames.com/embed/skribbl-io",
         category: "multiplayer",
         plays: 3700000,
         rating: 46,
@@ -279,9 +279,9 @@ export class MemStorage implements IStorage {
       // .IO GAMES
       {
         title: "Slither.io",
-        description: "Grow your snake by eating pellets and other players in this addictive arena",
+        description: "Grow your snake by eating pellets while avoiding other players",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://slither.io/",
+        gameUrl: "https://www.crazygames.com/embed/slither-io",
         category: "io",
         plays: 9200000,
         rating: 49,
@@ -290,9 +290,9 @@ export class MemStorage implements IStorage {
       },
       {
         title: "Agar.io",
-        description: "Control a cell and eat other players to grow bigger in this simple yet addictive game",
+        description: "Eat smaller cells and avoid bigger ones in this simple but addictive game",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://agar.io/",
+        gameUrl: "https://www.crazygames.com/embed/agar-io",
         category: "io",
         plays: 8600000,
         rating: 48,
@@ -300,10 +300,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Diep.io",
-        description: "Control a tank and destroy other players in this competitive multiplayer shooter",
-        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://diep.io/",
+        title: "Paper.io 2",
+        description: "Capture territory and avoid other players in this strategic io game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/paper-io-2",
         category: "io",
         plays: 6400000,
         rating: 47,
@@ -311,10 +311,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Paper.io 2",
-        description: "Capture territory by drawing lines and avoid other players in this strategic game",
-        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://paper-io.com/",
+        title: "Hole.io",
+        description: "Swallow everything in your path as a black hole competing with others",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/hole-io",
         category: "io",
         plays: 5200000,
         rating: 46,
@@ -322,10 +322,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Wings.io",
-        description: "Fly a plane and battle other pilots in fast-paced aerial combat",
+        title: "Wormax.io",
+        description: "Snake-like multiplayer game with power-ups and special abilities",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://wings.io/",
+        gameUrl: "https://www.crazygames.com/embed/wormax-io",
         category: "io",
         plays: 3800000,
         rating: 45,
@@ -333,10 +333,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Surviv.io",
-        description: "Battle royale game where you fight to be the last player standing",
-        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://surviv.io/",
+        title: "Wings.io",
+        description: "Fly and battle other planes in this aerial combat io game",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/wings-io",
         category: "io",
         plays: 7100000,
         rating: 48,
@@ -346,10 +346,10 @@ export class MemStorage implements IStorage {
 
       // STRATEGY GAMES
       {
-        title: "Age of Empires",
-        description: "Build civilizations and conquer enemies in this classic real-time strategy game",
+        title: "Tower Defense Kingdom",
+        description: "Build towers and defend your kingdom from waves of enemies",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/goodgame-empire",
+        gameUrl: "https://www.crazygames.com/embed/kingdom-rush",
         category: "strategy",
         plays: 4900000,
         rating: 48,
@@ -357,10 +357,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Chess.com",
-        description: "Play the classic strategy board game against players worldwide",
+        title: "Chess Master",
+        description: "Play chess against AI or challenge other players online",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.chess.com/play",
+        gameUrl: "https://www.crazygames.com/embed/chess",
         category: "strategy",
         plays: 6700000,
         rating: 49,
@@ -368,10 +368,10 @@ export class MemStorage implements IStorage {
         isTrending: true
       },
       {
-        title: "Tower Defense Kingdom",
-        description: "Defend your kingdom by building towers and upgrading your defenses",
+        title: "Age of War",
+        description: "Evolve your civilization through different ages while defending your base",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/kingdom-rush",
+        gameUrl: "https://www.crazygames.com/embed/age-of-war",
         category: "strategy",
         plays: 3600000,
         rating: 47,
@@ -379,10 +379,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Civilization Online",
-        description: "Build your empire from ancient times to the modern era in this epic strategy game",
+        title: "Bloons TD 6",
+        description: "Pop balloons with strategic monkey tower placement",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/forge-of-empires",
+        gameUrl: "https://www.crazygames.com/embed/bloons-tower-defense",
         category: "strategy",
         plays: 2800000,
         rating: 46,
@@ -390,10 +390,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Plants vs Zombies",
-        description: "Defend your home from zombie invasion using an army of plants",
+        title: "Stick War Legacy",
+        description: "Command your army of stick figures in epic strategy battles",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/plants-vs-zombies",
+        gameUrl: "https://www.crazygames.com/embed/stick-war-legacy",
         category: "strategy",
         plays: 5400000,
         rating: 48,
@@ -401,10 +401,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Command & Conquer",
-        description: "Military real-time strategy with intense battles and resource management",
+        title: "Empire Builder",
+        description: "Build your empire and conquer neighboring territories",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/warzone-getaway-shooting-game",
+        gameUrl: "https://www.crazygames.com/embed/goodgame-empire",
         category: "strategy",
         plays: 2100000,
         rating: 45,
@@ -412,12 +412,12 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
 
-      // เพิ่มเกมใหม่อีก 10 เกม
+      // เพิ่มเกมใหม่อีกหลายเกม
       {
-        title: "Sonic the Hedgehog",
-        description: "Run at supersonic speed and collect rings in this classic platform adventure",
+        title: "Run 3",
+        description: "Run through space tunnels in this addictive endless running game",
         thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://sonic.playretrogames.com/",
+        gameUrl: "https://www.crazygames.com/embed/run-3",
         category: "action",
         plays: 4100000,
         rating: 48,
@@ -425,10 +425,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Donkey Kong",
-        description: "Help Mario rescue the princess from the giant gorilla in this arcade classic",
-        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://donkeykong.playretrogames.com/",
+        title: "Happy Wheels",
+        description: "Navigate obstacle courses with ragdoll physics in this crazy game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/happy-wheels",
         category: "action",
         plays: 3300000,
         rating: 46,
@@ -436,10 +436,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Bubble Shooter",
-        description: "Match colored bubbles to clear the screen in this relaxing puzzle game",
+        title: "Cookie Clicker",
+        description: "Click to make cookies and build a cookie empire in this idle game",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://bubble-shooter.co/",
+        gameUrl: "https://www.crazygames.com/embed/cookie-clicker",
         category: "puzzle",
         plays: 4700000,
         rating: 47,
@@ -447,10 +447,10 @@ export class MemStorage implements IStorage {
         isTrending: false
       },
       {
-        title: "Crossy Road",
-        description: "Help the chicken cross busy roads and rivers in this endless arcade game",
-        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.crazygames.com/game/crossy-road",
+        title: "Getting Over It",
+        description: "Climb a mountain with a hammer in this frustratingly difficult game",
+        thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/embed/getting-over-it",
         category: "action",
         plays: 3900000,
         rating: 46,
