@@ -78,7 +78,7 @@
                 // วาดหางยาน
                 this.trail.push({x: this.x + this.width/2, y: this.y + this.height, life: 20});
                 this.trail = this.trail.filter(t => t.life > 0);
-                
+
                 this.trail.forEach((t, i) => {
                     t.life--;
                     ctx.save();
@@ -307,9 +307,124 @@
             }
         }
 
-        // ฟังก์ชันลูปเกม
+        // เอฟเฟกต์พิเศษ
+        function drawStarfield() {
+            // วาดดาวที่เคลื่อนไหว
+            stars.forEach(star => {
+                ctx.save();
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.8 + 0.2})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                ctx.restore();
+            });
+        }
+
+        // ปรับปรุงการวาดยานผู้เล่น
+        function drawEnhancedPlayer() {
+            // วาดหางยาน
+            player.trail.push({x: player.x + player.width/2, y: player.y + player.height, life: 20});
+            player.trail = player.trail.filter(t => t.life > 0);
+
+            player.trail.forEach((t, i) => {
+                t.life--;
+                ctx.save();
+                ctx.globalAlpha = t.life / 20;
+                const gradient = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 15);
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y + i * 3, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // วาดยานอวกาศด้วยเอฟเฟกต์
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ff88';
+
+            const gradient = ctx.createLinearGradient(player.x, player.y, player.x, player.y + player.height);
+            gradient.addColorStop(0, '#00ff88');
+            gradient.addColorStop(0.5, '#00cc66');
+            gradient.addColorStop(1, '#008844');
+            ctx.fillStyle = gradient;
+
+            // ร่างยาน
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width/2, player.y);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.lineTo(player.x + player.width/4, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 3/4, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // เครื่องยนต์
+            ctx.fillStyle = '#0088ff';
+            ctx.fillRect(player.x + 5, player.y + player.height * 0.6, 8, 15);
+            ctx.fillRect(player.x + player.width - 13, player.y + player.height * 0.6, 8, 15);
+
+            // แกนกลาง
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(player.x + player.width/2 - 3, player.y + 5, 6, player.height * 0.7);
+
+            // เอฟเฟกต์เกราะ
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x - 2, player.y - 2, player.width + 4, player.height + 4);
+            ctx.restore();
+        }
+
+        // ปรับปรุงการวาดศัตรู
+        function drawEnhancedEnemy(enemy) {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff4444';
+
+            // ร่างศัตรู
+            const gradient = ctx.createRadialGradient(
+                enemy.x + enemy.width/2, 
+                enemy.y + enemy.height/2, 
+                0,
+                enemy.x + enemy.width/2, 
+                enemy.y + enemy.height/2, 
+                enemy.width
+            );
+            gradient.addColorStop(0, '#ff6666');
+            gradient.addColorStop(0.7, '#ff4444');
+            gradient.addColorStop(1, '#cc0000');
+            ctx.fillStyle = gradient;
+
+            // วาดรูปทรงแปดเหลี่ยม
+            ctx.beginPath();
+            const centerX = enemy.x + enemy.width/2;
+            const centerY = enemy.y + enemy.height/2;
+            const radius = enemy.width/2;
+
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI * 2) / 8;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // แกนกลาง
+            ctx.fillStyle = '#ffaa00';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ลูปเกม
         let lastTime = 0;
-        const targetFPS = 60;
+        const targetFPS = 144;
         const frameTime = 1000 / targetFPS;
 
         function gameLoop(currentTime) {
