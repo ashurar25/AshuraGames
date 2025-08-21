@@ -17,7 +17,7 @@
             overflow: hidden;
             touch-action: manipulation;
         }
-        
+
         .game-container {
             position: relative;
             background: rgba(15, 23, 42, 0.8);
@@ -25,13 +25,13 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
-        
+
         canvas {
             border-radius: 20px;
             background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #228B22 100%);
             display: block;
         }
-        
+
         .score {
             position: absolute;
             top: 20px;
@@ -43,7 +43,7 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             z-index: 10;
         }
-        
+
         .game-over {
             position: absolute;
             top: 50%;
@@ -58,7 +58,7 @@
             z-index: 20;
             color: white;
         }
-        
+
         .restart-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
@@ -70,12 +70,12 @@
             margin: 10px;
             transition: all 0.3s;
         }
-        
+
         .restart-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
         }
-        
+
         .instructions {
             position: absolute;
             bottom: 20px;
@@ -86,7 +86,7 @@
             font-size: 14px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        
+
         .credit {
             position: fixed;
             bottom: 10px;
@@ -102,22 +102,22 @@
 <body>
     <div class="game-container">
         <div class="score" id="score">0</div>
-        
+
         <canvas id="gameCanvas" width="400" height="600"></canvas>
-        
+
         <div class="game-over" id="gameOver">
             <h2 style="color: #ef4444; margin-top: 0;">🐦 เกมจบแล้ว!</h2>
             <p>คะแนน: <span id="finalScore">0</span></p>
             <p>สถิติสูงสุด: <span id="bestScore">0</span></p>
             <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
         </div>
-        
+
         <div class="instructions">
             คลิก หรือ กด Space เพื่อบิน<br>
             หลีกเลี่ยงท่อให้ได้!
         </div>
     </div>
-    
+
     <div class="credit">© ASHURA Games</div>
 
     <script>
@@ -153,7 +153,7 @@
 
         // เมฆ
         let clouds = [];
-        
+
         // สร้างเมฆ
         function createClouds() {
             clouds = [];
@@ -176,7 +176,7 @@
                 ctx.arc(cloud.x + cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
                 ctx.arc(cloud.x - cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
                 ctx.fill();
-                
+
                 cloud.x -= cloud.speed;
                 if (cloud.x < -cloud.size * 2) {
                     cloud.x = canvas.width + cloud.size;
@@ -188,40 +188,40 @@
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
-            
+
             // หมุนนกตามความเร็ว
             bird.rotation = Math.min(Math.max(bird.velocity * 0.1, -0.5), 0.5);
             ctx.rotate(bird.rotation);
-            
+
             // ลำตัวนก
             ctx.fillStyle = '#FFD700';
             ctx.beginPath();
             ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // ปีกนก
             ctx.fillStyle = '#FFA500';
             ctx.beginPath();
             ctx.ellipse(-5, 0, 8, 12, 0, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // หัวนก
             ctx.fillStyle = '#FF6347';
             ctx.beginPath();
             ctx.ellipse(8, 0, 8, 8, 0, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // ตานก
             ctx.fillStyle = '#000';
             ctx.beginPath();
             ctx.arc(10, -3, 3, 0, Math.PI * 2);
             ctx.fill();
-            
+
             ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.arc(11, -4, 1, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // จะงอยปากนก
             ctx.fillStyle = '#FF4500';
             ctx.beginPath();
@@ -230,7 +230,7 @@
             ctx.lineTo(20, 2);
             ctx.closePath();
             ctx.fill();
-            
+
             ctx.restore();
         }
 
@@ -251,20 +251,20 @@
             ctx.fillStyle = '#32CD32';
             ctx.strokeStyle = '#228B22';
             ctx.lineWidth = 3;
-            
+
             pipes.forEach(pipe => {
                 // ท่อบน
                 ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
                 ctx.strokeRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-                
+
                 // หัวท่อบน
                 ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
                 ctx.strokeRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
-                
+
                 // ท่อล่าง
                 ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
                 ctx.strokeRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
-                
+
                 // หัวท่อล่าง
                 ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
                 ctx.strokeRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
@@ -275,15 +275,15 @@
         function drawGround() {
             const groundHeight = 50;
             const grassHeight = 20;
-            
+
             // ดิน
             ctx.fillStyle = '#8B4513';
             ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
-            
+
             // หญ้า
             ctx.fillStyle = '#228B22';
             ctx.fillRect(0, canvas.height - groundHeight, canvas.width, grassHeight);
-            
+
             // ใบหญ้า
             ctx.fillStyle = '#32CD32';
             for (let x = 0; x < canvas.width; x += 20) {
@@ -299,38 +299,38 @@
             if (!gameRunning) return;
 
             frameCount++;
-            
+
             // อัปเดตนก
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
-            
+
             // ตรวจสอบขอบเขต
             if (bird.y < 0) {
                 bird.y = 0;
                 bird.velocity = 0;
             }
-            
+
             if (bird.y > canvas.height - 50 - bird.height) {
                 gameOver();
                 return;
             }
-            
+
             // สร้างท่อใหม่
             if (frameCount % 120 === 0) {
                 createPipe();
             }
-            
+
             // อัปเดตท่อ
             pipes.forEach((pipe, index) => {
                 pipe.x -= 2;
-                
+
                 // เพิ่มคะแนน
                 if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
                     pipe.passed = true;
                     score++;
                     scoreElement.textContent = score;
                 }
-                
+
                 // ตรวจสอบการชนท่อ
                 if (bird.x < pipe.x + pipeWidth && 
                     bird.x + bird.width > pipe.x &&
@@ -339,7 +339,7 @@
                     return;
                 }
             });
-            
+
             // ลบท่อที่ผ่านไปแล้ว
             pipes = pipes.filter(pipe => pipe.x > -pipeWidth);
         }
@@ -348,7 +348,7 @@
         function draw() {
             // ล้างหน้าจอ
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // วาดฟ้า
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, '#87CEEB');
@@ -356,7 +356,7 @@
             gradient.addColorStop(1, '#228B22');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             drawClouds();
             drawPipes();
             drawBird();
@@ -374,13 +374,13 @@
         function gameOver() {
             gameRunning = false;
             finalScoreElement.textContent = score;
-            
+
             if (score > bestScore) {
                 bestScore = score;
                 localStorage.setItem('flappyBestScore', bestScore);
                 bestScoreElement.textContent = bestScore;
             }
-            
+
             gameOverElement.style.display = 'block';
         }
 
@@ -390,15 +390,15 @@
             score = 0;
             frameCount = 0;
             pipes = [];
-            
+
             bird.x = 100;
             bird.y = canvas.height / 2;
             bird.velocity = 0;
             bird.rotation = 0;
-            
+
             scoreElement.textContent = score;
             gameOverElement.style.display = 'none';
-            
+
             createClouds();
         }
 
@@ -424,13 +424,28 @@
 
         // เริ่มเกม
         startGame();
-        
-        function gameLoop() {
+
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            // Frame rate control
+            if (currentTime - lastTime < frameTime) {
+                if (gameRunning) {
+                    requestAnimationFrame(gameLoop);
+                }
+                return;
+            }
+            lastTime = currentTime;
+
             update();
             draw();
-            requestAnimationFrame(gameLoop);
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
         }
-        
+
         gameLoop();
     </script>
 </body>

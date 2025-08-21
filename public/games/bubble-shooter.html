@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -31,10 +30,11 @@
         let isAiming = false;
         let mouseX = 0;
         let mouseY = 0;
+        let gameRunning = true; // Added to control game loop
 
         const BUBBLE_RADIUS = 20;
         const COLORS = ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff'];
-        
+
         // กริดของบับเบิล
         const bubbles = [];
         const ROWS = 10;
@@ -105,11 +105,11 @@
 
             attachToGrid() {
                 this.moving = false;
-                
+
                 // หาตำแหน่งที่ใกล้ที่สุดในกริด
                 const gridX = Math.round((this.x - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 2));
                 const gridY = Math.round(this.y / (BUBBLE_RADIUS * 1.8));
-                
+
                 // จัดตำแหน่งใหม่
                 this.x = gridX * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS;
                 this.y = gridY * BUBBLE_RADIUS * 1.8 + BUBBLE_RADIUS;
@@ -120,7 +120,7 @@
 
                 // ตรวจสอบการจับกลุ่ม
                 checkMatches(gridX, gridY);
-                
+
                 // สร้างลูกใหม่
                 createNewBall();
             }
@@ -149,10 +149,10 @@
                 currentBall = new Bubble(shooter.x, shooter.y, 
                     COLORS[Math.floor(Math.random() * COLORS.length)], false);
             }
-            
+
             nextBall = new Bubble(shooter.x + 50, shooter.y, 
                 COLORS[Math.floor(Math.random() * COLORS.length)], false);
-            
+
             ballsLeft--;
             if (ballsLeft <= 0) {
                 alert('หมดลูก! คะแนน: ' + score);
@@ -206,7 +206,7 @@
                     delete bubbles[y][x];
                 });
                 score += matches.length * 10;
-                
+
                 // ตรวจสอบลูกที่แขวนอยู่
                 removeHangingBubbles();
             }
@@ -215,20 +215,20 @@
         // ลบบับเบิลที่แขวนอยู่
         function removeHangingBubbles() {
             const connected = new Set();
-            
+
             // หาบับเบิลที่เชื่อมกับด้านบน
             function markConnected(x, y) {
                 const key = `${x},${y}`;
                 if (connected.has(key)) return;
                 if (!bubbles[y] || !bubbles[y][x]) return;
-                
+
                 connected.add(key);
-                
+
                 const neighbors = [
                     [x-1, y], [x+1, y], [x, y-1], [x, y+1],
                     [x-1, y-1], [x+1, y-1], [x-1, y+1], [x+1, y+1]
                 ];
-                
+
                 neighbors.forEach(([nx, ny]) => {
                     if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
                         markConnected(nx, ny);
@@ -261,15 +261,15 @@
             ctx.save();
             ctx.translate(shooter.x, shooter.y);
             ctx.rotate(shooter.angle);
-            
+
             // ปืน
             ctx.fillStyle = '#654321';
             ctx.fillRect(-5, -30, 10, 30);
-            
+
             // ฐาน
             ctx.fillStyle = '#8B4513';
             ctx.fillRect(-15, -5, 30, 10);
-            
+
             ctx.restore();
 
             // เส้นเล็ง
@@ -294,7 +294,7 @@
                 nextBall.x = shooter.x + 50;
                 nextBall.y = shooter.y;
                 nextBall.draw();
-                
+
                 ctx.fillStyle = '#fff';
                 ctx.font = '14px Arial';
                 ctx.textAlign = 'center';
@@ -309,6 +309,7 @@
             bubbles.length = 0;
             initializeBubbles();
             createNewBall();
+            gameRunning = true; // Ensure game continues after reset
         }
 
         // วาดเกม
@@ -349,7 +350,7 @@
             // อัปเดตลูกที่เคลื่อนที่
             if (currentBall && currentBall.moving) {
                 currentBall.update();
-                
+
                 // ตรวจสอบการชนกับบับเบิลอื่น
                 for (let row = 0; row < ROWS; row++) {
                     if (bubbles[row]) {
@@ -359,7 +360,7 @@
                                 const dx = currentBall.x - bubble.x;
                                 const dy = currentBall.y - bubble.y;
                                 const distance = Math.sqrt(dx * dx + dy * dy);
-                                
+
                                 if (distance < BUBBLE_RADIUS * 2) {
                                     currentBall.attachToGrid();
                                     return;
@@ -375,7 +376,7 @@
                 const dx = mouseX - shooter.x;
                 const dy = mouseY - shooter.y;
                 shooter.angle = Math.atan2(dy, dx);
-                
+
                 // จำกัดมุม
                 if (shooter.angle > Math.PI / 6) shooter.angle = Math.PI / 6;
                 if (shooter.angle < -Math.PI / 6) shooter.angle = -Math.PI / 6;
@@ -383,7 +384,20 @@
         }
 
         // ลูปเกม
-        function gameLoop() {
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            // Frame rate control
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
             update();
             draw();
             requestAnimationFrame(gameLoop);
@@ -408,7 +422,7 @@
         // เริ่มเกม
         initializeBubbles();
         createNewBall();
-        gameLoop();
+        gameLoop(0); // Start the game loop
     </script>
 </body>
 </html>

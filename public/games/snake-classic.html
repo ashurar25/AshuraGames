@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -21,10 +20,10 @@
             text-align: center;
         }
         canvas {
-            border: 3px solid #fff;
+            border: 3px solid #00ff00;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a1a);
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            background: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
         }
         .score {
             font-size: 24px;
@@ -50,6 +49,10 @@
             color: white;
             cursor: pointer;
             margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #ff8e8e, #ff6b6b);
         }
         .controls {
             margin-top: 15px;
@@ -88,6 +91,7 @@
         let dy = 0;
         let score = 0;
         let gameRunning = true;
+        let gameSpeed = 100; // ms per frame
 
         function randomFood() {
             food = {
@@ -98,7 +102,7 @@
 
         function drawGame() {
             if (!gameRunning) return;
-            
+
             changeSnakePosition();
             let result = isGameEnd();
             if (result) {
@@ -112,24 +116,35 @@
             drawSnake();
             drawScore();
 
-            setTimeout(drawGame, 100);
+            // Limit frame rate to 60 FPS
+            setTimeout(drawGame, gameSpeed);
         }
 
         function clearScreen() {
-            ctx.fillStyle = 'black';
+            // Use a gradient for the background for a more dynamic look
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a0a0a');
+            gradient.addColorStop(1, '#1a1a1a');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         function drawSnake() {
-            ctx.fillStyle = '#4ade80';
+            ctx.fillStyle = '#00ff00'; // Brighter green for snake
             snake.forEach(part => {
-                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+                // Slightly rounded corners for snake segments
+                ctx.beginPath();
+                ctx.roundRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2, 3);
+                ctx.fill();
             });
         }
 
         function drawFood() {
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+            ctx.fillStyle = '#ff4d4d'; // Brighter red for food
+            // Slightly rounded corners for food
+            ctx.beginPath();
+            ctx.roundRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2, 3);
+            ctx.fill();
         }
 
         function changeSnakePosition() {
@@ -138,6 +153,10 @@
 
             if (head.x === food.x && head.y === food.y) {
                 score += 10;
+                // Increase speed slightly as score increases
+                if (gameSpeed > 50) {
+                    gameSpeed -= 2;
+                }
                 randomFood();
             } else {
                 snake.pop();
@@ -145,10 +164,12 @@
         }
 
         function isGameEnd() {
+            // Check for self-collision
             for (let i = 4; i < snake.length; i++) {
                 if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
             }
 
+            // Check for wall collision
             const hitLeftWall = snake[0].x < 0;
             const hitRightWall = snake[0].x >= tileCount;
             const hitTopWall = snake[0].y < 0;
@@ -161,6 +182,17 @@
             gameRunning = false;
             finalScoreElement.textContent = score;
             gameOverElement.style.display = 'block';
+            // Add a subtle fade-in effect for game over message
+            gameOverElement.style.opacity = '0';
+            let opacity = 0;
+            const fadeInterval = setInterval(() => {
+                if (opacity < 1) {
+                    opacity += 0.1;
+                    gameOverElement.style.opacity = opacity;
+                } else {
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
         }
 
         function checkFoodCollision() {
@@ -180,6 +212,7 @@
             dy = 0;
             score = 0;
             gameRunning = true;
+            gameSpeed = 100; // Reset speed
             gameOverElement.style.display = 'none';
             randomFood();
             drawGame();
@@ -187,7 +220,12 @@
 
         document.addEventListener('keydown', (e) => {
             if (!gameRunning) return;
-            
+
+            // Prevent default arrow key scrolling
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+
             switch(e.code) {
                 case 'ArrowUp':
                 case 'KeyW':
@@ -208,6 +246,7 @@
             }
         });
 
+        // Initial setup
         randomFood();
         drawGame();
     </script>

@@ -18,13 +18,13 @@
             touch-action: manipulation;
             animation: cosmicBackground 20s ease-in-out infinite alternate;
         }
-        
+
         @keyframes cosmicBackground {
             0% { background: radial-gradient(ellipse at center, #2d1b69 0%, #667eea 30%, #11103a 70%, #000000 100%); }
             50% { background: radial-gradient(ellipse at center, #1a0033 0%, #8a2be2 30%, #4b0082 70%, #000000 100%); }
             100% { background: radial-gradient(ellipse at center, #0f0f2f 0%, #00ffff 30%, #1e3a8a 70%, #000000 100%); }
         }
-        
+
         #gameContainer {
             display: flex;
             gap: 20px;
@@ -35,11 +35,11 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.18);
         }
-        
+
         #gameBoard {
             position: relative;
         }
-        
+
         canvas {
             border: 3px solid #00ffff;
             border-radius: 15px;
@@ -47,7 +47,7 @@
             background: radial-gradient(ellipse at center, #1a1a3a 0%, #000000 100%);
             animation: neonBorder 3s ease-in-out infinite alternate;
         }
-        
+
         @keyframes neonBorder {
             0% { 
                 border-color: #00ffff;
@@ -66,7 +66,7 @@
                 box-shadow: 0 0 50px rgba(0, 255, 0, 0.8), inset 0 0 20px rgba(255, 0, 255, 0.3);
             }
         }
-        
+
         #gameInfo {
             color: white;
             width: 200px;
@@ -74,7 +74,7 @@
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .info-panel {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
@@ -82,7 +82,7 @@
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .info-title {
             font-size: 16px;
             font-weight: bold;
@@ -90,14 +90,14 @@
             margin-bottom: 8px;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
         }
-        
+
         .info-value {
             font-size: 24px;
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
         }
-        
+
         #nextPiece {
             width: 80px;
             height: 80px;
@@ -105,7 +105,7 @@
             border-radius: 10px;
             background: rgba(0,0,0,0.5);
         }
-        
+
         #gameOver {
             position: absolute;
             top: 50%;
@@ -120,7 +120,7 @@
             border: 2px solid #ff6b6b;
             z-index: 10;
         }
-        
+
         button {
             background: linear-gradient(45deg, #00ffff, #0066ff);
             border: none;
@@ -133,19 +133,19 @@
             transition: all 0.3s ease;
             font-weight: bold;
         }
-        
+
         button:hover {
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
         }
-        
+
         #controls {
             font-size: 12px;
             color: #aaa;
             text-align: center;
             margin-top: 10px;
         }
-        
+
         .level-up {
             position: absolute;
             top: 50%;
@@ -159,13 +159,13 @@
             animation: levelUpAnim 2s ease-out;
             pointer-events: none;
         }
-        
+
         @keyframes levelUpAnim {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
             50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
-        
+
         @keyframes clearLine {
             0% { background: rgba(255, 255, 255, 0.8); }
             100% { background: transparent; }
@@ -183,28 +183,28 @@
                 <button onclick="restartGame()">🔄 เล่นใหม่</button>
             </div>
         </div>
-        
+
         <div id="gameInfo">
             <div class="info-panel">
                 <div class="info-title">🏆 คะแนน</div>
                 <div class="info-value" id="score">0</div>
             </div>
-            
+
             <div class="info-panel">
                 <div class="info-title">📈 เลเวล</div>
                 <div class="info-value" id="level">1</div>
             </div>
-            
+
             <div class="info-panel">
                 <div class="info-title">📊 เส้น</div>
                 <div class="info-value" id="lines">0</div>
             </div>
-            
+
             <div class="info-panel">
                 <div class="info-title">⏭️ ถัดไป</div>
                 <canvas id="nextPiece" width="80" height="80"></canvas>
             </div>
-            
+
             <div id="controls">
                 ⬅️➡️ เลื่อน<br>
                 ⬇️ ลงเร็ว<br>
@@ -219,11 +219,11 @@
         const ctx = canvas.getContext('2d');
         const nextCanvas = document.getElementById('nextPiece');
         const nextCtx = nextCanvas.getContext('2d');
-        
+
         const BLOCK_SIZE = 30;
         const BOARD_WIDTH = 10;
         const BOARD_HEIGHT = 20;
-        
+
         let board = [];
         let currentPiece = null;
         let nextPiece = null;
@@ -234,7 +234,7 @@
         let dropTime = 0;
         let dropInterval = 1000;
         let particles = [];
-        
+
         // Tetris pieces
         const PIECES = [
             { // I
@@ -266,7 +266,7 @@
                 color: '#ffa500'
             }
         ];
-        
+
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
@@ -277,7 +277,7 @@
                 this.life = 60;
                 this.maxLife = 60;
             }
-            
+
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
@@ -285,7 +285,7 @@
                 this.life--;
                 return this.life > 0;
             }
-            
+
             draw() {
                 const alpha = this.life / this.maxLife;
                 ctx.save();
@@ -295,13 +295,13 @@
                 ctx.restore();
             }
         }
-        
+
         function createParticles(x, y, color, count = 8) {
             for (let i = 0; i < count; i++) {
                 particles.push(new Particle(x, y, color));
             }
         }
-        
+
         function initBoard() {
             board = [];
             for (let y = 0; y < BOARD_HEIGHT; y++) {
@@ -311,31 +311,31 @@
                 }
             }
         }
-        
+
         function createPiece() {
             const piece = JSON.parse(JSON.stringify(PIECES[Math.floor(Math.random() * PIECES.length)]));
             piece.x = Math.floor(BOARD_WIDTH / 2) - Math.floor(piece.shape[0].length / 2);
             piece.y = 0;
             return piece;
         }
-        
+
         function drawBlock(x, y, color, glowEffect = false) {
             const drawX = x * BLOCK_SIZE;
             const drawY = y * BLOCK_SIZE;
-            
+
             // Main block with gradient
             const gradient = ctx.createLinearGradient(drawX, drawY, drawX + BLOCK_SIZE, drawY + BLOCK_SIZE);
             gradient.addColorStop(0, color);
             gradient.addColorStop(1, '#000000');
-            
+
             ctx.fillStyle = gradient;
             ctx.fillRect(drawX + 1, drawY + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-            
+
             // Border highlight
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1;
             ctx.strokeRect(drawX + 1, drawY + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-            
+
             // Glow effect for clearing lines
             if (glowEffect) {
                 ctx.shadowColor = color;
@@ -345,7 +345,7 @@
                 ctx.shadowBlur = 0;
             }
         }
-        
+
         function drawBoard() {
             // Clear canvas with gradient background
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -353,7 +353,7 @@
             gradient.addColorStop(1, '#16213e');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw grid
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
             ctx.lineWidth = 1;
@@ -369,7 +369,7 @@
                 ctx.lineTo(canvas.width, y * BLOCK_SIZE);
                 ctx.stroke();
             }
-            
+
             // Draw placed blocks
             for (let y = 0; y < BOARD_HEIGHT; y++) {
                 for (let x = 0; x < BOARD_WIDTH; x++) {
@@ -379,7 +379,7 @@
                 }
             }
         }
-        
+
         function drawPiece(piece) {
             for (let y = 0; y < piece.shape.length; y++) {
                 for (let x = 0; x < piece.shape[y].length; x++) {
@@ -389,17 +389,17 @@
                 }
             }
         }
-        
+
         function drawNext() {
             // Clear next piece canvas
             nextCtx.fillStyle = 'rgba(0,0,0,0.8)';
             nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
-            
+
             if (nextPiece) {
                 const blockSize = 15;
                 const offsetX = (nextCanvas.width - nextPiece.shape[0].length * blockSize) / 2;
                 const offsetY = (nextCanvas.height - nextPiece.shape.length * blockSize) / 2;
-                
+
                 for (let y = 0; y < nextPiece.shape.length; y++) {
                     for (let x = 0; x < nextPiece.shape[y].length; x++) {
                         if (nextPiece.shape[y][x]) {
@@ -415,7 +415,7 @@
                 }
             }
         }
-        
+
         function rotatePiece(piece) {
             const rotated = {
                 ...piece,
@@ -425,14 +425,14 @@
             };
             return rotated;
         }
-        
+
         function isValidMove(piece, dx = 0, dy = 0) {
             for (let y = 0; y < piece.shape.length; y++) {
                 for (let x = 0; x < piece.shape[y].length; x++) {
                     if (piece.shape[y][x]) {
                         const newX = piece.x + x + dx;
                         const newY = piece.y + y + dy;
-                        
+
                         if (newX < 0 || newX >= BOARD_WIDTH || 
                             newY >= BOARD_HEIGHT || 
                             (newY >= 0 && board[newY][newX])) {
@@ -443,7 +443,7 @@
             }
             return true;
         }
-        
+
         function placePiece() {
             for (let y = 0; y < currentPiece.shape.length; y++) {
                 for (let x = 0; x < currentPiece.shape[y].length; x++) {
@@ -456,7 +456,7 @@
                     }
                 }
             }
-            
+
             // Check for completed lines
             const clearedLines = clearLines();
             if (clearedLines > 0) {
@@ -464,30 +464,30 @@
                 const linePoints = [0, 100, 300, 500, 800];
                 score += linePoints[clearedLines] * level;
                 lines += clearedLines;
-                
+
                 // Level up every 10 lines
                 if (Math.floor(lines / 10) + 1 > level) {
                     level++;
                     dropInterval = Math.max(50, dropInterval - 50);
                     showLevelUp();
                 }
-                
+
                 updateUI();
             }
-            
+
             // Create new piece
             currentPiece = nextPiece;
             nextPiece = createPiece();
-            
+
             // Check game over
             if (!isValidMove(currentPiece)) {
                 gameOver();
             }
         }
-        
+
         function clearLines() {
             let clearedCount = 0;
-            
+
             for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
                 if (board[y].every(cell => cell !== 0)) {
                     // Create particles for cleared line
@@ -499,7 +499,7 @@
                             3
                         );
                     }
-                    
+
                     // Remove the line and add empty line at top
                     board.splice(y, 1);
                     board.unshift(new Array(BOARD_WIDTH).fill(0));
@@ -507,64 +507,93 @@
                     y++; // Check the same line again
                 }
             }
-            
+
             return clearedCount;
         }
-        
+
         function showLevelUp() {
             const levelUpDiv = document.createElement('div');
             levelUpDiv.className = 'level-up';
             levelUpDiv.textContent = `LEVEL ${level}!`;
             document.getElementById('gameBoard').appendChild(levelUpDiv);
-            
+
             setTimeout(() => {
                 levelUpDiv.remove();
             }, 2000);
         }
-        
+
         function updateUI() {
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;
             document.getElementById('lines').textContent = lines;
         }
-        
-        function gameLoop(timestamp) {
-            if (!gameRunning) return;
-            
+
+        // Renamed update and draw functions to match the gameLoop structure
+        function update() {
             // Update particles
             particles = particles.filter(particle => {
                 particle.update();
-                particle.draw();
                 return particle.life > 0;
             });
-            
+
             // Drop piece
-            if (timestamp - dropTime > dropInterval) {
-                if (isValidMove(currentPiece, 0, 1)) {
-                    currentPiece.y++;
-                } else {
-                    placePiece();
+            if (gameRunning) {
+                if (dropTime === 0) { // Initialize dropTime on first update
+                    dropTime = performance.now();
                 }
-                dropTime = timestamp;
+                const currentTime = performance.now();
+                if (currentTime - dropTime > dropInterval) {
+                    if (isValidMove(currentPiece, 0, 1)) {
+                        currentPiece.y++;
+                    } else {
+                        placePiece();
+                    }
+                    dropTime = currentTime;
+                }
             }
-            
-            // Draw everything
+        }
+
+        function draw() {
+             // Draw particles
+            particles.forEach(particle => particle.draw());
+
+            // Draw game elements
             drawBoard();
             if (currentPiece) {
                 drawPiece(currentPiece);
             }
             drawNext();
-            
+        }
+
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            // Frame rate control
+            const targetFPS = 60;
+            const frameTime = 1000 / targetFPS;
+            // Initialize lastTime on the first call of gameLoop
+            if (typeof gameLoop.lastTime === 'undefined') {
+                gameLoop.lastTime = 0;
+            }
+
+            if (currentTime - gameLoop.lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            gameLoop.lastTime = currentTime;
+
+            update();
+            draw();
             requestAnimationFrame(gameLoop);
         }
-        
+
         function gameOver() {
             gameRunning = false;
             document.getElementById('finalScore').textContent = score;
             document.getElementById('finalLevel').textContent = level;
             document.getElementById('gameOver').style.display = 'block';
         }
-        
+
         function restartGame() {
             initBoard();
             currentPiece = createPiece();
@@ -575,17 +604,18 @@
             dropInterval = 1000;
             particles = [];
             gameRunning = true;
-            
+            dropTime = 0; // Reset dropTime
+
             document.getElementById('gameOver').style.display = 'none';
             updateUI();
-            
+
             requestAnimationFrame(gameLoop);
         }
-        
+
         // Input handling
         document.addEventListener('keydown', (e) => {
             if (!gameRunning || !currentPiece) return;
-            
+
             switch(e.key) {
                 case 'ArrowLeft':
                     if (isValidMove(currentPiece, -1, 0)) {
@@ -622,26 +652,26 @@
                     break;
             }
         });
-        
+
         // Touch controls for mobile
         let touchStartX = 0;
         let touchStartY = 0;
-        
+
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         });
-        
+
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             if (!gameRunning) return;
-            
+
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            
+
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 // Horizontal swipe
                 if (deltaX > 30) {
@@ -671,7 +701,7 @@
                 }
             }
         });
-        
+
         // Tap to rotate
         canvas.addEventListener('click', (e) => {
             if (!gameRunning) return;
@@ -680,7 +710,7 @@
                 currentPiece = rotated;
             }
         });
-        
+
         // Start game
         restartGame();
     </script>

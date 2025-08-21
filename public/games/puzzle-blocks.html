@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -121,7 +120,7 @@
         // ตรวจสอบการชน
         function isValidMove(piece, newX, newY, rotation = piece.rotation) {
             let shape = PIECES[piece.type];
-            
+
             // หมุนถ้าจำเป็น
             for (let r = 0; r < rotation; r++) {
                 shape = rotatePiece({type: piece.type});
@@ -132,7 +131,7 @@
                     if (shape[y][x]) {
                         const boardX = newX + x;
                         const boardY = newY + y;
-                        
+
                         if (boardX < 0 || boardX >= BOARD_WIDTH || 
                             boardY >= BOARD_HEIGHT || 
                             (boardY >= 0 && board[boardY][boardX])) {
@@ -147,7 +146,7 @@
         // วางชิ้นลงกระดาน
         function placePiece(piece) {
             let shape = PIECES[piece.type];
-            
+
             for (let r = 0; r < piece.rotation; r++) {
                 shape = rotatePiece({type: piece.type});
             }
@@ -167,21 +166,21 @@
 
         // ลบแถวที่เต็ม
         function clearLines() {
-            let linesCleared = 0;
-            
+            let linesClearedCount = 0;
+
             for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
                 if (board[y].every(cell => cell !== 0)) {
                     board.splice(y, 1);
                     board.unshift(Array(BOARD_WIDTH).fill(0));
-                    linesCleared++;
+                    linesClearedCount++;
                     y++; // ตรวจสอบแถวเดิมอีกครั้ง
                 }
             }
 
-            if (linesCleared > 0) {
-                const points = [0, 100, 300, 500, 800][linesCleared] * level;
+            if (linesClearedCount > 0) {
+                const points = [0, 100, 300, 500, 800][linesClearedCount] * level;
                 score += points;
-                window.linesCleared += linesCleared;
+                window.linesCleared += linesClearedCount;
                 level = Math.floor(window.linesCleared / 10) + 1;
             }
         }
@@ -190,15 +189,15 @@
         function drawBlock(x, y, type) {
             const pixelX = x * BLOCK_SIZE;
             const pixelY = y * BLOCK_SIZE;
-            
+
             ctx.fillStyle = COLORS[type];
             ctx.fillRect(pixelX, pixelY, BLOCK_SIZE, BLOCK_SIZE);
-            
+
             if (type !== 0) {
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(pixelX, pixelY, BLOCK_SIZE, BLOCK_SIZE);
-                
+
                 // เอฟเฟกต์เงา
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
                 ctx.fillRect(pixelX + 2, pixelY + 2, BLOCK_SIZE - 4, 6);
@@ -217,7 +216,7 @@
         // วาดชิ้นปัจจุบัน
         function drawCurrentPiece() {
             let shape = PIECES[currentPiece.type];
-            
+
             for (let r = 0; r < currentPiece.rotation; r++) {
                 shape = rotatePiece({type: currentPiece.type});
             }
@@ -254,14 +253,33 @@
             ctx.globalAlpha = 1.0;
         }
 
+        let animationTime = 0;
+        const animationDuration = 300;
+
+        function animateBlockFall(startTime) {
+            if (!startTime) startTime = performance.now();
+
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / animationDuration, 1);
+
+            // Smooth easing function
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+            drawBoard();
+
+            if (progress < 1) {
+                requestAnimationFrame(() => animateBlockFall(startTime));
+            }
+        }
+
         // อัปเดตเกม
         function update(time) {
             const deltaTime = time - lastTime;
             lastTime = time;
-            
+
             dropTime += deltaTime;
             const dropInterval = Math.max(50, 500 - (level - 1) * 50);
-            
+
             if (dropTime > dropInterval) {
                 if (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1)) {
                     currentPiece.y++;
@@ -269,7 +287,7 @@
                     placePiece(currentPiece);
                     clearLines();
                     currentPiece = createPiece();
-                    
+
                     if (!isValidMove(currentPiece, currentPiece.x, currentPiece.y)) {
                         // Game Over
                         alert('เกมจบแล้ว! คะแนน: ' + score);
@@ -292,18 +310,18 @@
         // วาดเกม
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // พื้นหลัง
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, '#1a1a2e');
             gradient.addColorStop(1, '#16213e');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             drawBoard();
             drawGhost();
             drawCurrentPiece();
-            
+
             // อัปเดต UI
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = level;

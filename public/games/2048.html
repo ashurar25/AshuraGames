@@ -16,7 +16,7 @@
             font-family: 'Arial', sans-serif;
             color: white;
         }
-        
+
         .game-container {
             text-align: center;
             background: rgba(15, 23, 42, 0.8);
@@ -25,14 +25,14 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
-        
+
         .score-container {
             display: flex;
             justify-content: center;
             gap: 30px;
             margin: 20px 0;
         }
-        
+
         .score-box {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
@@ -40,19 +40,19 @@
             padding: 10px 20px;
             min-width: 80px;
         }
-        
+
         .score-label {
             font-size: 12px;
             color: #94a3b8;
             margin-bottom: 5px;
         }
-        
+
         .score-value {
             font-size: 24px;
             font-weight: bold;
             color: #10b981;
         }
-        
+
         .grid {
             display: grid;
             grid-template-columns: repeat(4, 80px);
@@ -64,7 +64,7 @@
             margin: 20px auto;
             border: 2px solid rgba(16, 185, 129, 0.3);
         }
-        
+
         .cell {
             background: rgba(16, 185, 129, 0.1);
             border-radius: 6px;
@@ -73,10 +73,10 @@
             justify-content: center;
             font-size: 24px;
             font-weight: bold;
-            transition: all 0.15s ease-in-out;
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
-        
+
         .cell-2 { background: #eee4da; color: #776e65; }
         .cell-4 { background: #ede0c8; color: #776e65; }
         .cell-8 { background: #f2b179; color: #f9f6f2; }
@@ -88,13 +88,13 @@
         .cell-512 { background: #edc850; color: #f9f6f2; font-size: 20px; }
         .cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 18px; }
         .cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 18px; box-shadow: 0 0 20px rgba(237, 194, 46, 0.5); }
-        
+
         .controls {
             margin: 20px 0;
             font-size: 14px;
             color: #94a3b8;
         }
-        
+
         .game-over, .game-won {
             position: absolute;
             top: 50%;
@@ -108,11 +108,11 @@
             display: none;
             z-index: 1000;
         }
-        
+
         .game-won {
             border-color: #f59e0b;
         }
-        
+
         .restart-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
@@ -124,12 +124,12 @@
             margin: 10px;
             transition: all 0.3s;
         }
-        
+
         .restart-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
         }
-        
+
         .credit {
             position: fixed;
             bottom: 10px;
@@ -145,7 +145,7 @@
 <body>
     <div class="game-container">
         <h1 style="color: #10b981; margin-bottom: 10px;">🎯 2048</h1>
-        
+
         <div class="score-container">
             <div class="score-box">
                 <div class="score-label">คะแนน</div>
@@ -156,23 +156,23 @@
                 <div class="score-value" id="bestScore">0</div>
             </div>
         </div>
-        
+
         <div class="grid" id="grid"></div>
-        
+
         <div class="controls">
             ใช้ลูกศร หรือ WASD เพื่อเลื่อน<br>
             รวมตัวเลขเดียวกันให้ได้ 2048!
         </div>
-        
+
         <button class="restart-btn" onclick="startGame()">เกมใหม่</button>
     </div>
-    
+
     <div class="game-over" id="gameOver">
         <h2 style="color: #ef4444;">เกมจบแล้ว!</h2>
         <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
         <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
     </div>
-    
+
     <div class="game-won" id="gameWon">
         <h2 style="color: #f59e0b;">🎉 คุณชนะแล้ว!</h2>
         <p>คุณได้ 2048 แล้ว!</p>
@@ -180,7 +180,7 @@
         <button class="restart-btn" onclick="continueGame()">เล่นต่อ</button>
         <button class="restart-btn" onclick="startGame()">เกมใหม่</button>
     </div>
-    
+
     <div class="credit">© ASHURA Games</div>
 
     <script>
@@ -225,7 +225,7 @@
         function addNewNumber() {
             const emptyCells = getEmptyCells();
             if (emptyCells.length === 0) return false;
-            
+
             const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
             const value = Math.random() < 0.9 ? 2 : 4;
             grid[randomCell.row][randomCell.col] = value;
@@ -235,24 +235,24 @@
         // วาดกริด
         function drawGrid() {
             gridElement.innerHTML = '';
-            
+
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
-                    
+
                     const value = grid[i][j];
                     if (value > 0) {
                         cell.textContent = value;
                         cell.classList.add(`cell-${value}`);
-                        
+
                         // เอฟเฟกต์การปรากฏ
                         cell.style.transform = 'scale(0)';
                         setTimeout(() => {
                             cell.style.transform = 'scale(1)';
                         }, 10);
                     }
-                    
+
                     gridElement.appendChild(cell);
                 }
             }
@@ -262,10 +262,10 @@
         function moveLeft() {
             let moved = false;
             let scoreAdded = 0;
-            
+
             for (let i = 0; i < 4; i++) {
                 const row = grid[i].filter(val => val !== 0);
-                
+
                 for (let j = 0; j < row.length - 1; j++) {
                     if (row[j] === row[j + 1]) {
                         row[j] *= 2;
@@ -277,11 +277,11 @@
                         row.splice(j + 1, 1);
                     }
                 }
-                
+
                 while (row.length < 4) {
                     row.push(0);
                 }
-                
+
                 for (let j = 0; j < 4; j++) {
                     if (grid[i][j] !== row[j]) {
                         moved = true;
@@ -289,18 +289,18 @@
                     grid[i][j] = row[j];
                 }
             }
-            
+
             if (moved) {
                 score += scoreAdded;
                 scoreElement.textContent = score;
-                
+
                 if (score > bestScore) {
                     bestScore = score;
                     localStorage.setItem('2048BestScore', bestScore);
                     bestScoreElement.textContent = bestScore;
                 }
             }
-            
+
             return moved;
         }
 
@@ -319,7 +319,7 @@
         // เลื่อนทิศทางต่างๆ
         function move(direction) {
             if (!gameRunning) return;
-            
+
             let rotations = 0;
             switch (direction) {
                 case 'up': rotations = 3; break;
@@ -327,17 +327,17 @@
                 case 'down': rotations = 1; break;
                 case 'left': rotations = 0; break;
             }
-            
+
             for (let i = 0; i < rotations; i++) {
                 rotateGrid();
             }
-            
+
             const moved = moveLeft();
-            
+
             for (let i = 0; i < 4 - rotations; i++) {
                 rotateGrid();
             }
-            
+
             if (moved) {
                 if (!addNewNumber()) {
                     if (isGameOver()) {
@@ -352,7 +352,7 @@
         function isGameOver() {
             // ตรวจสอบช่องว่าง
             if (getEmptyCells().length > 0) return false;
-            
+
             // ตรวจสอบการรวมได้
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++) {
@@ -361,7 +361,7 @@
                     if (i < 3 && current === grid[i + 1][j]) return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -389,11 +389,11 @@
             score = 0;
             hasWon = false;
             gameRunning = true;
-            
+
             scoreElement.textContent = score;
             gameOverElement.style.display = 'none';
             gameWonElement.style.display = 'none';
-            
+
             addNewNumber();
             addNewNumber();
             drawGrid();
@@ -443,16 +443,16 @@
         gridElement.addEventListener('touchend', (e) => {
             e.preventDefault();
             if (!gameRunning) return;
-            
+
             const touch = e.changedTouches[0];
             const touchEndX = touch.clientX;
             const touchEndY = touch.clientY;
-            
+
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            
+
             const minSwipeDistance = 30;
-            
+
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (Math.abs(deltaX) > minSwipeDistance) {
                     if (deltaX > 0) {
