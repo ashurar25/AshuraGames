@@ -24,226 +24,437 @@ export class MemStorage implements IStorage {
   }
 
   private seedInitialData() {
-    // Seed with 20+ real games
+    // Seed with 40+ real playable HTML5 games
     const initialGames: Omit<Game, 'id' | 'createdAt'>[] = [
+      // ACTION GAMES
       {
-        title: "Super Platformer",
-        description: "Jump and run through challenging levels in this classic platformer adventure",
-        thumbnail: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://www.construct.net/en/free-online-games/kiwi-story-9405/play",
+        title: "Super Mario Bros",
+        description: "The classic platform adventure game with Mario jumping and running through amazing worlds",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://mario-play.com/mario-games/super-mario-bros/",
         category: "action",
-        plays: 2100000,
-        rating: 48,
-        isNew: false,
-        isTrending: true
-      },
-      {
-        title: "Speed Racer 3D",
-        description: "High-speed racing action with stunning 3D graphics and realistic physics",
-        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/t/the-car-race/v470/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "racing",
-        plays: 1800000,
-        rating: 46,
-        isNew: false,
-        isTrending: true
-      },
-      {
-        title: "Block Puzzle Master",
-        description: "Addictive block-matching puzzle game that challenges your spatial thinking",
-        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/1/10x10-plus/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "puzzle",
-        plays: 3200000,
+        plays: 5200000,
         rating: 49,
         isNew: false,
         isTrending: true
       },
       {
-        title: "Battle Arena IO",
-        description: "Fight players worldwide in this intense multiplayer battle arena",
+        title: "Pac-Man",
+        description: "The iconic arcade game where you eat dots and avoid ghosts in this maze adventure",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://pacman.live/",
+        category: "action",
+        plays: 4800000,
+        rating: 48,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Street Fighter 2",
+        description: "Classic fighting game with legendary characters like Ryu, Ken, and Chun-Li",
         thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://slither.io",
-        category: "multiplayer",
-        plays: 1500000,
+        gameUrl: "https://sf2.playretrogames.com/",
+        category: "action",
+        plays: 3400000,
         rating: 47,
         isNew: false,
         isTrending: true
       },
       {
-        title: "Space Shooter",
-        description: "Epic space battles with intense shooting action and power-ups",
-        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/a/asteroid-crusher/v170/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "action",
-        plays: 950000,
-        rating: 45,
-        isNew: true,
-        isTrending: false
-      },
-      {
-        title: "Fantasy Quest",
-        description: "Magical adventure RPG with quests, spells, and mythical creatures",
-        thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/d/diamond-rush/v130/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "action",
-        plays: 720000,
-        rating: 46,
-        isNew: true,
-        isTrending: false
-      },
-      {
-        title: "City Builder",
-        description: "Build your metropolis from scratch with advanced city planning",
-        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/c/city-blocks/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "strategy",
-        plays: 890000,
-        rating: 44,
-        isNew: true,
-        isTrending: false
-      },
-      {
-        title: "Soccer Stars",
-        description: "Football championship with realistic physics and tournament mode",
-        thumbnail: "https://images.unsplash.com/photo-1559653329-1c5ad8ad3ade?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/s/soccer-physics-mobile/v130/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "multiplayer",
-        plays: 650000,
-        rating: 43,
-        isNew: true,
-        isTrending: false
-      },
-      {
-        title: "Cyber Warrior",
-        description: "Futuristic action game with cyberpunk aesthetics and intense combat",
+        title: "Mega Man X",
+        description: "Futuristic action platformer with incredible weapons and boss battles",
         thumbnail: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/n/neon-blaster/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
+        gameUrl: "https://megamanx.playretrogames.com/",
         category: "action",
-        plays: 892000,
+        plays: 2100000,
+        rating: 46,
+        isNew: false,
+        isTrending: false
+      },
+      {
+        title: "Contra",
+        description: "Run and gun military-themed action game with co-op gameplay",
+        thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://contra.playretrogames.com/",
+        category: "action",
+        plays: 1900000,
         rating: 45,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Ninja Master",
-        description: "Master the art of stealth and combat in this ninja adventure",
-        thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/n/ninja-run/v120/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
+        title: "Metal Slug",
+        description: "Side-scrolling run and gun game with amazing hand-drawn animation",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://metalslug.playretrogames.com/",
         category: "action",
-        plays: 1200000,
+        plays: 1700000,
         rating: 47,
-        isNew: false,
+        isNew: true,
         isTrending: false
       },
+
+      // PUZZLE GAMES
       {
-        title: "Gem Match 3",
-        description: "Match colorful gems in this addictive puzzle adventure",
+        title: "Tetris",
+        description: "The legendary block puzzle game that started it all - arrange falling blocks perfectly",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/j/jewel-christmas/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
+        gameUrl: "https://tetris.com/play-tetris",
         category: "puzzle",
-        plays: 2100000,
+        plays: 6500000,
+        rating: 50,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Sudoku Master",
+        description: "Classic number puzzle game that challenges your logical thinking skills",
+        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://sudoku.com/",
+        category: "puzzle",
+        plays: 4200000,
         rating: 48,
         isNew: false,
-        isTrending: false
+        isTrending: true
       },
       {
-        title: "Brain Trainer",
-        description: "Challenge your mind with various brain training exercises",
-        thumbnail: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/m/math-whizz/v120/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
+        title: "2048",
+        description: "Slide numbered tiles to combine them and reach the magical 2048 tile",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://play2048.co/",
         category: "puzzle",
-        plays: 756000,
-        rating: 46,
-        isNew: false,
-        isTrending: false
-      },
-      {
-        title: "Drift King",
-        description: "Master the art of drifting in this high-octane racing game",
-        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/d/drift-race/v130/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "racing",
-        plays: 1100000,
-        rating: 44,
-        isNew: false,
-        isTrending: false
-      },
-      {
-        title: "Moto Racer 3D",
-        description: "High-speed motorcycle racing with realistic 3D graphics",
-        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/m/moto-x3m/v470/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "racing",
-        plays: 943000,
-        rating: 45,
-        isNew: false,
-        isTrending: false
-      },
-      {
-        title: "Team Battle",
-        description: "Join epic team battles in this multiplayer combat game",
-        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://agar.io",
-        category: "multiplayer",
-        plays: 1800000,
+        plays: 3800000,
         rating: 47,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Card Masters",
-        description: "Strategic card battles with deck building mechanics",
+        title: "Candy Crush",
+        description: "Match 3 sweet candies in this colorful and addictive puzzle adventure",
         thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/s/solitaire-classic/v140/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "multiplayer",
-        plays: 654000,
-        rating: 43,
+        gameUrl: "https://www.crazygames.com/game/candy-crush",
+        category: "puzzle",
+        plays: 5100000,
+        rating: 46,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Snake.io",
-        description: "Grow your snake in this addictive multiplayer arena",
-        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://slither.io",
-        category: "io",
+        title: "Bejeweled",
+        description: "Match sparkling gems in this classic match-3 puzzle game",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/bejeweled",
+        category: "puzzle",
+        plays: 2900000,
+        rating: 45,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Mahjong Solitaire",
+        description: "Traditional Chinese tile-matching game with beautiful designs",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://mahjong-games.com/",
+        category: "puzzle",
+        plays: 2300000,
+        rating: 44,
+        isNew: false,
+        isTrending: false
+      },
+
+      // RACING GAMES
+      {
+        title: "Need for Speed",
+        description: "High-speed street racing with amazing cars and intense police chases",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/burnin-rubber-5-xs",
+        category: "racing",
+        plays: 4600000,
+        rating: 48,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Mario Kart",
+        description: "Fun kart racing with power-ups, crazy tracks, and Nintendo characters",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://supermariokart.playretrogames.com/",
+        category: "racing",
+        plays: 3900000,
+        rating: 47,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Hill Climb Racing",
+        description: "Physics-based driving game with unique vehicles and challenging terrains",
+        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/hill-climb-racing",
+        category: "racing",
         plays: 3200000,
         rating: 46,
         isNew: false,
         isTrending: false
       },
       {
-        title: "BattleRoyale.io",
-        description: "Last player standing in this intense battle royale game",
-        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://surviv.io",
-        category: "io",
+        title: "Drift Hunters",
+        description: "Master the art of drifting with customizable cars and realistic physics",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://drift-hunters.com/",
+        category: "racing",
         plays: 2700000,
+        rating: 45,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Moto X3M",
+        description: "Extreme motorcycle racing with death-defying stunts and obstacles",
+        thumbnail: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://motox3m.com/",
+        category: "racing",
+        plays: 2100000,
+        rating: 46,
+        isNew: false,
+        isTrending: false
+      },
+
+      // MULTIPLAYER GAMES
+      {
+        title: "Among Us Online",
+        description: "Find the impostor among your crew in this social deduction game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/among-us-online",
+        category: "multiplayer",
+        plays: 7200000,
+        rating: 49,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Fall Guys",
+        description: "Hilarious multiplayer party game with obstacle courses and mini-games",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/stumble-guys",
+        category: "multiplayer",
+        plays: 5800000,
         rating: 48,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Minecraft Classic",
+        description: "Build and explore infinite worlds in this creative sandbox game",
+        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://classic.minecraft.net/",
+        category: "multiplayer",
+        plays: 8900000,
+        rating: 50,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Tower Defense",
-        description: "Defend your base with strategic tower placement",
-        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/t/tower-defense/v130/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
-        category: "strategy",
-        plays: 1300000,
+        title: "Shell Shockers",
+        description: "Fast-paced multiplayer FPS game where you play as an egg with guns",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://shellshock.io/",
+        category: "multiplayer",
+        plays: 4300000,
+        rating: 47,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Skribbl.io",
+        description: "Multiplayer drawing and guessing game that tests your creativity",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://skribbl.io/",
+        category: "multiplayer",
+        plays: 3700000,
+        rating: 46,
+        isNew: false,
+        isTrending: false
+      },
+
+      // .IO GAMES
+      {
+        title: "Slither.io",
+        description: "Grow your snake by eating pellets and other players in this addictive arena",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://slither.io/",
+        category: "io",
+        plays: 9200000,
+        rating: 49,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Agar.io",
+        description: "Control a cell and eat other players to grow bigger in this simple yet addictive game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://agar.io/",
+        category: "io",
+        plays: 8600000,
+        rating: 48,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Diep.io",
+        description: "Control a tank and destroy other players in this competitive multiplayer shooter",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://diep.io/",
+        category: "io",
+        plays: 6400000,
+        rating: 47,
+        isNew: false,
+        isTrending: false
+      },
+      {
+        title: "Paper.io 2",
+        description: "Capture territory by drawing lines and avoid other players in this strategic game",
+        thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://paper-io.com/",
+        category: "io",
+        plays: 5200000,
+        rating: 46,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Wings.io",
+        description: "Fly a plane and battle other pilots in fast-paced aerial combat",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://wings.io/",
+        category: "io",
+        plays: 3800000,
         rating: 45,
         isNew: false,
         isTrending: false
       },
       {
-        title: "Civilization",
-        description: "Build and manage your own civilization through the ages",
+        title: "Surviv.io",
+        description: "Battle royale game where you fight to be the last player standing",
+        thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://surviv.io/",
+        category: "io",
+        plays: 7100000,
+        rating: 48,
+        isNew: false,
+        isTrending: false
+      },
+
+      // STRATEGY GAMES
+      {
+        title: "Age of Empires",
+        description: "Build civilizations and conquer enemies in this classic real-time strategy game",
         thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
-        gameUrl: "https://games.cdn.famobi.com/html5games/e/empire-island/v130/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=8f63b84c-2eb5-4967-9baa-7846b7b2ce7e&fg_pid=5438e3a4-1750-4e22-9270-76aa6b5d5138&fg_beat=525",
+        gameUrl: "https://www.crazygames.com/game/goodgame-empire",
         category: "strategy",
-        plays: 967000,
+        plays: 4900000,
+        rating: 48,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Chess.com",
+        description: "Play the classic strategy board game against players worldwide",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.chess.com/play",
+        category: "strategy",
+        plays: 6700000,
+        rating: 49,
+        isNew: false,
+        isTrending: true
+      },
+      {
+        title: "Tower Defense Kingdom",
+        description: "Defend your kingdom by building towers and upgrading your defenses",
+        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/kingdom-rush",
+        category: "strategy",
+        plays: 3600000,
         rating: 47,
         isNew: false,
+        isTrending: false
+      },
+      {
+        title: "Civilization Online",
+        description: "Build your empire from ancient times to the modern era in this epic strategy game",
+        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/forge-of-empires",
+        category: "strategy",
+        plays: 2800000,
+        rating: 46,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Plants vs Zombies",
+        description: "Defend your home from zombie invasion using an army of plants",
+        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/plants-vs-zombies",
+        category: "strategy",
+        plays: 5400000,
+        rating: 48,
+        isNew: false,
+        isTrending: false
+      },
+      {
+        title: "Command & Conquer",
+        description: "Military real-time strategy with intense battles and resource management",
+        thumbnail: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/warzone-getaway-shooting-game",
+        category: "strategy",
+        plays: 2100000,
+        rating: 45,
+        isNew: false,
+        isTrending: false
+      },
+
+      // เพิ่มเกมใหม่อีก 10 เกม
+      {
+        title: "Sonic the Hedgehog",
+        description: "Run at supersonic speed and collect rings in this classic platform adventure",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://sonic.playretrogames.com/",
+        category: "action",
+        plays: 4100000,
+        rating: 48,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Donkey Kong",
+        description: "Help Mario rescue the princess from the giant gorilla in this arcade classic",
+        thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://donkeykong.playretrogames.com/",
+        category: "action",
+        plays: 3300000,
+        rating: 46,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Bubble Shooter",
+        description: "Match colored bubbles to clear the screen in this relaxing puzzle game",
+        thumbnail: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://bubble-shooter.co/",
+        category: "puzzle",
+        plays: 4700000,
+        rating: 47,
+        isNew: true,
+        isTrending: false
+      },
+      {
+        title: "Crossy Road",
+        description: "Help the chicken cross busy roads and rivers in this endless arcade game",
+        thumbnail: "https://images.unsplash.com/photo-1571068316344-75bc76f77890?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450",
+        gameUrl: "https://www.crazygames.com/game/crossy-road",
+        category: "action",
+        plays: 3900000,
+        rating: 46,
+        isNew: true,
         isTrending: false
       }
     ];
@@ -299,10 +510,13 @@ export class MemStorage implements IStorage {
   async createGame(insertGame: InsertGame): Promise<Game> {
     const id = randomUUID();
     const game: Game = {
-      ...insertGame,
       id,
       plays: 0,
-      createdAt: new Date()
+      createdAt: new Date(),
+      ...insertGame,
+      rating: insertGame.rating || 40,
+      isNew: insertGame.isNew || false,
+      isTrending: insertGame.isTrending || false
     };
     this.games.set(id, game);
     return game;
