@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Copyright, Gamepad2 } from 'lucide-react';
@@ -14,17 +14,16 @@ interface GameModalProps {
 
 export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
   const [isLoading, setIsLoading] = useState(true);
+  // const iframeRef = useRef<HTMLIFrameElement>(null); // Assuming iframeRef is needed for the changes
 
   useEffect(() => {
     if (game && isOpen) {
       setIsLoading(true);
       // Increment play count when game is opened
       apiRequest('POST', `/api/games/${game.id}/play`).catch(console.error);
-      
+
       // Simulate loading time for game
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 2000);
+      // Removed the setTimeout as the iframe onLoad will handle the loading state
     }
   }, [game, isOpen]);
 
@@ -55,7 +54,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
             <X className="w-5 h-5" />
           </Button>
         </DialogHeader>
-        
+
         <div className="p-6">
           <div className="bg-gray-900 rounded-xl overflow-hidden aspect-video relative">
             {isLoading ? (
@@ -70,21 +69,23 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               </div>
             ) : (
               <iframe
+                // ref={iframeRef} // Removed as it's not used in the original context provided for modification
                 src={game.gameUrl}
                 className="w-full h-full"
                 title={game.title}
                 allow="fullscreen; gamepad; microphone; camera"
                 data-testid="iframe-game"
+                onLoad={() => setIsLoading(false)} // Added onLoad to manage loading state
               />
             )}
-            
+
             {/* ASHURA Games Credit Overlay */}
             <div className="absolute bottom-4 right-4 glass px-3 py-1 rounded-full text-xs text-mint-300">
               <Copyright className="inline w-3 h-3 mr-1" />
               ASHURA Games
             </div>
           </div>
-          
+
           <div className="mt-4 text-center">
             <p className="text-gray-400 text-sm">
               {game.description}
