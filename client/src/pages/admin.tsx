@@ -212,11 +212,56 @@ export default function Admin() {
           </Button>
         </div>
 
+        {/* Game Support Info */}
+        <Card className="glass-dark border-mint-500/20 mb-8">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <Gamepad2 className="w-5 h-5 mr-2 text-mint-400" />
+              รองรับเกมประเภทไหนบ้าง?
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-gray-300 space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-white font-semibold mb-2">✅ เกมที่รองรับ:</h4>
+                <ul className="space-y-1 text-sm">
+                  <li>• เกม HTML5 ที่เล่นใน iframe ได้</li>
+                  <li>• เกม embed จาก GameFlare, CrazyGames</li>
+                  <li>• เกม JavaScript ที่อัปโหลดเองได้</li>
+                  <li>• เกม Unity WebGL (ที่รองรับ iframe)</li>
+                  <li>• เกม Flash ที่แปลงเป็น HTML5 แล้ว</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold mb-2">❌ เกมที่ไม่รองรับ:</h4>
+                <ul className="space-y-1 text-sm">
+                  <li>• เกมที่มี X-Frame-Options หรือ CSP Deny</li>
+                  <li>• เกมที่ต้อง login ก่อนเล่น</li>
+                  <li>• เกม Mobile App (iOS/Android)</li>
+                  <li>• เกม Desktop (.exe, .dmg)</li>
+                  <li>• เกม Flash ดั้งเดิมที่ไม่ได้แปลง</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <h4 className="text-white font-semibold mb-2">🔗 ตัวอย่าง URL ที่ใช้ได้:</h4>
+              <div className="bg-gray-800 rounded p-3 text-xs space-y-1">
+                <div>• https://www.gameflare.com/embed/game-name/</div>
+                <div>• https://html5games.com/embed/game/</div>
+                <div>• https://itch.io/embed/game-id</div>
+                <div>• URL ของเกมที่อัปโหลดเองบน server</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Add Game Form */}
         {showAddForm && (
           <Card className="glass-dark border-mint-500/20 mb-8" data-testid="form-add-game">
             <CardHeader>
-              <CardTitle className="text-white">Add New Game</CardTitle>
+              <CardTitle className="text-white">เพิ่มเกมใหม่</CardTitle>
+              <p className="text-gray-400 text-sm">กรุณาใส่ URL ของเกมที่รองรับการเล่นใน iframe เท่านั้น</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -283,9 +328,13 @@ export default function Admin() {
                       value={newGame.gameUrl}
                       onChange={(e) => setNewGame({ ...newGame, gameUrl: e.target.value })}
                       required
+                      placeholder="https://www.gameflare.com/embed/game-name/"
                       className="glass border-white/20 text-white"
                       data-testid="input-game-url"
                     />
+                    <p className="text-xs text-gray-400 mt-1">
+                      ใส่ URL ของเกม HTML5 ที่สามารถเล่นใน iframe ได้ (ดูตัวอย่างข้างบน)
+                    </p>
                   </div>
                 </div>
 
