@@ -21,8 +21,16 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
   useEffect(() => {
     if (game && isOpen) {
       setIsLoading(true);
+      
+      // Set a timeout to hide loading after 3 seconds regardless
+      const timeout = setTimeout(() => {
+        setIsLoading(false);
+      }, 3000);
+      
       // Increment play count when game is opened
       apiRequest('POST', `/api/games/${game.id}/play`).catch(console.error);
+      
+      return () => clearTimeout(timeout);
     }
   }, [game, isOpen]);
 
@@ -93,7 +101,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               <DialogTitle className="text-lg md:text-2xl font-bold text-white truncate" data-testid="text-game-title">
                 {game.title}
               </DialogTitle>
-              <DialogDescription className="sr-only">
+              <DialogDescription className="text-sm text-gray-400 hidden md:block">
                 {game.description}
               </DialogDescription>
             </div>
@@ -128,48 +136,50 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
           </div>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col p-2 md:p-4">
+        <div className="flex-1 flex flex-col p-2 md:p-4 min-h-0">
           <div 
             ref={gameContainerRef}
-            className={`bg-gray-900 rounded-lg md:rounded-xl overflow-hidden flex-1 relative min-h-0 ${
-              isFullscreen ? 'absolute inset-0 z-50 rounded-none bg-black p-0' : ''
+            className={`bg-gray-900 rounded-lg md:rounded-xl overflow-hidden flex-1 relative ${
+              isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-black p-0 m-0' : 'min-h-[500px]'
             }`}
           >
-            {isLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <iframe
+              ref={iframeRef}
+              src={game.gameUrl}
+              className="w-full h-full border-0 bg-gray-900"
+              title={game.title}
+              allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment"
+              allowFullScreen
+              sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation allow-presentation"
+              data-testid="iframe-game"
+              onLoad={(e) => {
+                console.log('Game loaded successfully:', game.title);
+                setIsLoading(false);
+              }}
+              onError={(e) => {
+                console.error('Game loading error:', e);
+                console.error('Failed to load game:', game.title, 'URL:', game.gameUrl);
+                setIsLoading(false);
+              }}
+              style={{ 
+                minHeight: isFullscreen ? '100vh' : '500px',
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#111827'
+              }}
+            />
+
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm z-10">
                 <div className="text-center">
-                  <div className="w-12 h-12 md:w-16 md:h-16 mint-gradient rounded-full flex items-center justify-center mb-3 md:mb-4 mx-auto animate-pulse">
+                  <div className="w-12 h-12 md:w-16 md:h-16 mint-gradient rounded-full flex items-center justify-center mb-3 md:mb-4 mx-auto animate-spin">
                     <Gamepad2 className="text-white text-lg md:text-2xl" />
                   </div>
                   <p className="text-white text-base md:text-lg font-semibold mb-2">กำลังโหลดเกม...</p>
                   <p className="text-gray-400 text-sm">Powered by ASHURA Games</p>
                 </div>
               </div>
-            ) : (
-              <iframe
-                ref={iframeRef}
-                src={game.gameUrl}
-                className="w-full h-full border-0"
-                title={game.title}
-                allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope"
-                allowFullScreen
-                sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation"
-                data-testid="iframe-game"
-                onLoad={(e) => {
-                  console.log('Game loaded successfully:', game.title);
-                  setIsLoading(false);
-                }}
-                onError={(e) => {
-                  console.error('Game loading error:', e);
-                  console.error('Failed to load game:', game.title, 'URL:', game.gameUrl);
-                  setIsLoading(false);
-                }}
-                style={{ 
-                  minHeight: isFullscreen ? '100vh' : '60vh',
-                  width: isFullscreen ? '100vw' : '100%',
-                  height: isFullscreen ? '100vh' : '100%'
-                }}
-              />
             )}
 
             {/* ASHURA Games Credit Overlay - hidden in fullscreen */}
@@ -187,7 +197,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                   variant="ghost"
                   size="icon"
                   onClick={toggleFullscreen}
-                  className="glass w-10 h-10 rounded-full text-gray-400 hover:text-white bg-black/50 backdrop-blur-sm"
+                  className="w-12 h-12 rounded-full text-white bg-black/70 hover:bg-black/80 backdrop-blur-sm border border-mint-500/30"
                   data-testid="button-fullscreen-exit"
                   title="ออกจากเต็มจอ"
                 >
@@ -197,7 +207,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="glass w-10 h-10 rounded-full text-gray-400 hover:text-white bg-black/50 backdrop-blur-sm"
+                  className="w-12 h-12 rounded-full text-white bg-black/70 hover:bg-black/80 backdrop-blur-sm border border-mint-500/30"
                   data-testid="button-close-fullscreen"
                 >
                   <X className="w-5 h-5" />
