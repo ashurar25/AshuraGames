@@ -92,7 +92,7 @@ export default function GamesGrid({ onGamePlay, selectedCategory, searchQuery }:
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" data-testid="grid-games">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6" data-testid="grid-games">
         {currentLoading ? (
           Array.from({ length: 20 }, (_, i) => (
             <div key={i} className="glass-dark rounded-xl overflow-hidden" data-testid={`skeleton-game-${i}`}>

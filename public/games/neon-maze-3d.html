@@ -8,411 +8,483 @@
         body {
             margin: 0;
             padding: 0;
-            background: radial-gradient(ellipse at center, #1a0033 0%, #000000 100%);
+            background: radial-gradient(ellipse at center, #1e1e3f 0%, #0f0f2f 50%, #000000 100%);
             font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            touch-action: manipulation;
         }
         
         #gameContainer {
             position: relative;
             text-align: center;
-            background: rgba(26, 0, 51, 0.3);
-            padding: 20px;
+            background: rgba(30, 30, 63, 0.3);
+            padding: 15px;
             border-radius: 20px;
-            box-shadow: 0 0 50px rgba(255, 0, 255, 0.3);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 0, 255, 0.4);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            max-width: 95vw;
+            max-height: 95vh;
         }
         
         canvas {
-            border: 3px solid #ff00ff;
+            border: 3px solid #00ffff;
             border-radius: 15px;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
-            background: #000000;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.8);
+            background: radial-gradient(ellipse at center, #0a0a1a 0%, #000000 100%);
+            max-width: 100%;
+            height: auto;
         }
         
         #gameUI {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            color: #ff00ff;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+            color: #00ffff;
             font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 1);
+            font-size: clamp(10px, 2.5vw, 14px);
         }
         
-        #timer, #level, #score {
-            font-size: 18px;
-            background: rgba(255, 0, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 0, 255, 0.3);
+        .ui-item {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
         }
         
-        #gameComplete {
+        #gameOver {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #ff00ff;
-            padding: 30px;
+            background: rgba(0, 0, 0, 0.95);
+            color: #00ffff;
+            padding: 20px;
             border-radius: 20px;
             text-align: center;
             display: none;
-            border: 2px solid #00ff00;
+            border: 2px solid #ff69b4;
             z-index: 10;
+            max-width: 90vw;
         }
         
         button {
-            background: linear-gradient(45deg, #ff00ff, #8000ff);
+            background: linear-gradient(45deg, #00ffff, #0080ff);
             border: none;
             color: white;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: clamp(10px, 2.5vw, 14px);
+            border-radius: 20px;
             cursor: pointer;
-            margin: 10px;
+            margin: 8px;
             transition: all 0.3s ease;
             font-weight: bold;
+            min-width: 80px;
         }
         
-        button:hover {
+        button:hover, button:active {
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
         }
         
         #instructions {
-            color: #ff00ff;
-            margin-top: 15px;
-            font-size: 14px;
-            text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
-            animation: glow 2s infinite alternate;
+            color: #00ffff;
+            margin-top: 10px;
+            font-size: clamp(8px, 2vw, 12px);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 1);
+            animation: neonGlow 2s infinite alternate;
         }
         
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(255, 0, 255, 0.8); }
-            100% { text-shadow: 0 0 20px rgba(255, 0, 255, 1), 0 0 30px rgba(255, 0, 255, 0.8); }
+        @keyframes neonGlow {
+            0% { text-shadow: 0 0 15px rgba(0, 255, 255, 1); }
+            100% { text-shadow: 0 0 25px rgba(0, 255, 255, 1), 0 0 35px rgba(255, 0, 255, 0.8); }
         }
         
-        .minimap {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 150px;
-            height: 150px;
-            border: 2px solid #00ffff;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.8);
+        @media (max-width: 768px) {
+            #gameContainer {
+                padding: 10px;
+            }
+            
+            .ui-item {
+                padding: 3px 6px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <div id="gameUI">
-            <div id="timer">⏱️ เวลา: 60</div>
-            <div id="level">🌟 เลเวล: 1</div>
-            <div id="score">💎 คะแนน: 0</div>
+            <div class="ui-item">🚀 เวลา: <span id="time">60</span></div>
+            <div class="ui-item">🎯 เป้าหมาย: <span id="targets">5</span></div>
+            <div class="ui-item">💎 คะแนน: <span id="score">0</span></div>
+            <div class="ui-item">📍 พิกัด: <span id="position">0,0</span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <canvas id="minimap" class="minimap" width="150" height="150"></canvas>
-        <div id="gameComplete">
-            <h2>🎉 เลเวลเสร็จสิ้น!</h2>
-            <p>เวลาที่เหลือ: <span id="timeBonus">0</span> วินาที</p>
-            <p>โบนัส: <span id="bonusScore">0</span> คะแนน</p>
-            <button onclick="nextLevel()">➡️ เลเวลต่อไป</button>
+        <div id="gameOver">
+            <h2>🏁 เกมจบ!</h2>
+            <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+            <p>เป้าหมายที่พบ: <span id="finalTargets">0</span></p>
             <button onclick="restartGame()">🔄 เล่นใหม่</button>
         </div>
         <div id="instructions">
-            🎮 ใช้ WASD หรือลูกศรเพื่อเดิน | แตะหน้าจอเพื่อเล่นบนมือถือ | หาทางออกจากเขาวงกต 3D!
+            🎮 WASD/ลูกศร: เคลื่อนที่ | เมาส์: มองรอบตัว | หาเป้าหมายในเขาวงกต!
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const minimapCanvas = document.getElementById('minimap');
-        const minimapCtx = minimapCanvas.getContext('2d');
+        
+        // Responsive canvas
+        function resizeCanvas() {
+            const containerWidth = Math.min(800, window.innerWidth * 0.9);
+            const containerHeight = Math.min(600, window.innerHeight * 0.6);
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = containerHeight + 'px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         
         let player = {
-            x: 1.5,
-            y: 1.5,
+            x: 1,
+            y: 1,
             angle: 0,
-            fov: Math.PI / 3,
-            speed: 0.05,
+            speed: 0.1,
             turnSpeed: 0.05
         };
         
-        let maze = [];
-        let level = 1;
-        let score = 0;
+        let targets = [];
         let timeLeft = 60;
+        let score = 0;
+        let targetsFound = 0;
         let gameRunning = false;
         let keys = {};
-        let particles = [];
-        let collectibles = [];
+        let mouseX = 0;
+        let mouseY = 0;
         
-        const mazeSize = 15;
-        const cellSize = 1;
-        const rayCount = canvas.width;
+        // Maze generation
+        const MAZE_SIZE = 21;
+        let maze = [];
         
-        class Particle {
-            constructor(x, y, color) {
+        // Ray casting variables
+        const FOV = Math.PI / 3;
+        const NUM_RAYS = canvas.width / 2;
+        const MAX_DEPTH = 20;
+        
+        class Target {
+            constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.vx = (Math.random() - 0.5) * 0.1;
-                this.vy = (Math.random() - 0.5) * 0.1;
-                this.color = color;
-                this.life = 60;
-                this.maxLife = 60;
-                this.size = Math.random() * 3 + 1;
+                this.collected = false;
+                this.pulse = 0;
+                this.glowIntensity = 1;
             }
             
             update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life--;
-                return this.life > 0;
+                this.pulse += 0.1;
+                this.glowIntensity = 0.5 + Math.sin(this.pulse) * 0.5;
+            }
+            
+            checkCollection(playerX, playerY) {
+                const dx = this.x - playerX;
+                const dy = this.y - playerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 0.5 && !this.collected) {
+                    this.collected = true;
+                    targetsFound++;
+                    score += 100 + Math.floor(timeLeft * 2);
+                    
+                    // Collection effect
+                    createParticleEffect(this.x, this.y);
+                    return true;
+                }
+                return false;
             }
         }
         
         function generateMaze() {
             // Initialize maze with walls
-            maze = [];
-            for (let y = 0; y < mazeSize; y++) {
-                maze[y] = [];
-                for (let x = 0; x < mazeSize; x++) {
-                    maze[y][x] = 1; // 1 = wall, 0 = empty
+            maze = Array(MAZE_SIZE).fill().map(() => Array(MAZE_SIZE).fill(1));
+            
+            // Recursive backtracking maze generation
+            function carve(x, y) {
+                maze[y][x] = 0;
+                
+                const directions = [[2, 0], [0, 2], [-2, 0], [0, -2]];
+                directions.sort(() => Math.random() - 0.5);
+                
+                for (let [dx, dy] of directions) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    
+                    if (nx > 0 && nx < MAZE_SIZE - 1 && 
+                        ny > 0 && ny < MAZE_SIZE - 1 && 
+                        maze[ny][nx] === 1) {
+                        maze[y + dy/2][x + dx/2] = 0;
+                        carve(nx, ny);
+                    }
                 }
             }
             
-            // Create maze using recursive backtracking
-            const stack = [];
-            const start = {x: 1, y: 1};
-            maze[start.y][start.x] = 0;
-            stack.push(start);
+            carve(1, 1);
             
-            while (stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = getUnvisitedNeighbors(current.x, current.y);
-                
-                if (neighbors.length > 0) {
-                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    
-                    // Remove wall between current and next
-                    const wallX = current.x + (next.x - current.x) / 2;
-                    const wallY = current.y + (next.y - current.y) / 2;
-                    maze[wallY][wallX] = 0;
-                    maze[next.y][next.x] = 0;
-                    
-                    stack.push(next);
-                } else {
-                    stack.pop();
+            // Add some random openings
+            for (let i = 0; i < 20; i++) {
+                const x = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
+                const y = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
+                if (Math.random() < 0.3) {
+                    maze[y][x] = 0;
                 }
-            }
-            
-            // Create exit
-            maze[mazeSize - 2][mazeSize - 2] = 2; // 2 = exit
-            
-            // Add collectibles
-            collectibles = [];
-            for (let i = 0; i < level * 3; i++) {
-                let x, y;
-                do {
-                    x = Math.floor(Math.random() * mazeSize);
-                    y = Math.floor(Math.random() * mazeSize);
-                } while (maze[y][x] !== 0 || (x === 1 && y === 1));
-                
-                collectibles.push({x: x + 0.5, y: y + 0.5, collected: false});
             }
         }
         
-        function getUnvisitedNeighbors(x, y) {
-            const neighbors = [];
-            const directions = [{x: 0, y: -2}, {x: 2, y: 0}, {x: 0, y: 2}, {x: -2, y: 0}];
+        function generateTargets() {
+            targets = [];
+            let attempts = 0;
             
-            directions.forEach(dir => {
-                const newX = x + dir.x;
-                const newY = y + dir.y;
+            while (targets.length < 5 && attempts < 100) {
+                const x = Math.floor(Math.random() * MAZE_SIZE);
+                const y = Math.floor(Math.random() * MAZE_SIZE);
                 
-                if (newX > 0 && newX < mazeSize - 1 && 
-                    newY > 0 && newY < mazeSize - 1 && 
-                    maze[newY][newX] === 1) {
-                    neighbors.push({x: newX, y: newY});
+                if (maze[y][x] === 0 && 
+                    (x !== 1 || y !== 1) && // Not at start position
+                    !targets.some(t => t.x === x && t.y === y)) {
+                    targets.push(new Target(x + 0.5, y + 0.5));
                 }
-            });
-            
-            return neighbors;
+                attempts++;
+            }
         }
         
-        function castRay(angle) {
-            const stepSize = 0.01;
+        function createParticleEffect(x, y) {
+            // Particle effects when collecting targets
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const angle = (i / 20) * Math.PI * 2;
+                    const distance = Math.random() * 2;
+                    const px = x + Math.cos(angle) * distance;
+                    const py = y + Math.sin(angle) * distance;
+                    
+                    // Visual effect would be drawn in render loop
+                }, i * 10);
+            }
+        }
+        
+        function castRay(startX, startY, angle) {
+            const rayDirX = Math.cos(angle);
+            const rayDirY = Math.sin(angle);
+            
             let distance = 0;
-            let hitWall = false;
+            let hit = false;
+            let wallType = 0;
             
-            while (!hitWall && distance < 20) {
-                distance += stepSize;
+            while (!hit && distance < MAX_DEPTH) {
+                distance += 0.1;
                 
-                const testX = player.x + Math.cos(angle) * distance;
-                const testY = player.y + Math.sin(angle) * distance;
+                const testX = startX + rayDirX * distance;
+                const testY = startY + rayDirY * distance;
                 
                 const mapX = Math.floor(testX);
                 const mapY = Math.floor(testY);
                 
-                if (mapX < 0 || mapX >= mazeSize || mapY < 0 || mapY >= mazeSize ||
+                if (mapX < 0 || mapX >= MAZE_SIZE || 
+                    mapY < 0 || mapY >= MAZE_SIZE || 
                     maze[mapY][mapX] === 1) {
-                    hitWall = true;
+                    hit = true;
+                    wallType = maze[mapY] && maze[mapY][mapX] ? maze[mapY][mapX] : 1;
                 }
             }
             
-            return distance;
+            return { distance, wallType, hit };
         }
         
-        function render3D() {
-            // Clear canvas with gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#000015');
-            gradient.addColorStop(0.5, '#000030');
-            gradient.addColorStop(1, '#000000');
-            ctx.fillStyle = gradient;
+        function render() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Cast rays for 3D rendering
-            for (let x = 0; x < rayCount; x++) {
-                const rayAngle = player.angle - player.fov/2 + (x / rayCount) * player.fov;
-                const distance = castRay(rayAngle);
+            // Draw 3D view using ray casting
+            const rayAngleStep = FOV / NUM_RAYS;
+            
+            for (let i = 0; i < NUM_RAYS; i++) {
+                const rayAngle = player.angle - FOV / 2 + i * rayAngleStep;
+                const ray = castRay(player.x, player.y, rayAngle);
                 
-                // Calculate wall height
-                const wallHeight = canvas.height / distance;
-                const wallTop = (canvas.height - wallHeight) / 2;
+                if (ray.hit) {
+                    // Calculate wall height
+                    const correctedDistance = ray.distance * Math.cos(rayAngle - player.angle);
+                    const wallHeight = canvas.height / correctedDistance;
+                    
+                    // Calculate wall color based on distance
+                    const brightness = Math.max(0.1, 1 - correctedDistance / MAX_DEPTH);
+                    const neonIntensity = Math.max(0.2, brightness);
+                    
+                    // Neon wall colors
+                    const r = Math.floor(0 * 255 * brightness);
+                    const g = Math.floor(255 * neonIntensity);
+                    const b = Math.floor(255 * brightness);
+                    
+                    // Draw wall slice
+                    const x = (i / NUM_RAYS) * canvas.width;
+                    const wallTop = (canvas.height - wallHeight) / 2;
+                    const wallBottom = (canvas.height + wallHeight) / 2;
+                    
+                    // Gradient for neon effect
+                    const gradient = ctx.createLinearGradient(x, wallTop, x, wallBottom);
+                    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.3)`);
+                    gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${brightness})`);
+                    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.3)`);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, wallTop, canvas.width / NUM_RAYS, wallHeight);
+                    
+                    // Add neon glow
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = `rgba(0, 255, 255, ${neonIntensity})`;
+                    ctx.strokeStyle = `rgba(0, 255, 255, ${neonIntensity})`;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, wallTop, canvas.width / NUM_RAYS, wallHeight);
+                    ctx.shadowBlur = 0;
+                }
                 
-                // Wall color based on distance (fog effect)
-                const brightness = Math.max(0, 1 - distance / 10);
-                const hue = 280 + Math.sin(distance * 0.5) * 30; // Purple to pink
-                
-                ctx.fillStyle = `hsl(${hue}, 100%, ${brightness * 50}%)`;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = ctx.fillStyle;
-                
-                ctx.fillRect(x, wallTop, 1, wallHeight);
+                // Check for targets in ray path
+                targets.forEach(target => {
+                    if (!target.collected) {
+                        const dx = target.x - player.x;
+                        const dy = target.y - player.y;
+                        const targetAngle = Math.atan2(dy, dx);
+                        
+                        const angleDiff = Math.abs(targetAngle - rayAngle);
+                        const targetDistance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (angleDiff < rayAngleStep && targetDistance < ray.distance) {
+                            // Draw target
+                            const correctedDistance = targetDistance * Math.cos(targetAngle - player.angle);
+                            const targetSize = 30 / correctedDistance;
+                            const targetX = (i / NUM_RAYS) * canvas.width;
+                            const targetY = canvas.height / 2;
+                            
+                            ctx.save();
+                            ctx.globalAlpha = target.glowIntensity;
+                            
+                            const targetGradient = ctx.createRadialGradient(
+                                targetX, targetY, 0,
+                                targetX, targetY, targetSize
+                            );
+                            targetGradient.addColorStop(0, '#ffffff');
+                            targetGradient.addColorStop(0.5, '#ff00ff');
+                            targetGradient.addColorStop(1, 'transparent');
+                            
+                            ctx.fillStyle = targetGradient;
+                            ctx.shadowBlur = 20;
+                            ctx.shadowColor = '#ff00ff';
+                            ctx.beginPath();
+                            ctx.arc(targetX, targetY, targetSize, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.restore();
+                        }
+                    }
+                });
             }
             
-            ctx.shadowBlur = 0;
+            // Draw floor and ceiling with neon grid
+            drawFloorAndCeiling();
             
-            // Render collectibles
-            collectibles.forEach(item => {
-                if (item.collected) return;
-                
-                const dx = item.x - player.x;
-                const dy = item.y - player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 8) {
-                    const angle = Math.atan2(dy, dx) - player.angle;
-                    const size = 500 / distance;
-                    const screenX = canvas.width/2 + Math.tan(angle) * canvas.height - size/2;
-                    const screenY = canvas.height/2 - size/2;
-                    
-                    if (screenX > -size && screenX < canvas.width) {
-                        // Draw glowing orb
-                        const time = Date.now() * 0.01;
-                        const pulse = Math.sin(time) * 0.3 + 0.7;
-                        
-                        ctx.save();
-                        ctx.globalAlpha = pulse;
-                        ctx.fillStyle = '#00ffff';
-                        ctx.shadowBlur = 20;
-                        ctx.shadowColor = '#00ffff';
-                        
-                        ctx.beginPath();
-                        ctx.arc(screenX + size/2, screenY + size/2, size/2, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        ctx.restore();
-                    }
-                }
-            });
-            
-            // Render particles
-            particles = particles.filter(particle => {
-                particle.update();
-                
-                const dx = particle.x - player.x;
-                const dy = particle.y - player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 5) {
-                    const angle = Math.atan2(dy, dx) - player.angle;
-                    const size = 50 / distance;
-                    const screenX = canvas.width/2 + Math.tan(angle) * canvas.height;
-                    const screenY = canvas.height/2;
-                    
-                    ctx.save();
-                    ctx.globalAlpha = particle.life / particle.maxLife;
-                    ctx.fillStyle = particle.color;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = particle.color;
-                    
-                    ctx.beginPath();
-                    ctx.arc(screenX, screenY, particle.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.restore();
-                }
-                
-                return particle.life > 0;
-            });
+            // Draw minimap
+            drawMinimap();
         }
         
-        function renderMinimap() {
-            minimapCtx.fillStyle = '#000000';
-            minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+        function drawFloorAndCeiling() {
+            // Floor
+            const floorGradient = ctx.createLinearGradient(0, canvas.height/2, 0, canvas.height);
+            floorGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            floorGradient.addColorStop(1, 'rgba(0, 50, 100, 0.3)');
+            ctx.fillStyle = floorGradient;
+            ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
             
-            const scale = minimapCanvas.width / mazeSize;
+            // Ceiling
+            const ceilingGradient = ctx.createLinearGradient(0, 0, 0, canvas.height/2);
+            ceilingGradient.addColorStop(0, 'rgba(0, 20, 40, 0.3)');
+            ceilingGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = ceilingGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+        }
+        
+        function drawMinimap() {
+            const minimapSize = Math.min(canvas.width * 0.2, 120);
+            const minimapX = canvas.width - minimapSize - 10;
+            const minimapY = 10;
+            const scale = minimapSize / MAZE_SIZE;
+            
+            // Minimap background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(minimapX, minimapY, minimapSize, minimapSize);
             
             // Draw maze
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
+            for (let y = 0; y < MAZE_SIZE; y++) {
+                for (let x = 0; x < MAZE_SIZE; x++) {
                     if (maze[y][x] === 1) {
-                        minimapCtx.fillStyle = '#ff00ff';
-                        minimapCtx.fillRect(x * scale, y * scale, scale, scale);
-                    } else if (maze[y][x] === 2) {
-                        minimapCtx.fillStyle = '#00ff00';
-                        minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+                        ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+                        ctx.fillRect(
+                            minimapX + x * scale,
+                            minimapY + y * scale,
+                            scale, scale
+                        );
                     }
                 }
             }
             
-            // Draw collectibles
-            collectibles.forEach(item => {
-                if (!item.collected) {
-                    minimapCtx.fillStyle = '#00ffff';
-                    minimapCtx.beginPath();
-                    minimapCtx.arc(item.x * scale, item.y * scale, 3, 0, Math.PI * 2);
-                    minimapCtx.fill();
+            // Draw targets
+            targets.forEach(target => {
+                if (!target.collected) {
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.arc(
+                        minimapX + target.x * scale,
+                        minimapY + target.y * scale,
+                        3, 0, Math.PI * 2
+                    );
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
                 }
             });
             
             // Draw player
-            minimapCtx.fillStyle = '#ffff00';
-            minimapCtx.beginPath();
-            minimapCtx.arc(player.x * scale, player.y * scale, 4, 0, Math.PI * 2);
-            minimapCtx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(
+                minimapX + player.x * scale,
+                minimapY + player.y * scale,
+                4, 0, Math.PI * 2
+            );
+            ctx.fill();
             
             // Draw player direction
-            minimapCtx.strokeStyle = '#ffff00';
-            minimapCtx.lineWidth = 2;
-            minimapCtx.beginPath();
-            minimapCtx.moveTo(player.x * scale, player.y * scale);
-            minimapCtx.lineTo(
-                (player.x + Math.cos(player.angle) * 0.5) * scale,
-                (player.y + Math.sin(player.angle) * 0.5) * scale
-            );
-            minimapCtx.stroke();
+            const dirX = minimapX + player.x * scale + Math.cos(player.angle) * 8;
+            const dirY = minimapY + player.y * scale + Math.sin(player.angle) * 8;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(minimapX + player.x * scale, minimapY + player.y * scale);
+            ctx.lineTo(dirX, dirY);
+            ctx.stroke();
+            
+            ctx.shadowBlur = 0;
         }
         
         function updateGame() {
@@ -437,109 +509,91 @@
                 player.angle += player.turnSpeed;
             }
             
-            // Check collision
+            // Strafe movement
+            if (keys['q']) {
+                newX += Math.cos(player.angle - Math.PI/2) * player.speed;
+                newY += Math.sin(player.angle - Math.PI/2) * player.speed;
+            }
+            if (keys['e']) {
+                newX += Math.cos(player.angle + Math.PI/2) * player.speed;
+                newY += Math.sin(player.angle + Math.PI/2) * player.speed;
+            }
+            
+            // Collision detection
             const mapX = Math.floor(newX);
             const mapY = Math.floor(newY);
             
-            if (mapX >= 0 && mapX < mazeSize && mapY >= 0 && mapY < mazeSize && 
-                maze[mapY][mapX] !== 1) {
+            if (mapX >= 0 && mapX < MAZE_SIZE && 
+                mapY >= 0 && mapY < MAZE_SIZE && 
+                maze[mapY][mapX] === 0) {
                 player.x = newX;
                 player.y = newY;
-                
-                // Check for exit
-                if (maze[mapY][mapX] === 2) {
-                    levelComplete();
-                    return;
+            }
+            
+            // Update targets
+            targets.forEach(target => {
+                target.update();
+                target.checkCollection(player.x, player.y);
+            });
+            
+            // Update timer
+            if (Date.now() % 1000 < 16) { // Roughly every second
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    gameOver();
                 }
             }
             
-            // Check collectible collision
-            collectibles.forEach(item => {
-                if (!item.collected) {
-                    const dx = item.x - player.x;
-                    const dy = item.y - player.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < 0.3) {
-                        item.collected = true;
-                        score += 100 * level;
-                        
-                        // Create particles
-                        for (let i = 0; i < 20; i++) {
-                            particles.push(new Particle(item.x, item.y, '#00ffff'));
-                        }
-                        
-                        updateUI();
-                    }
-                }
-            });
-        }
-        
-        function levelComplete() {
-            gameRunning = false;
-            const timeBonus = timeLeft * 10 * level;
-            score += timeBonus;
+            // Check win condition
+            if (targetsFound >= 5) {
+                score += timeLeft * 10;
+                gameOver();
+            }
             
-            document.getElementById('timeBonus').textContent = timeLeft;
-            document.getElementById('bonusScore').textContent = timeBonus;
-            document.getElementById('gameComplete').style.display = 'block';
-            
-            updateUI();
-        }
-        
-        function nextLevel() {
-            level++;
-            timeLeft = 60 + level * 10;
-            player.x = 1.5;
-            player.y = 1.5;
-            player.angle = 0;
-            particles = [];
-            
-            generateMaze();
-            document.getElementById('gameComplete').style.display = 'none';
-            gameRunning = true;
             updateUI();
         }
         
         function updateUI() {
-            document.getElementById('timer').textContent = '⏱️ เวลา: ' + timeLeft;
-            document.getElementById('level').textContent = '🌟 เลเวล: ' + level;
-            document.getElementById('score').textContent = '💎 คะแนน: ' + score;
+            document.getElementById('time').textContent = Math.max(0, timeLeft);
+            document.getElementById('targets').textContent = 5 - targetsFound;
+            document.getElementById('score').textContent = score;
+            document.getElementById('position').textContent = 
+                Math.floor(player.x) + ',' + Math.floor(player.y);
         }
         
         function gameLoop() {
+            render();
             updateGame();
-            render3D();
-            renderMinimap();
-            requestAnimationFrame(gameLoop);
+            
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTargets').textContent = targetsFound;
+            document.getElementById('gameOver').style.display = 'block';
         }
         
         function restartGame() {
             player.x = 1.5;
             player.y = 1.5;
             player.angle = 0;
-            level = 1;
-            score = 0;
+            
             timeLeft = 60;
-            particles = [];
+            score = 0;
+            targetsFound = 0;
             gameRunning = true;
             
             generateMaze();
-            document.getElementById('gameComplete').style.display = 'none';
+            generateTargets();
             updateUI();
+            document.getElementById('gameOver').style.display = 'none';
+            
+            requestAnimationFrame(gameLoop);
         }
-        
-        // Timer
-        setInterval(() => {
-            if (gameRunning && timeLeft > 0) {
-                timeLeft--;
-                updateUI();
-                
-                if (timeLeft <= 0) {
-                    levelComplete();
-                }
-            }
-        }, 1000);
         
         // Input handling
         document.addEventListener('keydown', (e) => {
@@ -550,67 +604,64 @@
             keys[e.key.toLowerCase()] = false;
         });
         
-        // Touch controls for mobile
+        // Mouse look
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const newMouseX = e.clientX - rect.left;
+            
+            const deltaX = newMouseX - centerX;
+            player.angle += deltaX * 0.002;
+            
+            // Reset mouse to center (simulated)
+            mouseX = centerX;
+        });
+        
+        // Touch controls
         let touchStartX = 0;
         let touchStartY = 0;
-        let isTouching = false;
         
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            isTouching = true;
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         });
         
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (!isTouching || !gameRunning) return;
+            if (!gameRunning) return;
             
-            const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
-            const deltaX = touchX - touchStartX;
-            const deltaY = touchY - touchStartY;
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
             
-            // Turn based on horizontal movement
-            if (Math.abs(deltaX) > 10) {
-                player.angle += deltaX * 0.01;
-                touchStartX = touchX;
-            }
+            // Rotation
+            player.angle += deltaX * 0.01;
             
-            // Move based on vertical movement
-            if (Math.abs(deltaY) > 10) {
-                let newX = player.x;
-                let newY = player.y;
-                
+            // Movement
+            if (Math.abs(deltaY) > 20) {
                 if (deltaY < 0) {
-                    newX += Math.cos(player.angle) * player.speed * 2;
-                    newY += Math.sin(player.angle) * player.speed * 2;
+                    keys['w'] = true;
+                    keys['s'] = false;
                 } else {
-                    newX -= Math.cos(player.angle) * player.speed * 2;
-                    newY -= Math.sin(player.angle) * player.speed * 2;
+                    keys['s'] = true;
+                    keys['w'] = false;
                 }
-                
-                const mapX = Math.floor(newX);
-                const mapY = Math.floor(newY);
-                
-                if (mapX >= 0 && mapX < mazeSize && mapY >= 0 && mapY < mazeSize && 
-                    maze[mapY][mapX] !== 1) {
-                    player.x = newX;
-                    player.y = newY;
-                }
-                
-                touchStartY = touchY;
+            } else {
+                keys['w'] = keys['s'] = false;
             }
+            
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
         });
         
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            isTouching = false;
+            keys['w'] = keys['s'] = keys['a'] = keys['d'] = false;
         });
         
         // Start game
         restartGame();
-        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>

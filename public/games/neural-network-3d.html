@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        #gameContainer {
+            position: relative;
+            text-align: center;
+            background: rgba(102, 126, 234, 0.2);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(102, 126, 234, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(102, 126, 234, 0.6);
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+        
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            background: radial-gradient(ellipse at center, #1a1a3a 0%, #0a0a1a 100%);
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #gameUI {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(102, 126, 234, 1);
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+        
+        .ui-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 5px 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #667eea;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            border: 2px solid #ff6b8a;
+            z-index: 10;
+            max-width: 90vw;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: clamp(12px, 2.5vw, 16px);
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        button:hover, button:active {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(102, 126, 234, 0.8);
+        }
+        
+        #instructions {
+            color: #667eea;
+            margin-top: 10px;
+            font-size: clamp(10px, 2vw, 14px);
+            text-shadow: 0 0 15px rgba(102, 126, 234, 1);
+            animation: neuralGlow 4s infinite;
+        }
+        
+        @keyframes neuralGlow {
+            0%, 100% { text-shadow: 0 0 15px rgba(102, 126, 234, 1); }
+            25% { text-shadow: 0 0 25px rgba(118, 75, 162, 1), 0 0 35px rgba(102, 126, 234, 0.8); }
+            50% { text-shadow: 0 0 25px rgba(255, 107, 138, 1), 0 0 35px rgba(102, 126, 234, 0.8); }
+            75% { text-shadow: 0 0 25px rgba(0, 255, 255, 1), 0 0 35px rgba(102, 126, 234, 0.8); }
+        }
+        
+        @media (max-width: 768px) {
+            #gameContainer {
+                padding: 10px;
+            }
+            
+            #gameUI {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameUI">
+            <div class="ui-item">🧠 ความฉลาด: <span id="intelligence">100</span></div>
+            <div class="ui-item">⚡ พลังงาน: <span id="energy">100</span></div>
+            <div class="ui-item">🔗 การเชื่อมต่อ: <span id="connections">0</span></div>
+            <div class="ui-item">📊 ข้อมูล: <span id="data">0</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameOver">
+            <h2>🤖 Neural Network Shutdown!</h2>
+            <p>ข้อมูลที่ประมวลผล: <span id="finalData">0</span></p>
+            <p>การเชื่อมต่อทั้งหมด: <span id="finalConnections">0</span></p>
+            <button onclick="restartGame()">🔄 รีบูตระบบ</button>
+        </div>
+        <div id="instructions">
+            🎮 เมาส์/Touch: ควบคุมโหนด | เชื่อมต่อโหนดเพื่อสร้างเครือข่าย | หลีกเลี่ยงไวรัส!
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive canvas
+        function resizeCanvas() {
+            const containerWidth = Math.min(800, window.innerWidth * 0.9);
+            const containerHeight = Math.min(600, window.innerHeight * 0.7);
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = containerHeight + 'px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            z: 0,
+            size: 12,
+            intelligence: 100,
+            energy: 100,
+            connections: [],
+            data: 0
+        };
+        
+        let camera = {
+            x: 0,
+            y: 0,
+            z: -200,
+            rotation: 0
+        };
+        
+        let nodes = [];
+        let viruses = [];
+        let dataPackets = [];
+        let particles = [];
+        let connections = [];
+        
+        let gameRunning = false;
+        let frameCount = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseDown = false;
+        
+        class Particle {
+            constructor(x, y, z, color, velocity = {x: 0, y: 0, z: 0}, life = 60, size = 2) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = velocity.x + (Math.random() - 0.5) * 3;
+                this.vy = velocity.y + (Math.random() - 0.5) * 3;
+                this.vz = velocity.z + (Math.random() - 0.5) * 3;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.vz *= 0.98;
+                this.rotation += this.rotationSpeed;
+                this.life--;
+                return this.life > 0;
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const alpha = this.life / this.maxLife;
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, this.color);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class Node {
+            constructor(x, y, z, type = 'data') {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.type = type; // data, processing, storage, output
+                this.size = type === 'processing' ? 15 : 10;
+                this.energy = 100;
+                this.active = false;
+                this.connectedNodes = [];
+                this.pulse = 0;
+                this.rotation = 0;
+                this.value = type === 'data' ? Math.floor(Math.random() * 50) + 10 : 0;
+            }
+            
+            update() {
+                this.pulse += 0.1;
+                this.rotation += 0.02;
+                
+                if (this.active && Math.random() < 0.1) {
+                    particles.push(new Particle(
+                        this.x, this.y, this.z,
+                        this.getColor(),
+                        {x: 0, y: 0, z: 0},
+                        40,
+                        3
+                    ));
+                }
+            }
+            
+            getColor() {
+                const colors = {
+                    data: '#00ffff',
+                    processing: '#ff00ff',
+                    storage: '#ffff00',
+                    output: '#00ff00'
+                };
+                return colors[this.type];
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    const pulseSize = this.active ? 1 + Math.sin(this.pulse) * 0.3 : 1;
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(pulseSize, pulseSize);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(0.3, this.getColor());
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.getColor();
+                    
+                    if (this.type === 'processing') {
+                        // Draw octagon for processing nodes
+                        ctx.beginPath();
+                        for (let i = 0; i < 8; i++) {
+                            const angle = (i * Math.PI * 2) / 8;
+                            const x = Math.cos(angle) * size;
+                            const y = Math.sin(angle) * size;
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                    } else {
+                        // Draw circle for other nodes
+                        ctx.beginPath();
+                        ctx.arc(0, 0, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // Draw value for data nodes
+                    if (this.type === 'data' && size > 8) {
+                        ctx.fillStyle = 'white';
+                        ctx.font = `${Math.min(size, 12)}px Arial`;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(this.value.toString(), 0, 3);
+                    }
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class Virus {
+            constructor(x, y, z) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = (Math.random() - 0.5) * 3;
+                this.vy = (Math.random() - 0.5) * 3;
+                this.vz = (Math.random() - 0.5) * 3;
+                this.size = 12;
+                this.rotation = 0;
+                this.spikes = [];
+                
+                // Generate random spikes
+                for (let i = 0; i < 12; i++) {
+                    this.spikes.push({
+                        angle: (i * Math.PI * 2) / 12,
+                        length: Math.random() * 8 + 5,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            
+            update() {
+                // Move towards player
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const dz = player.z - this.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance > 0) {
+                    this.vx += (dx / distance) * 0.05;
+                    this.vy += (dy / distance) * 0.05;
+                    this.vz += (dz / distance) * 0.05;
+                }
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+                
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.vz *= 0.98;
+                
+                this.rotation += 0.05;
+                
+                // Emit virus particles
+                if (Math.random() < 0.1) {
+                    particles.push(new Particle(
+                        this.x, this.y, this.z,
+                        '#ff0040',
+                        {x: 0, y: 0, z: 0},
+                        30,
+                        2
+                    ));
+                }
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    // Draw virus body
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, '#ff0040');
+                    gradient.addColorStop(0.5, '#800020');
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#ff0040';
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw spikes
+                    ctx.strokeStyle = '#ff0040';
+                    ctx.lineWidth = 2;
+                    this.spikes.forEach(spike => {
+                        const spikeLength = spike.length * (1 + Math.sin(frameCount * 0.1 + spike.phase) * 0.3);
+                        const x = Math.cos(spike.angle) * spikeLength;
+                        const y = Math.sin(spike.angle) * spikeLength;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    });
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class DataPacket {
+            constructor(startNode, endNode, value) {
+                this.startNode = startNode;
+                this.endNode = endNode;
+                this.x = startNode.x;
+                this.y = startNode.y;
+                this.z = startNode.z;
+                this.value = value;
+                this.progress = 0;
+                this.speed = 0.02;
+                this.size = 5;
+            }
+            
+            update() {
+                this.progress += this.speed;
+                
+                if (this.progress >= 1) {
+                    // Reached destination
+                    this.endNode.value += this.value;
+                    player.data += this.value;
+                    
+                    // Create collection effect
+                    for (let i = 0; i < 10; i++) {
+                        particles.push(new Particle(
+                            this.endNode.x, this.endNode.y, this.endNode.z,
+                            this.endNode.getColor(),
+                            {x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 5, z: (Math.random() - 0.5) * 5},
+                            40,
+                            3
+                        ));
+                    }
+                    
+                    return false;
+                }
+                
+                // Interpolate position
+                this.x = this.startNode.x + (this.endNode.x - this.startNode.x) * this.progress;
+                this.y = this.startNode.y + (this.endNode.y - this.startNode.y) * this.progress;
+                this.z = this.startNode.z + (this.endNode.z - this.startNode.z) * this.progress;
+                
+                return true;
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#ffffff';
+                    
+                    ctx.beginPath();
+                    ctx.arc(screenPos.x, screenPos.y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+        
+        function project3D(x, y, z) {
+            const fov = 400;
+            const dx = x - camera.x;
+            const dy = y - camera.y;
+            const dz = z - camera.z;
+            
+            if (dz <= 0) return {x: 0, y: 0, depth: 0};
+            
+            const screenX = canvas.width/2 + (dx * fov) / dz;
+            const screenY = canvas.height/2 + (dy * fov) / dz;
+            
+            return {x: screenX, y: screenY, depth: dz / 100};
+        }
+        
+        function generateNetwork() {
+            nodes = [];
+            connections = [];
+            viruses = [];
+            
+            // Generate nodes in 3D space
+            for (let i = 0; i < 30; i++) {
+                const x = (Math.random() - 0.5) * 600;
+                const y = (Math.random() - 0.5) * 400;
+                const z = (Math.random() - 0.5) * 400;
+                
+                const types = ['data', 'processing', 'storage', 'output'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                nodes.push(new Node(x, y, z, type));
+            }
+            
+            // Generate some viruses
+            for (let i = 0; i < 5; i++) {
+                viruses.push(new Virus(
+                    (Math.random() - 0.5) * 800,
+                    (Math.random() - 0.5) * 600,
+                    (Math.random() - 0.5) * 600
+                ));
+            }
+        }
+        
+        function drawBackground() {
+            // Neural network background
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, '#1a1a3a');
+            gradient.addColorStop(0.5, '#0f0f2a');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw neural network grid
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i < canvas.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+        }
+        
+        function drawPlayer() {
+            const screenPos = project3D(player.x, player.y, player.z);
+            if (screenPos.depth > 0) {
+                const size = player.size / Math.max(0.1, screenPos.depth);
+                
+                // Player neural core
+                const gradient = ctx.createRadialGradient(
+                    screenPos.x, screenPos.y, 0,
+                    screenPos.x, screenPos.y, size * 2
+                );
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.3, '#667eea');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#667eea';
+                
+                // Core shape
+                ctx.beginPath();
+                ctx.arc(screenPos.x, screenPos.y, size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Neural tendrils
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI * 2) / 8 + frameCount * 0.02;
+                    const length = size * (1.5 + Math.sin(frameCount * 0.1 + i) * 0.5);
+                    const x = screenPos.x + Math.cos(angle) * length;
+                    const y = screenPos.y + Math.sin(angle) * length;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(screenPos.x, screenPos.y);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        function drawConnections() {
+            connections.forEach(connection => {
+                const startPos = project3D(connection.start.x, connection.start.y, connection.start.z);
+                const endPos = project3D(connection.end.x, connection.end.y, connection.end.z);
+                
+                if (startPos.depth > 0 && endPos.depth > 0) {
+                    const alpha = Math.min(startPos.depth, endPos.depth) / 5;
+                    
+                    ctx.strokeStyle = `rgba(102, 126, 234, ${alpha})`;
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#667eea';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(startPos.x, startPos.y);
+                    ctx.lineTo(endPos.x, endPos.y);
+                    ctx.stroke();
+                    
+                    ctx.shadowBlur = 0;
+                }
+            });
+        }
+        
+        function updateGame() {
+            if (!gameRunning) return;
+            
+            frameCount++;
+            
+            // Update camera rotation
+            camera.rotation += 0.005;
+            camera.x = Math.sin(camera.rotation) * 100;
+            camera.z = -200 + Math.cos(camera.rotation) * 50;
+            
+            // Update player position to follow mouse/touch
+            const targetX = (mouseX - canvas.width/2) * 2;
+            const targetY = (mouseY - canvas.height/2) * 2;
+            
+            player.x += (targetX - player.x) * 0.1;
+            player.y += (targetY - player.y) * 0.1;
+            
+            // Auto-connect nearby nodes
+            nodes.forEach(node => {
+                const dx = node.x - player.x;
+                const dy = node.y - player.y;
+                const dz = node.z - player.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance < 80) {
+                    node.active = true;
+                    
+                    // Try to connect to other nearby active nodes
+                    nodes.forEach(otherNode => {
+                        if (otherNode !== node && otherNode.active) {
+                            const dx2 = otherNode.x - node.x;
+                            const dy2 = otherNode.y - node.y;
+                            const dz2 = otherNode.z - node.z;
+                            const distance2 = Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
+                            
+                            if (distance2 < 120) {
+                                const connectionExists = connections.some(conn => 
+                                    (conn.start === node && conn.end === otherNode) ||
+                                    (conn.start === otherNode && conn.end === node)
+                                );
+                                
+                                if (!connectionExists) {
+                                    connections.push({start: node, end: otherNode});
+                                    player.intelligence += 5;
+                                    
+                                    // Create data packet
+                                    if (node.type === 'data' && otherNode.type === 'processing') {
+                                        dataPackets.push(new DataPacket(node, otherNode, node.value));
+                                        node.value = 0;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Update nodes
+            nodes.forEach(node => node.update());
+            
+            // Update viruses
+            viruses.forEach(virus => {
+                virus.update();
+                
+                // Check collision with player
+                const dx = virus.x - player.x;
+                const dy = virus.y - player.y;
+                const dz = virus.z - player.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance < 30) {
+                    player.intelligence -= 10;
+                    player.energy -= 15;
+                    
+                    if (player.intelligence <= 0 || player.energy <= 0) {
+                        gameOver();
+                    }
+                    
+                    // Damage effect
+                    for (let i = 0; i < 20; i++) {
+                        particles.push(new Particle(
+                            player.x, player.y, player.z,
+                            '#ff0040',
+                            {x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8, z: (Math.random() - 0.5) * 8},
+                            50,
+                            4
+                        ));
+                    }
+                }
+                
+                // Check collision with nodes
+                nodes.forEach(node => {
+                    if (node.active) {
+                        const dx2 = virus.x - node.x;
+                        const dy2 = virus.y - node.y;
+                        const dz2 = virus.z - node.z;
+                        const distance2 = Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
+                        
+                        if (distance2 < 25) {
+                            node.active = false;
+                            node.energy -= 20;
+                        }
+                    }
+                });
+            });
+            
+            // Update data packets
+            dataPackets = dataPackets.filter(packet => {
+                packet.update();
+                packet.draw();
+                return packet.progress < 1;
+            });
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0;
+            });
+            
+            // Regenerate energy and intelligence slowly
+            if (frameCount % 60 === 0) {
+                player.energy = Math.min(100, player.energy + 1);
+                if (connections.length > 0) {
+                    player.intelligence = Math.min(100, player.intelligence + 2);
+                }
+            }
+            
+            // Spawn new viruses occasionally
+            if (frameCount % 600 === 0) {
+                viruses.push(new Virus(
+                    (Math.random() - 0.5) * 800,
+                    (Math.random() - 0.5) * 600,
+                    (Math.random() - 0.5) * 600
+                ));
+            }
+            
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('intelligence').textContent = Math.max(0, Math.floor(player.intelligence));
+            document.getElementById('energy').textContent = Math.max(0, Math.floor(player.energy));
+            document.getElementById('connections').textContent = connections.length;
+            document.getElementById('data').textContent = Math.floor(player.data);
+        }
+        
+        function gameLoop() {
+            drawBackground();
+            drawConnections();
+            
+            // Draw nodes
+            nodes.forEach(node => node.draw());
+            
+            // Draw viruses
+            viruses.forEach(virus => virus.draw());
+            
+            drawPlayer();
+            updateGame();
+            
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalData').textContent = Math.floor(player.data);
+            document.getElementById('finalConnections').textContent = connections.length;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            player.x = 0;
+            player.y = 0;
+            player.z = 0;
+            player.intelligence = 100;
+            player.energy = 100;
+            player.data = 0;
+            
+            particles = [];
+            dataPackets = [];
+            connections = [];
+            frameCount = 0;
+            gameRunning = true;
+            
+            generateNetwork();
+            updateUI();
+            document.getElementById('gameOver').style.display = 'none';
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Mouse controls
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+        });
+        
+        canvas.addEventListener('mouseup', (e) => {
+            isMouseDown = false;
+        });
+        
+        // Touch controls
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            mouseX = touch.clientX - rect.left;
+            mouseY = touch.clientY - rect.top;
+            isMouseDown = true;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isMouseDown = false;
+        });
+        
+        // Start game
+        restartGame();
+    </script>
+</body>
+</html>

@@ -16,11 +16,20 @@ ASHURA Games is a cutting-edge web-based gaming platform featuring an extensive 
 - **Cyber Runner 3D**: Futuristic city runner with 3D perspective and lane switching
 - **Quantum Shooter WebGL**: Advanced space shooter with quantum effects and multiple weapons
 - **Galactic Defender 3D**: Full 3D space combat with multiple enemy types and power-ups
+- **Crystal Caverns 3D**: Explore mystical crystal caves with 3D platforming and gem collection
+- **Neural Network 3D**: AI-themed puzzle game with node connections and virus combat
+- **Neon Maze 3D**: First-person 3D maze using ray-casting with target collection gameplay
 
 ### Enhanced Classic Games:
+- **Flappy Bird Enhanced**: Upgraded with modern WebGL graphics and particle effects
 - **Snake Enhanced Pro**: Added particle effects, special food, level progression
 - **Tetris Enhanced Pro**: Gradient blocks, particle effects, level-up animations
 - All games now feature improved graphics, particle systems, and mobile touch controls
+
+### Platform Improvements:
+- **Responsive Design**: Enhanced grid layout supporting 1-6 columns based on screen size
+- **Mobile Optimization**: Improved touch controls and responsive UI across all games
+- **Game Modal**: Better fullscreen support and mobile-friendly game interface
 
 ## User Preferences
 

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Caverns 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #2d1b69 0%, #0f0c29 50%, #000000 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        #gameContainer {
+            position: relative;
+            text-align: center;
+            background: rgba(45, 27, 105, 0.3);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(138, 43, 226, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(138, 43, 226, 0.6);
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+        
+        canvas {
+            border: 3px solid #8a2be2;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.8);
+            background: radial-gradient(ellipse at center, #1a0033 0%, #0a001a 100%);
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #gameUI {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #8a2be2;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(138, 43, 226, 1);
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+        
+        .ui-item {
+            background: rgba(138, 43, 226, 0.1);
+            padding: 5px 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(138, 43, 226, 0.4);
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #8a2be2;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            border: 2px solid #ff6b8a;
+            z-index: 10;
+            max-width: 90vw;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #8a2be2, #9932cc);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: clamp(12px, 2.5vw, 16px);
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        button:hover, button:active {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(138, 43, 226, 0.8);
+        }
+        
+        #instructions {
+            color: #8a2be2;
+            margin-top: 10px;
+            font-size: clamp(10px, 2vw, 14px);
+            text-shadow: 0 0 15px rgba(138, 43, 226, 1);
+            animation: crystalGlow 3s infinite;
+        }
+        
+        @keyframes crystalGlow {
+            0%, 100% { text-shadow: 0 0 15px rgba(138, 43, 226, 1); }
+            33% { text-shadow: 0 0 25px rgba(255, 20, 147, 1), 0 0 35px rgba(138, 43, 226, 0.8); }
+            66% { text-shadow: 0 0 25px rgba(75, 0, 130, 1), 0 0 35px rgba(138, 43, 226, 0.8); }
+        }
+        
+        @media (max-width: 768px) {
+            #gameContainer {
+                padding: 10px;
+            }
+            
+            #gameUI {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+            }
+            
+            .ui-item {
+                padding: 3px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameUI">
+            <div class="ui-item">💎 คะแนน: <span id="score">0</span></div>
+            <div class="ui-item">❤️ ชีวิต: <span id="health">100</span></div>
+            <div class="ui-item">🔮 คริสตัล: <span id="crystals">0</span></div>
+            <div class="ui-item">⚡ พลัง: <span id="energy">100</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameOver">
+            <h2>🏰 เกมจบแล้ว!</h2>
+            <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+            <p>คริสตัลที่เก็บได้: <span id="finalCrystals">0</span></p>
+            <button onclick="restartGame()">🔄 เล่นใหม่</button>
+        </div>
+        <div id="instructions">
+            🎮 WASD/ลูกศร: เคลื่อนที่ | Space: กระโดด | เก็บคริสตัล หลีกเลี่ยงอันตราย!
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive canvas sizing
+        function resizeCanvas() {
+            const containerWidth = Math.min(800, window.innerWidth * 0.9);
+            const containerHeight = Math.min(600, window.innerHeight * 0.7);
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = containerHeight + 'px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        let player = {
+            x: 0,
+            y: 0,
+            z: 0,
+            vx: 0,
+            vy: 0,
+            vz: 0,
+            width: 20,
+            height: 20,
+            speed: 6,
+            jumpPower: 12,
+            onGround: false,
+            health: 100,
+            energy: 100,
+            facing: 1
+        };
+        
+        let camera = {
+            x: 0,
+            y: 0,
+            z: -300,
+            shake: 0
+        };
+        
+        let platforms = [];
+        let crystals = [];
+        let enemies = [];
+        let particles = [];
+        let hazards = [];
+        
+        let score = 0;
+        let crystalsCollected = 0;
+        let gameRunning = false;
+        let keys = {};
+        let frameCount = 0;
+        
+        class Particle {
+            constructor(x, y, z, color, velocity = {x: 0, y: 0, z: 0}, life = 60, size = 2) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = velocity.x + (Math.random() - 0.5) * 4;
+                this.vy = velocity.y + (Math.random() - 0.5) * 4;
+                this.vz = velocity.z + (Math.random() - 0.5) * 4;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+                this.vx *= 0.98;
+                this.vy -= 0.2;
+                this.vz *= 0.98;
+                this.rotation += this.rotationSpeed;
+                this.life--;
+                return this.life > 0;
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const alpha = this.life / this.maxLife;
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, this.color);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class Platform {
+            constructor(x, y, z, width, height, depth, type = 'crystal') {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.width = width;
+                this.height = height;
+                this.depth = depth;
+                this.type = type;
+                this.rotation = 0;
+                this.pulse = 0;
+            }
+            
+            update() {
+                this.rotation += 0.01;
+                this.pulse += 0.05;
+                
+                // Emit particles
+                if (Math.random() < 0.1) {
+                    particles.push(new Particle(
+                        this.x + (Math.random() - 0.5) * this.width,
+                        this.y,
+                        this.z + (Math.random() - 0.5) * this.depth,
+                        this.type === 'crystal' ? '#8a2be2' : '#4b0082',
+                        {x: 0, y: -1, z: 0},
+                        80,
+                        3
+                    ));
+                }
+            }
+            
+            draw() {
+                const corners = [
+                    {x: this.x - this.width/2, y: this.y, z: this.z - this.depth/2},
+                    {x: this.x + this.width/2, y: this.y, z: this.z - this.depth/2},
+                    {x: this.x + this.width/2, y: this.y, z: this.z + this.depth/2},
+                    {x: this.x - this.width/2, y: this.y, z: this.z + this.depth/2},
+                    {x: this.x - this.width/2, y: this.y - this.height, z: this.z - this.depth/2},
+                    {x: this.x + this.width/2, y: this.y - this.height, z: this.z - this.depth/2},
+                    {x: this.x + this.width/2, y: this.y - this.height, z: this.z + this.depth/2},
+                    {x: this.x - this.width/2, y: this.y - this.height, z: this.z + this.depth/2}
+                ];
+                
+                const screenCorners = corners.map(corner => project3D(corner.x, corner.y, corner.z));
+                
+                const brightness = 0.7 + Math.sin(this.pulse) * 0.3;
+                const color = this.type === 'crystal' ? 
+                    `rgba(138, 43, 226, ${brightness})` : 
+                    `rgba(75, 0, 130, ${brightness})`;
+                
+                // Draw top face
+                if (screenCorners[0].depth > 0) {
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = '#ff69b4';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.type === 'crystal' ? '#8a2be2' : '#4b0082';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(screenCorners[0].x, screenCorners[0].y);
+                    ctx.lineTo(screenCorners[1].x, screenCorners[1].y);
+                    ctx.lineTo(screenCorners[2].x, screenCorners[2].y);
+                    ctx.lineTo(screenCorners[3].x, screenCorners[3].y);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+        
+        class Crystal {
+            constructor(x, y, z, value = 10) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.value = value;
+                this.rotation = 0;
+                this.bobOffset = Math.random() * Math.PI * 2;
+                this.size = 8;
+                this.collected = false;
+            }
+            
+            update() {
+                this.rotation += 0.05;
+                this.y += Math.sin(frameCount * 0.05 + this.bobOffset) * 0.3;
+                
+                // Sparkle particles
+                if (Math.random() < 0.3) {
+                    particles.push(new Particle(
+                        this.x + (Math.random() - 0.5) * 10,
+                        this.y + (Math.random() - 0.5) * 10,
+                        this.z + (Math.random() - 0.5) * 10,
+                        '#ff69b4',
+                        {x: 0, y: -0.5, z: 0},
+                        40,
+                        2
+                    ));
+                }
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(0.3, '#ff69b4');
+                    gradient.addColorStop(1, '#8a2be2');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#ff69b4';
+                    
+                    // Draw diamond
+                    ctx.beginPath();
+                    ctx.moveTo(0, -size);
+                    ctx.lineTo(size * 0.7, 0);
+                    ctx.lineTo(0, size);
+                    ctx.lineTo(-size * 0.7, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class Enemy {
+            constructor(x, y, z, type = 'shadow') {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.type = type;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vz = (Math.random() - 0.5) * 2;
+                this.size = type === 'guardian' ? 25 : 15;
+                this.health = type === 'guardian' ? 3 : 1;
+                this.rotation = 0;
+                this.attackCooldown = 0;
+            }
+            
+            update() {
+                this.rotation += 0.03;
+                this.attackCooldown--;
+                
+                // Simple AI movement
+                const dx = player.x - this.x;
+                const dz = player.z - this.z;
+                const distance = Math.sqrt(dx*dx + dz*dz);
+                
+                if (distance < 200) {
+                    this.vx += (dx / distance) * 0.1;
+                    this.vz += (dz / distance) * 0.1;
+                }
+                
+                this.x += this.vx;
+                this.z += this.vz;
+                this.vx *= 0.98;
+                this.vz *= 0.98;
+                
+                // Emit dark particles
+                if (Math.random() < 0.2) {
+                    particles.push(new Particle(
+                        this.x, this.y, this.z,
+                        this.type === 'guardian' ? '#800080' : '#400040',
+                        {x: 0, y: 0, z: 0},
+                        40,
+                        3
+                    ));
+                }
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const color = this.type === 'guardian' ? '#800080' : '#400040';
+                    ctx.fillStyle = color;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = color;
+                    
+                    // Draw spiky enemy
+                    ctx.beginPath();
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i * Math.PI * 2) / 8;
+                        const radius = i % 2 === 0 ? size : size * 0.6;
+                        const x = Math.cos(angle) * radius;
+                        const y = Math.sin(angle) * radius;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        function project3D(x, y, z) {
+            const fov = 300;
+            const dx = x - camera.x;
+            const dy = y - camera.y;
+            const dz = z - camera.z;
+            
+            if (dz <= 0) return {x: 0, y: 0, depth: 0};
+            
+            const screenX = canvas.width/2 + (dx * fov) / dz + camera.shake;
+            const screenY = canvas.height/2 + (dy * fov) / dz + camera.shake;
+            
+            return {x: screenX, y: screenY, depth: dz / 100};
+        }
+        
+        function generateLevel() {
+            platforms = [];
+            crystals = [];
+            enemies = [];
+            
+            // Generate platforms
+            for (let i = 0; i < 20; i++) {
+                const x = (Math.random() - 0.5) * 1000;
+                const y = i * 80 + 50;
+                const z = (Math.random() - 0.5) * 1000;
+                
+                platforms.push(new Platform(x, y, z, 100, 20, 100, 
+                    Math.random() > 0.7 ? 'amethyst' : 'crystal'));
+            }
+            
+            // Generate crystals
+            for (let i = 0; i < 30; i++) {
+                const platform = platforms[Math.floor(Math.random() * platforms.length)];
+                crystals.push(new Crystal(
+                    platform.x + (Math.random() - 0.5) * 80,
+                    platform.y - 30,
+                    platform.z + (Math.random() - 0.5) * 80,
+                    Math.floor(Math.random() * 20) + 10
+                ));
+            }
+            
+            // Generate enemies
+            for (let i = 0; i < 10; i++) {
+                const platform = platforms[Math.floor(Math.random() * platforms.length)];
+                enemies.push(new Enemy(
+                    platform.x + (Math.random() - 0.5) * 80,
+                    platform.y - 20,
+                    platform.z + (Math.random() - 0.5) * 80,
+                    Math.random() > 0.8 ? 'guardian' : 'shadow'
+                ));
+            }
+        }
+        
+        function drawBackground() {
+            // Mystical cave background
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, '#2d1b69');
+            gradient.addColorStop(0.5, '#1a1a4a');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw mystical mist
+            for (let i = 0; i < 50; i++) {
+                const x = (Math.sin(frameCount * 0.01 + i) * 200) + canvas.width/2;
+                const y = (Math.cos(frameCount * 0.008 + i) * 150) + canvas.height/2;
+                const size = Math.sin(frameCount * 0.02 + i) * 30 + 40;
+                
+                ctx.save();
+                ctx.globalAlpha = 0.1;
+                const mistGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+                mistGradient.addColorStop(0, '#8a2be2');
+                mistGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = mistGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        function drawPlayer() {
+            const screenPos = project3D(player.x, player.y, player.z);
+            if (screenPos.depth > 0) {
+                const size = 15 / Math.max(0.1, screenPos.depth);
+                
+                // Player glow
+                const gradient = ctx.createRadialGradient(
+                    screenPos.x, screenPos.y, 0,
+                    screenPos.x, screenPos.y, size * 2
+                );
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.5, '#00ffff');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00ffff';
+                
+                // Player shape
+                ctx.beginPath();
+                ctx.arc(screenPos.x, screenPos.y, size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Energy indicator
+                if (player.energy < 50) {
+                    ctx.fillStyle = '#ff4444';
+                    ctx.fillRect(screenPos.x - size, screenPos.y - size - 10, size * 2 * (player.energy / 100), 3);
+                }
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        function updateGame() {
+            if (!gameRunning) return;
+            
+            frameCount++;
+            
+            // Player input
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.vx = Math.max(player.vx - 0.5, -player.speed);
+                player.facing = -1;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                player.vx = Math.min(player.vx + 0.5, player.speed);
+                player.facing = 1;
+            }
+            if (keys['w'] || keys['ArrowUp']) {
+                player.vz = Math.max(player.vz - 0.5, -player.speed);
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.vz = Math.min(player.vz + 0.5, player.speed);
+            }
+            if ((keys[' '] || keys['ArrowUp']) && player.onGround && player.energy > 20) {
+                player.vy = -player.jumpPower;
+                player.onGround = false;
+                player.energy -= 20;
+            }
+            
+            // Player physics
+            player.vy += 0.8; // gravity
+            player.x += player.vx;
+            player.y += player.vy;
+            player.z += player.vz;
+            
+            player.vx *= 0.9;
+            player.vz *= 0.9;
+            
+            // Platform collision
+            player.onGround = false;
+            platforms.forEach(platform => {
+                if (player.x > platform.x - platform.width/2 - player.width/2 &&
+                    player.x < platform.x + platform.width/2 + player.width/2 &&
+                    player.z > platform.z - platform.depth/2 - player.width/2 &&
+                    player.z < platform.z + platform.depth/2 + player.width/2 &&
+                    player.y > platform.y - platform.height - player.height &&
+                    player.y < platform.y + 10) {
+                    
+                    player.y = platform.y - platform.height - player.height;
+                    player.vy = 0;
+                    player.onGround = true;
+                    
+                    if (player.energy < 100) player.energy += 0.5;
+                }
+            });
+            
+            // Camera follow
+            camera.x = player.x;
+            camera.y = player.y + 50;
+            camera.z = player.z - 200;
+            camera.shake *= 0.9;
+            
+            // Update game objects
+            platforms.forEach(platform => platform.update());
+            
+            crystals = crystals.filter(crystal => {
+                crystal.update();
+                
+                // Collision with player
+                const dx = crystal.x - player.x;
+                const dy = crystal.y - player.y;
+                const dz = crystal.z - player.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance < 25) {
+                    score += crystal.value;
+                    crystalsCollected++;
+                    
+                    // Collection effect
+                    for (let i = 0; i < 15; i++) {
+                        particles.push(new Particle(
+                            crystal.x, crystal.y, crystal.z,
+                            '#ff69b4',
+                            {x: (Math.random() - 0.5) * 8, y: -Math.random() * 5, z: (Math.random() - 0.5) * 8},
+                            60,
+                            4
+                        ));
+                    }
+                    
+                    return false;
+                }
+                
+                crystal.draw();
+                return true;
+            });
+            
+            enemies = enemies.filter(enemy => {
+                enemy.update();
+                
+                // Collision with player
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const dz = enemy.z - player.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance < 30) {
+                    player.health -= 2;
+                    camera.shake = 5;
+                    
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+                
+                enemy.draw();
+                return enemy.health > 0;
+            });
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0;
+            });
+            
+            // Fall damage
+            if (player.y > 1000) {
+                player.health -= 50;
+                player.x = 0;
+                player.y = 0;
+                player.z = 0;
+                player.vy = 0;
+                
+                if (player.health <= 0) {
+                    gameOver();
+                }
+            }
+            
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('health').textContent = Math.max(0, Math.floor(player.health));
+            document.getElementById('crystals').textContent = crystalsCollected;
+            document.getElementById('energy').textContent = Math.max(0, Math.floor(player.energy));
+        }
+        
+        function gameLoop() {
+            drawBackground();
+            
+            // Draw platforms
+            platforms.forEach(platform => platform.draw());
+            
+            drawPlayer();
+            updateGame();
+            
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalCrystals').textContent = crystalsCollected;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            player.x = 0;
+            player.y = -50;
+            player.z = 0;
+            player.vx = 0;
+            player.vy = 0;
+            player.vz = 0;
+            player.health = 100;
+            player.energy = 100;
+            player.onGround = false;
+            
+            score = 0;
+            crystalsCollected = 0;
+            frameCount = 0;
+            gameRunning = true;
+            
+            particles = [];
+            generateLevel();
+            updateUI();
+            document.getElementById('gameOver').style.display = 'none';
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === ' ') e.preventDefault();
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchActive = false;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchActive = true;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!gameRunning || !touchActive) return;
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            
+            // Movement based on touch drag
+            if (Math.abs(deltaX) > 10) {
+                if (deltaX > 0) {
+                    keys['d'] = true;
+                    keys['a'] = false;
+                } else {
+                    keys['a'] = true;
+                    keys['d'] = false;
+                }
+            }
+            
+            if (Math.abs(deltaY) > 10) {
+                if (deltaY > 0) {
+                    keys['s'] = true;
+                    keys['w'] = false;
+                } else {
+                    keys['w'] = true;
+                    keys['s'] = false;
+                }
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchActive = false;
+            keys['a'] = keys['d'] = keys['w'] = keys['s'] = false;
+            
+            // Jump on tap
+            if (player.onGround && player.energy > 20) {
+                keys[' '] = true;
+                setTimeout(() => keys[' '] = false, 100);
+            }
+        });
+        
+        // Start game
+        restartGame();
+    </script>
+</body>
+</html>
