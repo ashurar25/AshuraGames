@@ -13,6 +13,9 @@ ASHURA Games is a cutting-edge web-based gaming platform featuring an extensive 
 - **3D Space Invaders**: Modern space shooter with 3D graphics and power-ups
 - **Neon Maze 3D**: First-person 3D maze with ray-casting rendering
 - **Neon Platformer WebGL**: Side-scrolling platformer with particle effects
+- **Cyber Runner 3D**: Futuristic city runner with 3D perspective and lane switching
+- **Quantum Shooter WebGL**: Advanced space shooter with quantum effects and multiple weapons
+- **Galactic Defender 3D**: Full 3D space combat with multiple enemy types and power-ups
 
 ### Enhanced Classic Games:
 - **Snake Enhanced Pro**: Added particle effects, special food, level progression
