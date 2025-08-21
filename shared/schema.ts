@@ -34,11 +34,13 @@ export type Game = typeof games.$inferSelect;
 // Categories enum for consistency
 export const GAME_CATEGORIES = [
   "action",
-  "puzzle", 
+  "adventure", 
+  "puzzle",
+  "sports",
   "racing",
-  "multiplayer",
-  "io",
-  "strategy"
+  "strategy",
+  "arcade",
+  "casual",
 ] as const;
 
 export type GameCategory = typeof GAME_CATEGORIES[number];

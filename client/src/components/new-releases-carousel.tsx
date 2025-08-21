@@ -12,7 +12,7 @@ interface NewReleasesCarouselProps {
 
 export default function NewReleasesCarousel({ onGamePlay }: NewReleasesCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   const { data: games, isLoading } = useQuery<Game[]>({
     queryKey: ['/api/games/new'],
   });
@@ -30,7 +30,7 @@ export default function NewReleasesCarousel({ onGamePlay }: NewReleasesCarouselP
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-3xl font-bold text-white flex items-center">
           <Star className="text-yellow-500 mr-3" />
-          New Releases
+          เกมใหม่ล่าสุด
         </h3>
         <div className="flex space-x-2">
           <Button
@@ -53,7 +53,7 @@ export default function NewReleasesCarousel({ onGamePlay }: NewReleasesCarouselP
           </Button>
         </div>
       </div>
-      
+
       <div className="overflow-hidden">
         <div 
           ref={scrollRef}

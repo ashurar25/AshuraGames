@@ -16,13 +16,13 @@ interface CategoryFilterProps {
 }
 
 const categories = [
-  { id: 'all', label: 'All Games', icon: Star },
-  { id: 'action', label: 'Action', icon: Zap },
-  { id: 'puzzle', label: 'Puzzle', icon: Puzzle },
-  { id: 'racing', label: 'Racing', icon: Car },
-  { id: 'multiplayer', label: 'Multiplayer', icon: Users },
+  { id: 'all', label: 'เกมทั้งหมด', icon: Star },
+  { id: 'action', label: 'แอ็คชั่น', icon: Zap },
+  { id: 'puzzle', label: 'ปริศนา', icon: Puzzle },
+  { id: 'racing', label: 'แข่งรถ', icon: Car },
+  { id: 'multiplayer', label: 'ผู้เล่นหลายคน', icon: Users },
   { id: 'io', label: '.IO', icon: Globe },
-  { id: 'strategy', label: 'Strategy', icon: Target },
+  { id: 'strategy', label: 'กลยุทธ์', icon: Target },
 ];
 
 export default function CategoryFilter({ activeCategory, onCategoryChange }: CategoryFilterProps) {
@@ -32,7 +32,7 @@ export default function CategoryFilter({ activeCategory, onCategoryChange }: Cat
         {categories.map((category) => {
           const Icon = category.icon;
           const isActive = activeCategory === category.id;
-          
+
           return (
             <Button
               key={category.id}

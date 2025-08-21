@@ -18,10 +18,10 @@ export default function TrendingSection({ onGamePlay }: TrendingSectionProps) {
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-3xl font-bold text-white flex items-center">
           <Flame className="text-orange-500 mr-3" />
-          Trending Now
+          เกมยอดนิยม
         </h3>
         <a href="#all-games" className="text-mint-300 hover:text-mint-200 transition-colors" data-testid="link-view-all-trending">
-          View All
+          ดูทั้งหมด
         </a>
       </div>
       

@@ -71,14 +71,14 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
         {game.isNew && (
           <div className="absolute top-3 left-3">
             <Badge className="bg-blue-500 text-white text-xs px-2 py-1">
-              🆕 New
+              🆕 ใหม่
             </Badge>
           </div>
         )}
         {game.isTrending && (
           <div className="absolute top-3 left-3">
             <Badge className="bg-orange-500 text-white text-xs px-2 py-1">
-              🔥 Hot
+              🔥 ฮิต
             </Badge>
           </div>
         )}
