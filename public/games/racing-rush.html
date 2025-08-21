@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -75,17 +74,17 @@
                 // วาดรถ
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
-                
+
                 // วาดหน้าต่าง
                 ctx.fillStyle = '#87CEEB';
                 ctx.fillRect(this.x + 5, this.y + 10, this.width - 10, 20);
                 ctx.fillRect(this.x + 5, this.y + 35, this.width - 10, 15);
-                
+
                 // วาดไฟหน้า
                 ctx.fillStyle = '#ffff99';
                 ctx.fillRect(this.x + 5, this.y + this.height - 10, 12, 8);
                 ctx.fillRect(this.x + this.width - 17, this.y + this.height - 10, 12, 8);
-                
+
                 // วาดล้อ
                 ctx.fillStyle = '#333';
                 ctx.fillRect(this.x - 3, this.y + 15, 8, 12);
@@ -162,7 +161,7 @@
                 ctx.fillStyle = '#8B4513';
                 ctx.fillRect(55, treeY + 25, 10, 15);
                 ctx.fillStyle = '#228B22';
-                
+
                 // ต้นไม้ขวา
                 ctx.fillRect(canvas.width - 70, treeY, 20, 30);
                 ctx.fillStyle = '#8B4513';
@@ -296,13 +295,13 @@
         // วาดเกม
         function draw() {
             drawRoad();
-            
+
             // วาดรถคันอื่น
             otherCars.forEach(otherCar => otherCar.draw());
-            
+
             // วาดอนุภาค
             particles.forEach(particle => particle.draw());
-            
+
             drawPlayerCar();
 
             // อัปเดต UI
@@ -325,6 +324,57 @@
 
         document.addEventListener('keyup', (e) => {
             keys[e.key] = false;
+        });
+
+        // Touch controls
+        let touchControls = {
+            touching: false,
+            startX: 0,
+            startY: 0
+        };
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchControls.touching = true;
+            touchControls.startX = touch.clientX - rect.left;
+            touchControls.startY = touch.clientY - rect.top;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!touchControls.touching) return;
+
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const currentX = touch.clientX - rect.left;
+            const currentY = touch.clientY - rect.top;
+
+            // Control car position based on touch
+            const roadLeft = canvas.width * 0.2;
+            const roadRight = canvas.width * 0.8;
+            const roadWidth = roadRight - roadLeft;
+
+            if (currentX > roadLeft && currentX < roadRight) {
+                car.x = currentX - car.width/2;
+                car.x = Math.max(roadLeft, Math.min(roadRight - car.width, car.x));
+            }
+
+            // Control speed based on vertical movement
+            const deltaY = currentY - touchControls.startY;
+            if (deltaY < -20) {
+                // Touch moved up - accelerate
+                if (gameSpeed < 8) gameSpeed += 0.05;
+            } else if (deltaY > 20) {
+                // Touch moved down - brake
+                if (gameSpeed > 1) gameSpeed -= 0.05;
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchControls.touching = false;
         });
 
         // เริ่มเกม

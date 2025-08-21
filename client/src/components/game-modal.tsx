@@ -15,21 +15,25 @@ interface GameModalProps {
 export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     if (game && isOpen) {
       setIsLoading(true);
-      
+      setError(null);
+      setRetryCount(0);
+
       // Set a timeout to hide loading after 3 seconds regardless
       const timeout = setTimeout(() => {
         setIsLoading(false);
       }, 3000);
-      
+
       // Increment play count when game is opened
       apiRequest('POST', `/api/games/${game.id}/play`).catch(console.error);
-      
+
       return () => clearTimeout(timeout);
     }
   }, [game, isOpen]);
@@ -98,7 +102,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('msfullscreenchange', handleFullscreenChange);
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('keyup', handleKeyUp);
@@ -112,6 +116,33 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
       document.removeEventListener('keyup', handleKeyUp);
     };
   }, [isOpen]);
+
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    setError(null);
+    setRetryCount(0);
+    console.log('Game loaded successfully:', game.title);
+  };
+
+  const handleIframeError = () => {
+    setIsLoading(false);
+    if (retryCount < 2) {
+      setError(`กำลังโหลดเกม... (ครั้งที่ ${retryCount + 2})`);
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        setIsLoading(true);
+        setError(null);
+      }, 1000);
+    } else {
+      setError('ไม่สามารถโหลดเกมได้ กรุณาลองใหม่อีกครั้ง');
+    }
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setError(null);
+    setRetryCount(0);
+  };
 
   if (!game) return null;
 
@@ -189,29 +220,8 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation allow-presentation"
               data-testid="iframe-game"
               tabIndex={0}
-              onLoad={(e) => {
-                console.log('Game loaded successfully:', game.title);
-                setIsLoading(false);
-                // Force focus to iframe for better game control with delay
-                setTimeout(() => {
-                  if (iframeRef.current) {
-                    iframeRef.current.focus();
-                    // Try to focus the document inside iframe
-                    try {
-                      if (iframeRef.current.contentDocument) {
-                        iframeRef.current.contentDocument.body?.focus();
-                      }
-                    } catch (e) {
-                      // Cross-origin restrictions - ignore
-                    }
-                  }
-                }, 100);
-              }}
-              onError={(e) => {
-                console.error('Game loading error:', e);
-                console.error('Failed to load game:', game.title, 'URL:', game.gameUrl);
-                setIsLoading(false);
-              }}
+              onLoad={handleIframeLoad}
+              onError={handleIframeError}
               onMouseEnter={() => {
                 // Focus iframe when mouse enters
                 if (iframeRef.current) {
@@ -277,6 +287,25 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 >
                   <X className="w-5 h-5" />
                 </Button>
+              </div>
+            )}
+
+            {/* Error Overlay */}
+            {error && !isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
+                <div className="text-center text-white">
+                  <p className="text-lg mb-4">{error}</p>
+                  <p className="text-sm text-gray-400 mb-4">
+                    ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่
+                  </p>
+                  <Button
+                    onClick={handleRetry}
+                    variant="outline"
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    ลองใหม่
+                  </Button>
+                </div>
               </div>
             )}
           </div>
