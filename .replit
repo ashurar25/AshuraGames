@@ -18,7 +18,7 @@ externalPort = 80
 PORT = "5000"
 
 [workflows]
-runButton = "Project"
+runButton = "Start App"
 
 [[workflows.workflow]]
 name = "Project"
@@ -37,6 +37,32 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Fix Dependencies"
+author = 46732086
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "apt-get update && apt-get install -y uuid-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Start App"
+author = 46732086
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
 
 [agent]
 integrations = ["javascript_mem_db==1.0.0"]

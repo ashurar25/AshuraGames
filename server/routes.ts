@@ -11,6 +11,8 @@ import { Request, Response } from 'express';
 import { storage as gameStorage } from './storage';
 import { Game } from '../shared/schema';
 import { GameImageGenerator } from './gameImageGenerator';
+import { authStorage, authenticateToken, requireAdmin } from './auth';
+import cookieParser from 'cookie-parser';
 
 
 // สร้างโฟลเดอร์สำหรับเก็บไฟล์เกม
@@ -37,6 +39,127 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // เพิ่ม cookie parser
+  app.use(cookieParser());
+
+  // Auth Routes
+  app.post('/api/auth/register', async (req: Request, res: Response) => {
+    try {
+      const { username, email, password } = req.body;
+      
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
+      }
+
+      const user = await authStorage.register(username, email, password);
+      if (!user) {
+        return res.status(400).json({ message: 'ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้แล้ว' });
+      }
+
+      res.status(201).json({ message: 'สมัครสมาชิกสำเร็จ', user });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสมัครสมาชิก' });
+    }
+  });
+
+  app.post('/api/auth/login', async (req: Request, res: Response) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
+      }
+
+      const result = await authStorage.login(username, password);
+      if (!result) {
+        return res.status(401).json({ message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+      }
+
+      // ตั้งค่า cookie
+      res.cookie('token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 วัน
+      });
+
+      res.json({ message: 'เข้าสู่ระบบสำเร็จ', user: result.user, token: result.token });
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ' });
+    }
+  });
+
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    res.clearCookie('token');
+    res.json({ message: 'ออกจากระบบสำเร็จ' });
+  });
+
+  app.get('/api/auth/profile', authenticateToken, async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    res.json(user);
+  });
+
+  app.put('/api/auth/profile', authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { username, email, avatar } = req.body;
+      
+      const updatedUser = await authStorage.updateUser(user.id, { username, email, avatar });
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัพเดตข้อมูล' });
+    }
+  });
+
+  // Score Routes
+  app.post('/api/scores', authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const { gameId, score, playTime } = req.body;
+      
+      const gameScore = await authStorage.addScore(user.id, gameId, score, playTime);
+      res.status(201).json(gameScore);
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการบันทึกคะแนน' });
+    }
+  });
+
+  app.get('/api/scores/my', authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      const scores = await authStorage.getUserScores(user.id);
+      res.json(scores);
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการโหลดคะแนน' });
+    }
+  });
+
+  app.get('/api/leaderboard/:gameId?', async (req: Request, res: Response) => {
+    try {
+      const { gameId } = req.params;
+      const leaderboard = await authStorage.getLeaderboard(gameId);
+      res.json(leaderboard);
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการโหลดอันดับ' });
+    }
+  });
+
+  // Admin Routes
+  app.get('/api/admin/users', authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await authStorage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: 'เกิดข้อผิดพลาดในการโหลดผู้ใช้' });
+    }
+  });
 
   // เสิร์ฟไฟล์สแตติกสำหรับเกม
   app.use('/games', express.static(path.join(process.cwd(), 'public', 'games')));

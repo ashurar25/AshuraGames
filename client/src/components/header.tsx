@@ -1,106 +1,259 @@
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Search, Menu, Gamepad2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Search, Menu, X, GamepadIcon, User, LogIn, Crown, Coins, Moon, Sun, Trophy } from 'lucide-react';
+import { Link } from 'wouter';
+import { useTheme } from '@/hooks/use-theme';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
+  searchQuery: string;
 }
 
-export default function Header({ onSearch }: HeaderProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+interface UserData {
+  id: string;
+  username: string;
+  level: number;
+  coins: number;
+  isAdmin: boolean;
+}
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    onSearch(query);
+export function Header({ onSearch, searchQuery }: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    // ตรวจสอบข้อมูลผู้ใช้จาก localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    }
+
+    // ฟังการเปลี่ยนแปลงใน localStorage
+    const handleStorageChange = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (error) {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsMenuOpen(false);
   };
 
   return (
-    <header className="glass-dark fixed top-0 w-full z-50 border-b border-mint-500/20 backdrop-blur-xl" data-testid="header-main">
-      <div className="container mx-auto px-4 py-3 md:py-4">
+    <header className="sticky top-0 z-50 glass border-b border-white/10 backdrop-blur-lg">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Enhanced Logo Section with New ASHURA Logo */}
-          <div className="flex items-center space-x-3 group cursor-pointer" data-testid="logo-section">
-            <div className="relative">
-              {/* ASHURA Logo Image */}
-              <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <img 
-                  src="/ashura-logo.png" 
-                  alt="ASHURA Games Logo" 
-                  className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300"
-                />
+          {/* Logo */}
+          <Link href="/">
+            <div className="flex items-center space-x-3 cursor-pointer">
+              <div className="w-10 h-10 mint-gradient rounded-lg flex items-center justify-center">
+                <GamepadIcon className="text-white text-xl" />
               </div>
-              {/* Floating particles effect */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity"></div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-mint-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity" style={{ animationDelay: '200ms' }}></div>
+              <div>
+                <h1 className="text-xl font-bold text-white">ASHURA</h1>
+                <p className="text-xs text-gray-400">Games</p>
+              </div>
             </div>
-            <div className="transition-all duration-300 group-hover:transform group-hover:translate-x-1">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-mint-300 bg-clip-text text-transparent">
-                ASHURA
-              </h1>
-              <p className="text-cyan-300 text-xs md:text-sm -mt-1 font-medium">Games Platform</p>
-            </div>
-          </div>
-          
-          {/* Enhanced Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <nav className="flex space-x-8" data-testid="navigation-menu">
-              <a href="#" className="relative text-white font-medium hover:text-mint-300 transition-all duration-300 group" data-testid="link-home">
-                หน้าแรก
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-mint-400 to-cyan-400 group-hover:w-full transition-all duration-300"></span>
-              </a>
-              <a href="#categories" className="relative text-gray-300 font-medium hover:text-mint-300 transition-all duration-300 group" data-testid="link-categories">
-                หมวดหมู่
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-mint-400 to-cyan-400 group-hover:w-full transition-all duration-300"></span>
-              </a>
-              <a href="#trending" className="relative text-gray-300 font-medium hover:text-mint-300 transition-all duration-300 group" data-testid="link-trending">
-                ยอดนิยม
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-mint-400 to-cyan-400 group-hover:w-full transition-all duration-300"></span>
-              </a>
-              <a href="#new" className="relative text-gray-300 font-medium hover:text-mint-300 transition-all duration-300 group" data-testid="link-new">
-                เกมส์ใหม่
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-mint-400 to-cyan-400 group-hover:w-full transition-all duration-300"></span>
-              </a>
-            </nav>
-          </div>
+          </Link>
 
-          {/* Enhanced Search and Menu */}
-          <div className="flex items-center space-x-3 md:space-x-4">
-            <div className="relative group" data-testid="search-section">
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
-                placeholder="ค้นหาเกมส์..."
+                placeholder="ค้นหาเกม..."
                 value={searchQuery}
-                onChange={handleSearchChange}
-                className="glass w-48 md:w-64 px-4 py-2 pl-10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-mint-500 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-300 border-0 bg-white/10 group-hover:bg-white/15 focus:w-56 md:focus:w-72"
-                data-testid="input-search"
+                onChange={(e) => onSearch(e.target.value)}
+                className="pl-10 glass border-white/20 text-white placeholder-gray-400"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-hover:text-mint-400 transition-colors" />
-              
-              {/* Search suggestions backdrop */}
-              {searchQuery && (
-                <div className="absolute top-full mt-2 w-full bg-gray-900/95 backdrop-blur-lg rounded-xl border border-mint-500/20 shadow-xl shadow-mint-500/10 z-50">
-                  <div className="p-3 text-center text-gray-400 text-sm">กำลังค้นหา "{searchQuery}"...</div>
-                </div>
-              )}
             </div>
-            
-            {/* Mobile Menu Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="lg:hidden text-white hover:text-mint-300 hover:bg-mint-500/10 rounded-xl transition-all duration-300"
-              data-testid="button-mobile-menu"
-            >
-              <Menu className="text-lg md:text-xl" />
-            </Button>
           </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Leaderboard */}
+            <Link href="/leaderboard">
+              <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-gray-800/50">
+                <Trophy className="w-4 h-4 mr-2" />
+                อันดับ
+              </Button>
+            </Link>
+
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="text-gray-400 hover:text-white hover:bg-gray-800/50"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+
+            {user ? (
+              <>
+                {/* User Info */}
+                <div className="flex items-center space-x-3 text-white">
+                  <div className="flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2">
+                    <Coins className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm font-semibold">{user.coins.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 mint-gradient rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-semibold">{user.username}</div>
+                      <div className="text-xs text-gray-400">เลเวล {user.level}</div>
+                    </div>
+                    {user.isAdmin && (
+                      <Badge className="bg-purple-500 text-white text-xs">
+                        <Crown className="w-3 h-3 mr-1" />
+                        แอดมิน
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <Link href="/profile">
+                  <Button variant="outline" className="text-mint-300 border-mint-500/50 hover:bg-mint-500/10">
+                    <User className="w-4 h-4 mr-2" />
+                    โปรไฟล์
+                  </Button>
+                </Link>
+
+                {user.isAdmin && (
+                  <Link href="/admin">
+                    <Button variant="outline" className="text-purple-300 border-purple-500/50 hover:bg-purple-500/10">
+                      <Crown className="w-4 h-4 mr-2" />
+                      แอดมิน
+                    </Button>
+                  </Link>
+                )}
+
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="text-red-400 border-red-500/50 hover:bg-red-500/10"
+                  size="sm"
+                >
+                  ออกจากระบบ
+                </Button>
+              </>
+            ) : (
+              <Link href="/auth">
+                <Button className="mint-gradient text-white">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  เข้าสู่ระบบ
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden text-white"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="ค้นหาเกม..."
+                value={searchQuery}
+                onChange={(e) => onSearch(e.target.value)}
+                className="pl-10 glass border-white/20 text-white placeholder-gray-400"
+              />
+            </div>
+
+            {user ? (
+              <div className="flex flex-col space-y-3">
+                {/* User Info Mobile */}
+                <div className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 mint-gradient rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">{user.username}</div>
+                      <div className="text-xs text-gray-400">เลเวล {user.level}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Coins className="w-4 h-4 text-yellow-400" />
+                    <span className="text-white font-semibold">{user.coins.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <Link href="/profile" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full text-mint-300 border-mint-500/50 hover:bg-mint-500/10">
+                    <User className="w-4 h-4 mr-2" />
+                    โปรไฟล์
+                  </Button>
+                </Link>
+
+                {user.isAdmin && (
+                  <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="w-full text-purple-300 border-purple-500/50 hover:bg-purple-500/10">
+                      <Crown className="w-4 h-4 mr-2" />
+                      แอดมิน
+                    </Button>
+                  </Link>
+                )}
+
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="w-full text-red-400 border-red-500/50 hover:bg-red-500/10"
+                >
+                  ออกจากระบบ
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-2">
+                <Link href="/auth" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full mint-gradient text-white">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    เข้าสู่ระบบ
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      
-      {/* Animated gradient line */}
-      <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-mint-500 to-transparent animate-shimmer"></div>
     </header>
   );
 }
