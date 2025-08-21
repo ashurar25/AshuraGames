@@ -19,6 +19,8 @@ ASHURA Games is a cutting-edge web-based gaming platform featuring an extensive 
 - **Crystal Caverns 3D**: Explore mystical crystal caves with 3D platforming and gem collection
 - **Neural Network 3D**: AI-themed puzzle game with node connections and virus combat
 - **Neon Maze 3D**: First-person 3D maze using ray-casting with target collection gameplay
+- **Space Mining 3D**: 3D space mining game with drilling mechanics and asteroid fields
+- **Cosmic Defender WebGL**: Advanced space defense game with shield systems and weapon upgrades
 
 ### Enhanced Classic Games:
 - **Flappy Bird Enhanced**: Upgraded with modern WebGL graphics and particle effects

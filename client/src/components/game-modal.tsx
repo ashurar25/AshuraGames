@@ -95,18 +95,13 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
         className="glass-dark w-[95vw] h-[95vh] max-w-none max-h-none overflow-hidden border border-mint-500/20 p-0"
         data-testid="modal-game"
       >
-        <DialogHeader className="flex flex-row items-center justify-between p-3 md:p-4 border-b border-mint-500/20 bg-black/50 backdrop-blur-sm">
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <div>
-              <DialogTitle className="text-lg md:text-2xl font-bold text-white truncate" data-testid="text-game-title">
-                {game.title}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-gray-400 hidden md:block">
-                {game.description}
-              </DialogDescription>
-            </div>
-            <Badge className="glass px-2 md:px-3 py-1 text-xs text-mint-300 border-mint-500/30 hidden sm:inline-flex">
-              Powered by ASHURA Games
+        <DialogHeader className="flex flex-row items-center justify-between p-2 border-b border-purple-500/30 bg-gradient-to-r from-purple-900/80 via-blue-900/80 to-cyan-900/80 backdrop-blur-sm">
+          <div className="flex items-center space-x-2">
+            <DialogTitle className="text-sm md:text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent truncate" data-testid="text-game-title">
+              🎮 {game.title}
+            </DialogTitle>
+            <Badge className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-600/50 to-cyan-600/50 text-cyan-300 border border-cyan-500/30 hidden sm:inline-flex">
+              ASHURA
             </Badge>
           </div>
           <div className="flex items-center space-x-2">

@@ -8,13 +8,21 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #2d1b69 0%, #11103a 50%, #0a0a0a 100%);
+            background: radial-gradient(ellipse at center, #2d1b69 0%, #667eea 30%, #11103a 70%, #000000 100%);
             font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            touch-action: manipulation;
+            animation: cosmicBackground 20s ease-in-out infinite alternate;
+        }
+        
+        @keyframes cosmicBackground {
+            0% { background: radial-gradient(ellipse at center, #2d1b69 0%, #667eea 30%, #11103a 70%, #000000 100%); }
+            50% { background: radial-gradient(ellipse at center, #1a0033 0%, #8a2be2 30%, #4b0082 70%, #000000 100%); }
+            100% { background: radial-gradient(ellipse at center, #0f0f2f 0%, #00ffff 30%, #1e3a8a 70%, #000000 100%); }
         }
         
         #gameContainer {
@@ -34,9 +42,29 @@
         
         canvas {
             border: 3px solid #00ffff;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.8), inset 0 0 20px rgba(138, 43, 226, 0.3);
+            background: radial-gradient(ellipse at center, #1a1a3a 0%, #000000 100%);
+            animation: neonBorder 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes neonBorder {
+            0% { 
+                border-color: #00ffff;
+                box-shadow: 0 0 50px rgba(0, 255, 255, 0.8), inset 0 0 20px rgba(138, 43, 226, 0.3);
+            }
+            33% { 
+                border-color: #ff00ff;
+                box-shadow: 0 0 50px rgba(255, 0, 255, 0.8), inset 0 0 20px rgba(255, 165, 0, 0.3);
+            }
+            66% { 
+                border-color: #ffa500;
+                box-shadow: 0 0 50px rgba(255, 165, 0, 0.8), inset 0 0 20px rgba(0, 255, 255, 0.3);
+            }
+            100% { 
+                border-color: #00ff00;
+                box-shadow: 0 0 50px rgba(0, 255, 0, 0.8), inset 0 0 20px rgba(255, 0, 255, 0.3);
+            }
         }
         
         #gameInfo {
