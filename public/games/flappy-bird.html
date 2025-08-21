@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -5,43 +6,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flappy Bird Enhanced - ASHURA Games</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #228B22 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             touch-action: manipulation;
         }
 
         .game-container {
             position: relative;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 25px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
 
         canvas {
-            border-radius: 20px;
-            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #228B22 100%);
+            border-radius: 22px;
             display: block;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.2);
         }
 
         .score {
             position: absolute;
-            top: 20px;
+            top: 30px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 32px;
+            font-size: 48px;
             color: white;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 
+                3px 3px 0px #000,
+                -1px -1px 0px #000,
+                1px -1px 0px #000,
+                -1px 1px 0px #000,
+                1px 1px 0px #000;
             z-index: 10;
+            font-family: 'Arial Black', Arial, sans-serif;
         }
 
         .game-over {
@@ -50,52 +63,118 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #10b981;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(20, 20, 20, 0.9));
+            padding: 40px;
+            border-radius: 25px;
+            border: 3px solid #10b981;
             display: none;
             z-index: 20;
             color: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+        }
+
+        .game-over h2 {
+            color: #ef4444;
+            margin-bottom: 20px;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stats {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .stat-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .restart-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
-            padding: 12px 25px;
+            padding: 15px 30px;
             border-radius: 25px;
             color: white;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
-            margin: 10px;
+            margin: 15px;
             transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         .restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, #059669, #047857);
         }
 
         .instructions {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             color: white;
             text-align: center;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .credit {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
+            bottom: 20px;
+            right: 20px;
+            font-size: 14px;
             color: #10b981;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .ready-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 25px;
+            border: 3px solid #10b981;
+            backdrop-filter: blur(20px);
+        }
+
+        .ready-screen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -103,18 +182,33 @@
     <div class="game-container">
         <div class="score" id="score">0</div>
 
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <canvas id="gameCanvas" width="500" height="700"></canvas>
+
+        <div class="ready-screen" id="readyScreen">
+            <h1 class="pulse">🐦 Flappy Bird</h1>
+            <p style="font-size: 20px; margin: 20px 0;">กดเพื่อเริ่มเล่น!</p>
+            <p style="font-size: 16px; color: #94a3b8;">คลิก หรือ กด Space เพื่อบิน</p>
+        </div>
 
         <div class="game-over" id="gameOver">
-            <h2 style="color: #ef4444; margin-top: 0;">🐦 เกมจบแล้ว!</h2>
-            <p>คะแนน: <span id="finalScore">0</span></p>
-            <p>สถิติสูงสุด: <span id="bestScore">0</span></p>
-            <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
+            <h2>💀 เกมจบแล้ว!</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <strong>คะแนน:</strong> <span id="finalScore" style="color: #10b981;">0</span>
+                </div>
+                <div class="stat-item">
+                    <strong>สถิติสูงสุด:</strong> <span id="bestScore" style="color: #fbbf24;">0</span>
+                </div>
+                <div class="stat-item" id="newRecordDiv" style="display: none; color: #fbbf24;">
+                    🎉 สถิติใหม่! 🎉
+                </div>
+            </div>
+            <button class="restart-btn" onclick="startGame()">🔄 เล่นใหม่</button>
         </div>
 
         <div class="instructions">
-            คลิก หรือ กด Space เพื่อบิน<br>
-            หลีกเลี่ยงท่อให้ได้!
+            <strong>🎮 วิธีเล่น:</strong><br>
+            คลิก หรือ กด Space เพื่อบิน | หลีกเลี่ยงท่อให้ได้!
         </div>
     </div>
 
@@ -125,57 +219,122 @@
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const gameOverElement = document.getElementById('gameOver');
+        const readyScreenElement = document.getElementById('readyScreen');
         const finalScoreElement = document.getElementById('finalScore');
         const bestScoreElement = document.getElementById('bestScore');
+        const newRecordDiv = document.getElementById('newRecordDiv');
 
-        let gameRunning = false;
+        let gameState = 'ready'; // ready, playing, gameOver
         let score = 0;
         let bestScore = localStorage.getItem('flappyBestScore') || 0;
         bestScoreElement.textContent = bestScore;
 
-        // นก
+        // Enhanced Bird
         const bird = {
             x: 100,
             y: canvas.height / 2,
-            width: 30,
-            height: 25,
+            width: 40,
+            height: 30,
             velocity: 0,
-            gravity: 0.5,
-            jump: -8,
-            rotation: 0
+            gravity: 0.6,
+            jump: -12,
+            rotation: 0,
+            trail: []
         };
 
-        // ท่อ
+        // Pipes
         let pipes = [];
-        const pipeWidth = 60;
-        const pipeGap = 150;
+        const pipeWidth = 80;
+        const pipeGap = 180;
         let frameCount = 0;
 
-        // เมฆ
+        // Particles
+        let particles = [];
+        
+        // Clouds
         let clouds = [];
 
-        // สร้างเมฆ
+        class Particle {
+            constructor(x, y, vx, vy, color, life = 60) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.life--;
+                return this.life > 0;
+            }
+
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createParticles(x, y, count, color) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                particles.push(new Particle(
+                    x, y,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    color
+                ));
+            }
+        }
+
         function createClouds() {
             clouds = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 8; i++) {
                 clouds.push({
                     x: Math.random() * canvas.width,
-                    y: Math.random() * 200 + 50,
-                    size: Math.random() * 40 + 20,
-                    speed: Math.random() * 0.5 + 0.2
+                    y: Math.random() * 300 + 50,
+                    size: Math.random() * 60 + 30,
+                    speed: Math.random() * 0.8 + 0.3,
+                    opacity: Math.random() * 0.5 + 0.3
                 });
             }
         }
 
-        // วาดเมฆ
-        function drawClouds() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        function drawBackground() {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.4, '#98FB98');
+            gradient.addColorStop(1, '#228B22');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Clouds
             clouds.forEach(cloud => {
+                ctx.save();
+                ctx.globalAlpha = cloud.opacity;
+                ctx.fillStyle = 'white';
                 ctx.beginPath();
                 ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
                 ctx.arc(cloud.x + cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
                 ctx.arc(cloud.x - cloud.size * 0.6, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.restore();
 
                 cloud.x -= cloud.speed;
                 if (cloud.x < -cloud.size * 2) {
@@ -184,87 +343,82 @@
             });
         }
 
-        // ปรับปรุงการวาดนก
-        function drawEnhancedBird() {
-            const screenX = canvas.width / 2 + bird.x + bird.width/2;
-            const screenY = canvas.height / 2 + bird.y + bird.height/2 - bird.height * 20;
-
-            // สร้างอนุภาคเมื่อกระโดด
-            if (bird.velocity < -5) {
-                for (let i = 0; i < 3; i++) {
-                    birdParticles.push(new BirdParticle(bird.x, bird.y + bird.height));
-                }
-            }
-
+        function drawBird() {
             ctx.save();
-            ctx.translate(screenX, screenY);
-
-            // หมุนนกตามความเร็ว
-            bird.rotation = Math.min(Math.max(bird.velocity * 0.1, -0.5), 0.5);
+            ctx.translate(bird.x + bird.width/2, bird.y + bird.height/2);
+            
+            // Calculate rotation based on velocity
+            bird.rotation = Math.max(-0.5, Math.min(0.5, bird.velocity * 0.05));
             ctx.rotate(bird.rotation);
 
-            // เงา
+            // Bird shadow
             ctx.save();
             ctx.globalAlpha = 0.3;
             ctx.fillStyle = '#000';
             ctx.translate(3, 3);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
-            ctx.fill();
+            drawBirdShape();
             ctx.restore();
 
-            // ลำตัวนก
+            // Bird body
             const bodyGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, bird.width/2);
             bodyGradient.addColorStop(0, '#FFD700');
-            bodyGradient.addColorStop(1, '#FFA500');
+            bodyGradient.addColorStop(0.7, '#FFA500');
+            bodyGradient.addColorStop(1, '#FF8C00');
             ctx.fillStyle = bodyGradient;
-            ctx.beginPath();
-            ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
-            ctx.fill();
+            drawBirdShape();
 
-            // ปีกนก
-            ctx.fillStyle = '#FF8C00';
+            // Wing
+            ctx.fillStyle = '#FF6347';
             ctx.save();
-            ctx.rotate(Math.sin(Date.now() * 0.01) * 0.3);
-            ctx.beginPath();
-            ctx.ellipse(-5, 0, 12, 8, 0, 0, Math.PI * 2);
-            ctx.fill();
+            const wingFlap = Math.sin(Date.now() * 0.02) * 0.3;
+            ctx.rotate(wingFlap);
+            ctx.fillRect(-15, -5, 25, 10);
             ctx.restore();
 
-            // หัวนก
-            const headGradient = ctx.createRadialGradient(8, -2, 0, 8, -2, 8);
-            headGradient.addColorStop(0, '#FFD700');
-            headGradient.addColorStop(1, '#FF6347');
-            ctx.fillStyle = headGradient;
+            // Eye
+            ctx.fillStyle = 'white';
             ctx.beginPath();
-            ctx.ellipse(8, -2, 8, 8, 0, 0, Math.PI * 2);
+            ctx.arc(8, -5, 6, 0, Math.PI * 2);
             ctx.fill();
-
-            // ตานก
-            ctx.fillStyle = '#000';
+            
+            ctx.fillStyle = 'black';
             ctx.beginPath();
             ctx.arc(10, -5, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(11, -6, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // จะงอยปากนก
+            // Beak
             ctx.fillStyle = '#FF4500';
             ctx.beginPath();
             ctx.moveTo(15, -2);
-            ctx.lineTo(22, -4);
-            ctx.lineTo(22, 0);
-            ctx.lineTo(18, 2);
+            ctx.lineTo(25, -5);
+            ctx.lineTo(25, 1);
+            ctx.lineTo(18, 3);
             ctx.closePath();
             ctx.fill();
 
             ctx.restore();
+
+            // Trail effect
+            if (gameState === 'playing') {
+                bird.trail.push({x: bird.x, y: bird.y, life: 20});
+                bird.trail = bird.trail.filter(t => {
+                    ctx.save();
+                    ctx.globalAlpha = t.life / 20 * 0.3;
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fillRect(t.x, t.y, bird.width * 0.7, bird.height * 0.7);
+                    ctx.restore();
+                    t.life--;
+                    return t.life > 0;
+                });
+            }
         }
 
-        // สร้างท่อ
+        function drawBirdShape() {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         function createPipe() {
             const pipeHeight = Math.random() * (canvas.height - pipeGap - 200) + 100;
             pipes.push({
@@ -272,102 +426,104 @@
                 topHeight: pipeHeight,
                 bottomY: pipeHeight + pipeGap,
                 bottomHeight: canvas.height - pipeHeight - pipeGap,
-                passed: false
+                passed: false,
+                scored: false
             });
         }
 
-        // วาดท่อ
         function drawPipes() {
-            ctx.fillStyle = '#32CD32';
-            ctx.strokeStyle = '#228B22';
-            ctx.lineWidth = 3;
-
             pipes.forEach(pipe => {
-                // ท่อบน
+                // Pipe gradient
+                const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
+                gradient.addColorStop(0, '#32CD32');
+                gradient.addColorStop(0.5, '#228B22');
+                gradient.addColorStop(1, '#32CD32');
+                
+                ctx.fillStyle = gradient;
+                ctx.strokeStyle = '#006400';
+                ctx.lineWidth = 3;
+
+                // Top pipe
                 ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
                 ctx.strokeRect(pipe.x, 0, pipeWidth, pipe.topHeight);
 
-                // หัวท่อบน
-                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
-                ctx.strokeRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
+                // Top pipe cap
+                ctx.fillRect(pipe.x - 8, pipe.topHeight - 30, pipeWidth + 16, 30);
+                ctx.strokeRect(pipe.x - 8, pipe.topHeight - 30, pipeWidth + 16, 30);
 
-                // ท่อล่าง
+                // Bottom pipe
                 ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
                 ctx.strokeRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
 
-                // หัวท่อล่าง
-                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
-                ctx.strokeRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
+                // Bottom pipe cap
+                ctx.fillRect(pipe.x - 8, pipe.bottomY, pipeWidth + 16, 30);
+                ctx.strokeRect(pipe.x - 8, pipe.bottomY, pipeWidth + 16, 30);
             });
         }
 
-        // วาดพื้น
         function drawGround() {
-            const groundHeight = 50;
-            const grassHeight = 20;
-
-            // ดิน
-            const groundGradient = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height);
-            groundGradient.addColorStop(0, '#8B4513');
-            groundGradient.addColorStop(1, '#654321');
-            ctx.fillStyle = groundGradient;
+            const groundHeight = 80;
+            
+            // Ground gradient
+            const gradient = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height);
+            gradient.addColorStop(0, '#8B4513');
+            gradient.addColorStop(0.3, '#A0522D');
+            gradient.addColorStop(1, '#654321');
+            
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
-            // หญ้า
-            const grassGradient = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height - groundHeight + grassHeight);
-            grassGradient.addColorStop(0, '#32CD32');
-            grassGradient.addColorStop(1, '#228B22');
-            ctx.fillStyle = grassGradient;
-            ctx.fillRect(0, canvas.height - groundHeight, canvas.width, grassHeight);
+            // Grass
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(0, canvas.height - groundHeight, canvas.width, 20);
 
-            // ใบหญ้า
-            ctx.fillStyle = '#00FF00';
-            for (let x = 0; x < canvas.width; x += 20) {
-                ctx.fillRect(x, canvas.height - groundHeight, 3, 8);
-                ctx.fillRect(x + 5, canvas.height - groundHeight, 2, 6);
-                ctx.fillRect(x + 10, canvas.height - groundHeight, 3, 7);
-                ctx.fillRect(x + 15, canvas.height - groundHeight, 2, 5);
+            // Grass details
+            ctx.fillStyle = '#32CD32';
+            for (let x = 0; x < canvas.width; x += 15) {
+                ctx.fillRect(x, canvas.height - groundHeight, 3, 12);
+                ctx.fillRect(x + 5, canvas.height - groundHeight, 2, 8);
+                ctx.fillRect(x + 10, canvas.height - groundHeight, 3, 10);
             }
         }
 
-        // อัปเดตเกม
-        function updateGame() { // Renamed from update
-            if (!gameRunning) return;
+        function update() {
+            if (gameState !== 'playing') return;
 
             frameCount++;
 
-            // อัปเดตนก
+            // Update bird
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            // ตรวจสอบขอบเขต
+            // Check boundaries
             if (bird.y < 0) {
                 bird.y = 0;
                 bird.velocity = 0;
             }
 
-            if (bird.y > canvas.height - 50 - bird.height) {
+            if (bird.y > canvas.height - 80 - bird.height) {
                 gameOver();
                 return;
             }
 
-            // สร้างท่อใหม่
-            if (frameCount % 120 === 0) {
+            // Create new pipes
+            if (frameCount % 90 === 0) {
                 createPipe();
             }
 
-            // อัปเดตท่อ
+            // Update pipes
             pipes.forEach((pipe, index) => {
-                pipe.x -= 2;
+                pipe.x -= 4;
 
-                // เพิ่มคะแนน
-                if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
-                    pipe.passed = true;
+                // Score when passing pipe
+                if (!pipe.scored && pipe.x + pipeWidth < bird.x) {
+                    pipe.scored = true;
                     score++;
                     scoreElement.textContent = score;
+                    createParticles(bird.x, bird.y, 10, '#FFD700');
                 }
 
-                // ตรวจสอบการชนท่อ
+                // Check collision
                 if (bird.x < pipe.x + pipeWidth && 
                     bird.x + bird.width > pipe.x &&
                     (bird.y < pipe.topHeight || bird.y + bird.height > pipe.bottomY)) {
@@ -376,157 +532,99 @@
                 }
             });
 
-            // ลบท่อที่ผ่านไปแล้ว
+            // Remove off-screen pipes
             pipes = pipes.filter(pipe => pipe.x > -pipeWidth);
 
-            // อัปเดตอนุภาค
-            birdParticles.forEach(particle => particle.update());
-            birdParticles = birdParticles.filter(particle => particle.life > 0);
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0;
+            });
         }
 
-        // วาดเกม
-        function drawGame() { // Renamed from draw
-            // ล้างหน้าจอ
+        function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // วาดฟ้า
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#87CEEB');
-            gradient.addColorStop(0.3, '#98FB98');
-            gradient.addColorStop(1, '#228B22');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            drawClouds();
+            drawBackground();
             drawPipes();
-            drawEnhancedBird(); // ใช้ฟังก์ชันวาดนกที่ปรับปรุงแล้ว
             drawGround();
-
-            // วาดอนุภาค
-            birdParticles.forEach(particle => particle.draw());
+            drawBird();
         }
 
-        // จั่ม
         function jump() {
-            if (gameRunning) {
+            if (gameState === 'ready') {
+                startGame();
+            } else if (gameState === 'playing') {
                 bird.velocity = bird.jump;
+                createParticles(bird.x, bird.y + bird.height, 5, '#FFD700');
             }
         }
 
-        // จบเกม
         function gameOver() {
-            gameRunning = false;
-            finalScoreElement.textContent = score;
-
+            gameState = 'gameOver';
+            
+            // Death explosion
+            createParticles(bird.x + bird.width/2, bird.y + bird.height/2, 20, '#ef4444');
+            
+            // Check high score
             if (score > bestScore) {
                 bestScore = score;
                 localStorage.setItem('flappyBestScore', bestScore);
                 bestScoreElement.textContent = bestScore;
+                newRecordDiv.style.display = 'block';
+            } else {
+                newRecordDiv.style.display = 'none';
             }
 
+            finalScoreElement.textContent = score;
             gameOverElement.style.display = 'block';
         }
 
-        // เริ่มเกม
         function startGame() {
-            gameRunning = true;
+            gameState = 'playing';
             score = 0;
             frameCount = 0;
             pipes = [];
-            birdParticles = []; // รีเซตอนุภาคนก
+            particles = [];
 
             bird.x = 100;
             bird.y = canvas.height / 2;
             bird.velocity = 0;
             bird.rotation = 0;
+            bird.trail = [];
 
             scoreElement.textContent = score;
             gameOverElement.style.display = 'none';
+            readyScreenElement.style.display = 'none';
 
             createClouds();
         }
 
-        // ควบคุม
+        // Input handling
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
-                if (!gameRunning) {
-                    startGame();
-                } else {
-                    jump();
-                }
-            }
-        });
-
-        canvas.addEventListener('click', () => {
-            if (!gameRunning) {
-                startGame();
-            } else {
                 jump();
             }
         });
 
-        // เพิ่มเอฟเฟกต์อนุภาค
-        let birdParticles = [];
+        canvas.addEventListener('click', jump);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
 
-        class BirdParticle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 4;
-                this.vy = (Math.random() - 0.5) * 4;
-                this.life = 20;
-                this.maxLife = 20;
-                this.size = Math.random() * 3 + 2;
-                this.color = ['#FFD700', '#FFA500', '#FF6347'][Math.floor(Math.random() * 3)];
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life--;
-                this.vx *= 0.98;
-                this.vy *= 0.98;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.life / this.maxLife;
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
-
-        // เริ่มเกม
-        startGame();
-
-        let lastTime = 0;
-        const targetFPS = 120;
-        const frameTime = 1000 / targetFPS;
-
-        function gameLoop(timestamp) {
-            if (gameRunning) {
-                if (!lastTime) lastTime = timestamp;
-                const deltaTime = timestamp - lastTime;
-
-                if (deltaTime >= 16.67) { // 60 FPS
-                    updateGame();
-                    drawGame();
-                    lastTime = timestamp;
-                }
-
-                requestAnimationFrame(gameLoop);
-            }
-        }
-
-        // เริ่มต้น gameLoop
-        requestAnimationFrame(gameLoop);
+        // Initialize
+        createClouds();
+        gameLoop();
     </script>
 </body>
 </html>

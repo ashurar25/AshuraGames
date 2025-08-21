@@ -1,98 +1,236 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048 - ASHURA Games</title>
+    <title>2048 Enhanced - ASHURA Games</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
+            overflow: hidden;
         }
 
         .game-container {
             text-align: center;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 48px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
         }
 
         .score-container {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin: 20px 0;
+            margin: 30px 0;
+            position: relative;
+            z-index: 1;
         }
 
         .score-box {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 10px;
-            padding: 10px 20px;
-            min-width: 80px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 15px 25px;
+            min-width: 120px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .score-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
         }
 
         .score-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 5px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .score-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            color: #10b981;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 80px);
-            grid-template-rows: repeat(4, 80px);
-            gap: 8px;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 10px;
-            padding: 8px;
-            margin: 20px auto;
-            border: 2px solid rgba(16, 185, 129, 0.3);
+            grid-template-columns: repeat(4, 90px);
+            grid-template-rows: repeat(4, 90px);
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+            border-radius: 20px;
+            padding: 12px;
+            margin: 30px auto;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 0 30px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
         }
 
         .cell {
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .cell-2 { background: #eee4da; color: #776e65; }
-        .cell-4 { background: #ede0c8; color: #776e65; }
-        .cell-8 { background: #f2b179; color: #f9f6f2; }
-        .cell-16 { background: #f59563; color: #f9f6f2; }
-        .cell-32 { background: #f67c5f; color: #f9f6f2; }
-        .cell-64 { background: #f65e3b; color: #f9f6f2; }
-        .cell-128 { background: #edcf72; color: #f9f6f2; font-size: 20px; }
-        .cell-256 { background: #edcc61; color: #f9f6f2; font-size: 20px; }
-        .cell-512 { background: #edc850; color: #f9f6f2; font-size: 20px; }
-        .cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 18px; }
-        .cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 18px; box-shadow: 0 0 20px rgba(237, 194, 46, 0.5); }
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell:hover::before {
+            opacity: 1;
+        }
+
+        /* Enhanced cell colors with gradients */
+        .cell-2 { 
+            background: linear-gradient(135deg, #eee4da, #e4d6c7); 
+            color: #776e65; 
+            box-shadow: 0 4px 15px rgba(238, 228, 218, 0.4);
+        }
+        .cell-4 { 
+            background: linear-gradient(135deg, #ede0c8, #e0d0b6); 
+            color: #776e65; 
+            box-shadow: 0 4px 15px rgba(237, 224, 200, 0.4);
+        }
+        .cell-8 { 
+            background: linear-gradient(135deg, #f2b179, #ef9f5f); 
+            color: #f9f6f2; 
+            box-shadow: 0 4px 15px rgba(242, 177, 121, 0.4);
+        }
+        .cell-16 { 
+            background: linear-gradient(135deg, #f59563, #f3824f); 
+            color: #f9f6f2; 
+            box-shadow: 0 4px 15px rgba(245, 149, 99, 0.4);
+        }
+        .cell-32 { 
+            background: linear-gradient(135deg, #f67c5f, #f4654b); 
+            color: #f9f6f2; 
+            box-shadow: 0 4px 15px rgba(246, 124, 95, 0.4);
+        }
+        .cell-64 { 
+            background: linear-gradient(135deg, #f65e3b, #f44827); 
+            color: #f9f6f2; 
+            box-shadow: 0 4px 15px rgba(246, 94, 59, 0.4);
+        }
+        .cell-128 { 
+            background: linear-gradient(135deg, #edcf72, #eac558); 
+            color: #f9f6f2; 
+            font-size: 24px;
+            box-shadow: 0 6px 20px rgba(237, 207, 114, 0.5);
+        }
+        .cell-256 { 
+            background: linear-gradient(135deg, #edcc61, #eac247); 
+            color: #f9f6f2; 
+            font-size: 24px;
+            box-shadow: 0 6px 20px rgba(237, 204, 97, 0.5);
+        }
+        .cell-512 { 
+            background: linear-gradient(135deg, #edc850, #eabf36); 
+            color: #f9f6f2; 
+            font-size: 24px;
+            box-shadow: 0 6px 20px rgba(237, 200, 80, 0.5);
+        }
+        .cell-1024 { 
+            background: linear-gradient(135deg, #edc53f, #eabb25); 
+            color: #f9f6f2; 
+            font-size: 20px;
+            box-shadow: 0 8px 25px rgba(237, 197, 63, 0.6);
+        }
+        .cell-2048 { 
+            background: linear-gradient(135deg, #edc22e, #eab814); 
+            color: #f9f6f2; 
+            font-size: 20px; 
+            box-shadow: 0 10px 30px rgba(237, 194, 46, 0.8);
+            animation: glow2048 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow2048 {
+            from {
+                box-shadow: 0 10px 30px rgba(237, 194, 46, 0.8);
+                transform: scale(1);
+            }
+            to {
+                box-shadow: 0 15px 40px rgba(237, 194, 46, 1);
+                transform: scale(1.05);
+            }
+        }
 
         .controls {
-            margin: 20px 0;
-            font-size: 14px;
-            color: #94a3b8;
+            margin: 25px 0;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
         }
 
         .game-over, .game-won {
@@ -100,51 +238,123 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #10b981;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 20, 0.9));
+            padding: 40px;
+            border-radius: 25px;
+            border: 3px solid #10b981;
             text-align: center;
             display: none;
             z-index: 1000;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
         .game-won {
             border-color: #f59e0b;
         }
 
+        .game-over h2, .game-won h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 36px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
         .restart-btn {
             background: linear-gradient(135deg, #10b981, #059669);
             border: none;
-            padding: 12px 25px;
+            padding: 15px 35px;
             border-radius: 25px;
             color: white;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s;
+            margin: 15px;
+            transition: all 0.4s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
         }
 
         .restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .restart-btn:active {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .credit {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
-            color: #10b981;
+            bottom: 20px;
+            right: 20px;
+            font-size: 14px;
+            color: #fff;
             background: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 15px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Animation for new tiles */
+        .cell-new {
+            animation: cellAppear 0.3s ease-out;
+        }
+
+        @keyframes cellAppear {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Animation for merged tiles */
+        .cell-merged {
+            animation: cellMerge 0.3s ease-out;
+        }
+
+        @keyframes cellMerge {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Particle effects */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 1s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.5);
+            }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1 style="color: #10b981; margin-bottom: 10px;">🎯 2048</h1>
+        <h1>🎯 2048 Enhanced</h1>
 
         <div class="score-container">
             <div class="score-box">
@@ -155,30 +365,39 @@
                 <div class="score-label">สูงสุด</div>
                 <div class="score-value" id="bestScore">0</div>
             </div>
+            <div class="score-box">
+                <div class="score-label">เลเวล</div>
+                <div class="score-value" id="level">1</div>
+            </div>
         </div>
 
         <div class="grid" id="grid"></div>
 
         <div class="controls">
-            ใช้ลูกศร หรือ WASD เพื่อเลื่อน<br>
-            รวมตัวเลขเดียวกันให้ได้ 2048!
+            <strong>🎮 วิธีเล่น:</strong><br>
+            ใช้ลูกศร หรือ WASD เพื่อเลื่อน | แตะและลากบนมือถือ<br>
+            รวมตัวเลขเดียวกันให้ได้ 2048! 🏆
         </div>
 
-        <button class="restart-btn" onclick="startGame()">เกมใหม่</button>
+        <button class="restart-btn" onclick="startGame()">🔄 เกมใหม่</button>
     </div>
 
     <div class="game-over" id="gameOver">
-        <h2 style="color: #ef4444;">เกมจบแล้ว!</h2>
-        <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
-        <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
+        <h2 style="color: #ef4444;">💀 เกมจบแล้ว!</h2>
+        <p style="font-size: 20px; margin: 15px 0;">คะแนนสุดท้าย: <span id="finalScore" style="color: #10b981;">0</span></p>
+        <p style="font-size: 18px; margin: 15px 0;">เลเวลสูงสุด: <span id="finalLevel" style="color: #fbbf24;">1</span></p>
+        <div id="newRecordText" style="color: #fbbf24; margin: 20px 0; display: none;">
+            🎉 สถิติใหม่! 🎉
+        </div>
+        <button class="restart-btn" onclick="startGame()">🔄 เล่นใหม่</button>
     </div>
 
     <div class="game-won" id="gameWon">
         <h2 style="color: #f59e0b;">🎉 คุณชนะแล้ว!</h2>
-        <p>คุณได้ 2048 แล้ว!</p>
-        <p>คะแนน: <span id="winScore">0</span></p>
-        <button class="restart-btn" onclick="continueGame()">เล่นต่อ</button>
-        <button class="restart-btn" onclick="startGame()">เกมใหม่</button>
+        <p style="font-size: 20px; margin: 15px 0;">คุณได้ 2048 แล้ว!</p>
+        <p style="font-size: 18px; margin: 15px 0;">คะแนน: <span id="winScore" style="color: #10b981;">0</span></p>
+        <button class="restart-btn" onclick="continueGame()">▶️ เล่นต่อ</button>
+        <button class="restart-btn" onclick="startGame()">🔄 เกมใหม่</button>
     </div>
 
     <div class="credit">© ASHURA Games</div>
@@ -187,20 +406,41 @@
         const gridElement = document.getElementById('grid');
         const scoreElement = document.getElementById('score');
         const bestScoreElement = document.getElementById('bestScore');
+        const levelElement = document.getElementById('level');
         const gameOverElement = document.getElementById('gameOver');
         const gameWonElement = document.getElementById('gameWon');
         const finalScoreElement = document.getElementById('finalScore');
+        const finalLevelElement = document.getElementById('finalLevel');
         const winScoreElement = document.getElementById('winScore');
+        const newRecordText = document.getElementById('newRecordText');
 
         let grid = [];
         let score = 0;
-        let bestScore = localStorage.getItem('2048BestScore') || 0;
+        let level = 1;
+        let bestScore = localStorage.getItem('2048EnhancedBestScore') || 0;
         let hasWon = false;
         let gameRunning = true;
+        let moveCount = 0;
 
         bestScoreElement.textContent = bestScore;
 
-        // เริ่มต้นกริด
+        // Particle system
+        function createParticles(x, y, color, count = 6) {
+            const container = document.querySelector('.game-container');
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = (Math.random() * 8 + 4) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = color;
+                container.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
         function initGrid() {
             grid = [];
             for (let i = 0; i < 4; i++) {
@@ -208,7 +448,6 @@
             }
         }
 
-        // หาช่องว่าง
         function getEmptyCells() {
             const emptyCells = [];
             for (let i = 0; i < 4; i++) {
@@ -221,18 +460,17 @@
             return emptyCells;
         }
 
-        // เพิ่มตัวเลขใหม่
         function addNewNumber() {
             const emptyCells = getEmptyCells();
             if (emptyCells.length === 0) return false;
 
             const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            const value = Math.random() < 0.9 ? 2 : 4;
+            // Higher chance for 4 at higher levels
+            const value = Math.random() < (0.8 - level * 0.05) ? 2 : 4;
             grid[randomCell.row][randomCell.col] = value;
             return true;
         }
 
-        // วาดกริด
         function drawGrid() {
             gridElement.innerHTML = '';
 
@@ -247,14 +485,18 @@
                     if (value > 0) {
                         cell.textContent = value;
                         cell.classList.add(`cell-${value}`);
-
-                        // เอฟเฟกต์การปรากฏแบบนุ่มนวล
-                        cell.style.transform = 'scale(0.8)';
+                        
+                        // Animation for new cells
+                        if (cell.dataset.isNew === 'true') {
+                            cell.classList.add('cell-new');
+                        }
+                        
+                        // Enhanced animation
+                        cell.style.transform = 'scale(0.9)';
                         cell.style.opacity = '0';
                         
-                        // ใช้ requestAnimationFrame สำหรับการแอนิเมชั่น
                         requestAnimationFrame(() => {
-                            cell.style.transition = 'all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1)';
+                            cell.style.transition = 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
                             cell.style.transform = 'scale(1)';
                             cell.style.opacity = '1';
                         });
@@ -265,53 +507,80 @@
             }
         }
 
-        // เลื่อนและรวม
         function moveLeft() {
             let moved = false;
             let scoreAdded = 0;
+            const mergedPositions = [];
 
             for (let i = 0; i < 4; i++) {
                 const row = grid[i].filter(val => val !== 0);
+                const mergedRow = [];
+                let j = 0;
 
-                for (let j = 0; j < row.length - 1; j++) {
-                    if (row[j] === row[j + 1]) {
-                        row[j] *= 2;
-                        scoreAdded += row[j];
-                        if (row[j] === 2048 && !hasWon) {
+                while (j < row.length) {
+                    if (j < row.length - 1 && row[j] === row[j + 1]) {
+                        const mergedValue = row[j] * 2;
+                        mergedRow.push(mergedValue);
+                        scoreAdded += mergedValue;
+                        mergedPositions.push({row: i, col: mergedRow.length - 1, value: mergedValue});
+                        
+                        if (mergedValue === 2048 && !hasWon) {
                             hasWon = true;
-                            showWin();
+                            setTimeout(() => showWin(), 500);
                         }
-                        row.splice(j + 1, 1);
+                        j += 2;
+                    } else {
+                        mergedRow.push(row[j]);
+                        j += 1;
                     }
                 }
 
-                while (row.length < 4) {
-                    row.push(0);
+                while (mergedRow.length < 4) {
+                    mergedRow.push(0);
                 }
 
-                for (let j = 0; j < 4; j++) {
-                    if (grid[i][j] !== row[j]) {
+                for (let k = 0; k < 4; k++) {
+                    if (grid[i][k] !== mergedRow[k]) {
                         moved = true;
                     }
-                    grid[i][j] = row[j];
+                    grid[i][k] = mergedRow[k];
                 }
             }
 
             if (moved) {
                 score += scoreAdded;
                 scoreElement.textContent = score;
+                
+                // Level progression
+                const newLevel = Math.floor(score / 1000) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    levelElement.textContent = level;
+                    createParticles(300, 200, '#fbbf24', 10);
+                }
 
                 if (score > bestScore) {
                     bestScore = score;
-                    localStorage.setItem('2048BestScore', bestScore);
+                    localStorage.setItem('2048EnhancedBestScore', bestScore);
                     bestScoreElement.textContent = bestScore;
                 }
+
+                // Create particles for merged cells
+                mergedPositions.forEach(pos => {
+                    const cellRect = gridElement.children[pos.row * 4 + pos.col].getBoundingClientRect();
+                    const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+                    createParticles(
+                        cellRect.left - containerRect.left + cellRect.width / 2,
+                        cellRect.top - containerRect.top + cellRect.height / 2,
+                        pos.value >= 128 ? '#fbbf24' : '#10b981',
+                        pos.value >= 1024 ? 12 : 8
+                    );
+                });
             }
 
             return moved;
         }
 
-        // หมุนกริด 90 องศา
         function rotateGrid() {
             const newGrid = [];
             for (let i = 0; i < 4; i++) {
@@ -323,7 +592,6 @@
             grid = newGrid;
         }
 
-        // เลื่อนทิศทางต่างๆ
         function move(direction) {
             if (!gameRunning) return;
 
@@ -346,21 +614,19 @@
             }
 
             if (moved) {
+                moveCount++;
                 if (!addNewNumber()) {
                     if (isGameOver()) {
-                        showGameOver();
+                        setTimeout(() => showGameOver(), 300);
                     }
                 }
                 drawGrid();
             }
         }
 
-        // ตรวจสอบว่าเกมจบหรือไม่
         function isGameOver() {
-            // ตรวจสอบช่องว่าง
             if (getEmptyCells().length > 0) return false;
 
-            // ตรวจสอบการรวมได้
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++) {
                     const current = grid[i][j];
@@ -372,41 +638,47 @@
             return true;
         }
 
-        // แสดงการชนะ
         function showWin() {
             winScoreElement.textContent = score;
             gameWonElement.style.display = 'block';
         }
 
-        // แสดงการแพ้
         function showGameOver() {
             gameRunning = false;
             finalScoreElement.textContent = score;
+            finalLevelElement.textContent = level;
+            
+            if (score >= bestScore) {
+                newRecordText.style.display = 'block';
+            }
+            
             gameOverElement.style.display = 'block';
         }
 
-        // เล่นต่อหลังชนะ
         function continueGame() {
             gameWonElement.style.display = 'none';
         }
 
-        // เริ่มเกมใหม่
         function startGame() {
             initGrid();
             score = 0;
+            level = 1;
             hasWon = false;
             gameRunning = true;
+            moveCount = 0;
 
             scoreElement.textContent = score;
+            levelElement.textContent = level;
             gameOverElement.style.display = 'none';
             gameWonElement.style.display = 'none';
+            newRecordText.style.display = 'none';
 
             addNewNumber();
             addNewNumber();
             drawGrid();
         }
 
-        // ควบคุมด้วยคีย์บอร์ด
+        // Input handling
         document.addEventListener('keydown', (e) => {
             switch (e.key) {
                 case 'ArrowLeft':
@@ -436,7 +708,7 @@
             }
         });
 
-        // ควบคุมด้วยการแตะ (สำหรับมือถือ)
+        // Touch controls
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -458,7 +730,7 @@
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
 
-            const minSwipeDistance = 30;
+            const minSwipeDistance = 40;
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (Math.abs(deltaX) > minSwipeDistance) {
@@ -479,7 +751,7 @@
             }
         });
 
-        // เริ่มเกม
+        // Initialize game
         startGame();
     </script>
 </body>
