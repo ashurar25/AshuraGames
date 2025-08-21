@@ -331,7 +331,7 @@
         }
 
         // อัปเดตเกม
-        function update() {
+        function updateGame() { // Renamed from update
             if (!gameRunning) return;
 
             frameCount++;
@@ -385,7 +385,7 @@
         }
 
         // วาดเกม
-        function draw() {
+        function drawGame() { // Renamed from draw
             // ล้างหน้าจอ
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -510,17 +510,19 @@
         const targetFPS = 120;
         const frameTime = 1000 / targetFPS;
 
-        function gameLoop(currentTime) {
-            // Frame rate control
-            if (currentTime - lastTime < frameTime) {
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-            lastTime = currentTime;
+        function gameLoop(timestamp) {
+            if (gameRunning) {
+                if (!lastTime) lastTime = timestamp;
+                const deltaTime = timestamp - lastTime;
 
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
+                if (deltaTime >= 16.67) { // 60 FPS
+                    updateGame();
+                    drawGame();
+                    lastTime = timestamp;
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
         }
 
         // เริ่มต้น gameLoop

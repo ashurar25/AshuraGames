@@ -230,10 +230,11 @@
         let score = 0;
         let level = 1;
         let lines = 0;
-        let gameRunning = false;
+        let gameRunning = true;
         let dropTime = 0;
         let dropInterval = 1000;
         let particles = [];
+        let lastFrame = Date.now();
 
         // Tetris pieces
         const PIECES = [
@@ -565,26 +566,28 @@
             drawNext();
         }
 
-        function gameLoop(currentTime) {
-            if (!gameRunning) return;
+        function gameLoop() {
+            if (gameRunning) {
+                const now = Date.now();
 
-            // Frame rate control
-            const targetFPS = 60;
-            const frameTime = 1000 / targetFPS;
-            // Initialize lastTime on the first call of gameLoop
-            if (typeof gameLoop.lastTime === 'undefined') {
-                gameLoop.lastTime = 0;
-            }
+                // Smooth 60 FPS
+                if (now - lastFrame >= 16.67) {
+                    if (now - dropTime > dropInterval) {
+                        if (isValidMove(currentPiece, 0, 1)) {
+                            currentPiece.y++;
+                        } else {
+                            placePiece();
+                        }
+                        dropTime = now;
+                    }
 
-            if (currentTime - gameLoop.lastTime < frameTime) {
+                    update();
+                    draw();
+                    lastFrame = now;
+                }
+
                 requestAnimationFrame(gameLoop);
-                return;
             }
-            gameLoop.lastTime = currentTime;
-
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
         }
 
         function gameOver() {
@@ -605,6 +608,7 @@
             particles = [];
             gameRunning = true;
             dropTime = 0; // Reset dropTime
+            lastFrame = Date.now(); // Reset lastFrame
 
             document.getElementById('gameOver').style.display = 'none';
             updateUI();
