@@ -900,29 +900,60 @@
             requestAnimationFrame(gameLoop);
         }
         
-        // Input handling
-        document.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
+        // Input handling - improved for iframe compatibility
+        function handleKeyDown(e) {
+            const key = e.key.toLowerCase();
+            keys[key] = true;
             
-            if (e.key === ' ') {
+            // Prevent default for game control keys
+            if ([' ', 'w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
                 e.preventDefault();
+                e.stopPropagation();
             }
+        }
+        
+        function handleKeyUp(e) {
+            const key = e.key.toLowerCase();
+            keys[key] = false;
+            
+            // Prevent default for game control keys
+            if ([' ', 'w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+        
+        document.addEventListener('keydown', handleKeyDown, true);
+        document.addEventListener('keyup', handleKeyUp, true);
+        
+        // Focus the document to ensure key events work
+        window.addEventListener('load', () => {
+            document.body.focus();
+            document.body.tabIndex = 0;
         });
         
-        document.addEventListener('keyup', (e) => {
-            keys[e.key.toLowerCase()] = false;
+        // Re-focus when clicked
+        document.addEventListener('click', () => {
+            document.body.focus();
         });
         
-        // Touch controls
+        // Touch controls - improved
         let touchActive = false;
+        let lastTouchTime = 0;
         
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             touchActive = true;
+            lastTouchTime = Date.now();
+            
+            // Focus for better input handling
+            document.body.focus();
         });
         
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             if (!gameRunning) return;
             
             const touch = e.touches[0];
@@ -930,9 +961,11 @@
             const touchX = touch.clientX - rect.left;
             const touchY = touch.clientY - rect.top;
             
-            // Convert to world coordinates
-            const worldX = (touchX - canvas.width/2) * 2;
-            const worldY = (touchY - canvas.height/2) * 2;
+            // Convert to world coordinates with better scaling
+            const scaleX = 800 / canvas.clientWidth;
+            const scaleY = 600 / canvas.clientHeight;
+            const worldX = ((touchX * scaleX) - 400);
+            const worldY = ((touchY * scaleY) - 300);
             
             player.x = Math.max(-400, Math.min(400, worldX));
             player.y = Math.max(-300, Math.min(300, worldY));
@@ -940,6 +973,7 @@
         
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             touchActive = false;
         });
         

@@ -79,27 +79,19 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
     // Handle keyboard events for better game control
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent default behavior for game control keys when modal is open
-      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
         e.preventDefault();
-        // Forward the event to the iframe
-        if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({
-            type: 'keydown',
-            code: e.code,
-            key: e.key
-          }, '*');
-        }
+        e.stopPropagation();
+        // Don't forward to iframe - let the game handle it directly
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      // Forward key up events to iframe
-      if (isOpen && iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({
-          type: 'keyup',
-          code: e.code,
-          key: e.key
-        }, '*');
+      // Prevent default behavior for game control keys when modal is open
+      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Don't forward to iframe - let the game handle it directly
       }
     };
 
@@ -180,6 +172,12 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 iframeRef.current.focus();
               }
             }}
+            onMouseEnter={() => {
+              // Focus iframe when mouse enters container
+              if (iframeRef.current) {
+                iframeRef.current.focus();
+              }
+            }}
           >
             <iframe
               ref={iframeRef}
@@ -190,18 +188,41 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               allowFullScreen
               sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation allow-presentation"
               data-testid="iframe-game"
+              tabIndex={0}
               onLoad={(e) => {
                 console.log('Game loaded successfully:', game.title);
                 setIsLoading(false);
-                // Force focus to iframe for better game control
-                if (iframeRef.current) {
-                  iframeRef.current.focus();
-                }
+                // Force focus to iframe for better game control with delay
+                setTimeout(() => {
+                  if (iframeRef.current) {
+                    iframeRef.current.focus();
+                    // Try to focus the document inside iframe
+                    try {
+                      if (iframeRef.current.contentDocument) {
+                        iframeRef.current.contentDocument.body?.focus();
+                      }
+                    } catch (e) {
+                      // Cross-origin restrictions - ignore
+                    }
+                  }
+                }, 100);
               }}
               onError={(e) => {
                 console.error('Game loading error:', e);
                 console.error('Failed to load game:', game.title, 'URL:', game.gameUrl);
                 setIsLoading(false);
+              }}
+              onMouseEnter={() => {
+                // Focus iframe when mouse enters
+                if (iframeRef.current) {
+                  iframeRef.current.focus();
+                }
+              }}
+              onClick={() => {
+                // Focus iframe when clicked
+                if (iframeRef.current) {
+                  iframeRef.current.focus();
+                }
               }}
               style={{ 
                 minHeight: isFullscreen ? '100vh' : '500px',
