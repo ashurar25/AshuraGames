@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หนอนน้อย - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0b0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+        }
+
+        #ui {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            display: grid;
+            z-index: 100;
+        }
+
+        .hud {
+            align-self: start;
+            justify-self: start;
+            margin: 15px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #10b981;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+        }
+
+        .hud h1 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #6ee7b7;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .hud p {
+            margin: 5px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .center {
+            align-self: center;
+            justify-self: center;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .menu {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 25px;
+            border: 2px solid rgba(16, 185, 129, 0.4);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 15px 10px;
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: 2px solid #10b981;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .game-over {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            font-size: 12px;
+            color: #10b981;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .trail-effect {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, transparent 70%);
+            animation: trailFade 0.5s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.5); }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game"></canvas>
+    <div id="ui">
+        <div class="hud" id="hud">
+            <h1>🐛 หนอนน้อย</h1>
+            <p>ความยาว: <span id="len">0</span></p>
+            <p>คะแนน: <span id="score">0</span></p>
+            <p>FPS: <span id="fps">0</span></p>
+            <p>อาหาร: <span id="foodCount">0</span></p>
+        </div>
+        <div class="center" id="menu">
+            <div class="menu">
+                <h1 style="color: #6ee7b7; margin-bottom: 20px; text-shadow: 0 0 15px rgba(16, 185, 129, 0.7);">🐛 หนอนน้อย</h1>
+                <p style="margin-bottom: 20px; color: #a7f3d0;">เกมหนอนสุดมันส์ พร้อมฟีเจอร์ใหม่!</p>
+                <p style="font-size: 14px; margin-bottom: 15px;">🎯 เมาส์/นิ้ว: เล็งทิศทาง</p>
+                <p style="font-size: 14px; margin-bottom: 15px;">⌨️ WASD/ลูกศร: บังคับ</p>
+                <p style="font-size: 14px; margin-bottom: 15px;">🚀 Space/คลิก: เร่งความเร็ว</p>
+                <p style="font-size: 14px; margin-bottom: 15px;">🧲 อาหารจะดูดเข้าหาเมื่อเข้าใกล้!</p>
+                <p style="font-size: 14px; margin-bottom: 20px; color: #fbbf24;">⚠️ ระวังอย่าชนหางตัวเอง!</p>
+                <div class="btn pulse" id="startBtn">🎮 เริ่มเล่น</div>
+            </div>
+        </div>
+        <div class="center" id="gameOverMenu" style="display: none;">
+            <div class="menu game-over">
+                <h1>💀 เกมจบแล้ว!</h1>
+                <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+                <p>ความยาวสูงสุด: <span id="finalLength">0</span></p>
+                <div class="btn" id="restartBtn">🔄 เล่นใหม่</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="credit">© ASHURA Games</div>
+
+    <script>
+        (() => {
+            const TAU = Math.PI * 2;
+            const rnd = (a = 1, b = 0) => Math.random() * (a - b) + b;
+            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+            const lerp = (a, b, t) => a + (b - a) * t;
+
+            const canvas = document.getElementById('game');
+            const ctx = canvas.getContext('2d');
+            let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+            const ui = {
+                len: document.getElementById('len'),
+                score: document.getElementById('score'),
+                fps: document.getElementById('fps'),
+                foodCount: document.getElementById('foodCount'),
+                menu: document.getElementById('menu'),
+                gameOverMenu: document.getElementById('gameOverMenu'),
+                startBtn: document.getElementById('startBtn'),
+                restartBtn: document.getElementById('restartBtn'),
+                finalScore: document.getElementById('finalScore'),
+                finalLength: document.getElementById('finalLength')
+            };
+
+            const world = { size: 8000 };
+            let last = 0, fps = 0;
+            let gameRunning = false;
+
+            const input = {
+                mouse: { x: 0, y: 0, down: false },
+                keys: {},
+                touch: false
+            };
+
+            // Particle system for effects
+            const particles = [];
+            class Particle {
+                constructor(x, y, vx, vy, life, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = vx;
+                    this.vy = vy;
+                    this.life = life;
+                    this.maxLife = life;
+                    this.color = color;
+                    this.size = rnd(3, 1);
+                }
+
+                update(dt) {
+                    this.x += this.vx * dt;
+                    this.y += this.vy * dt;
+                    this.vx *= 0.98;
+                    this.vy *= 0.98;
+                    this.life -= dt;
+                    return this.life > 0;
+                }
+
+                render() {
+                    const alpha = this.life / this.maxLife;
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * alpha, 0, TAU);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function createParticles(x, y, count, color) {
+                for (let i = 0; i < count; i++) {
+                    const angle = rnd(TAU);
+                    const speed = rnd(5, 1);
+                    particles.push(new Particle(
+                        x, y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        rnd(60, 30),
+                        color
+                    ));
+                }
+            }
+
+            // Resize
+            function resize() {
+                DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+                canvas.width = Math.floor(window.innerWidth * DPR);
+                canvas.height = Math.floor(window.innerHeight * DPR);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Camera
+            const cam = { x: 0, y: 0, zoom: 1 };
+
+            // Enhanced Food pellets with magnetic effect
+            const pellets = [];
+            const PELLET_COUNT = 1200;
+            
+            function spawnPellet(x = rnd(world.size), y = rnd(world.size), val = Math.floor(rnd(4, 1))) {
+                pellets.push({
+                    x, y, val,
+                    t: rnd(TAU),
+                    magnetSpeed: 0,
+                    originalX: x,
+                    originalY: y,
+                    pulsePhase: rnd(TAU)
+                });
+            }
+
+            // Enhanced Snake
+            const snake = {
+                x: world.size / 2,
+                y: world.size / 2,
+                angle: 0,
+                speed: 2.5,
+                maxSpeed: 4.0,
+                turnSpeed: 0.09,
+                radius: 12,
+                length: 60,
+                trail: [],
+                score: 0,
+                alive: false,
+                boost: false,
+                segmentGap: 8
+            };
+
+            function reset() {
+                snake.x = rnd(world.size * 0.6, world.size * 0.4);
+                snake.y = rnd(world.size * 0.6, world.size * 0.4);
+                snake.angle = rnd(TAU);
+                snake.speed = 2.5;
+                snake.length = 60;
+                snake.trail.length = 0;
+                snake.score = 0;
+                snake.alive = true;
+                pellets.length = 0;
+                particles.length = 0;
+                gameRunning = true;
+                
+                for (let i = 0; i < PELLET_COUNT; i++) {
+                    spawnPellet(rnd(world.size), rnd(world.size));
+                }
+                
+                ui.menu.style.display = 'none';
+                ui.gameOverMenu.style.display = 'none';
+            }
+
+            function gameOver() {
+                snake.alive = false;
+                gameRunning = false;
+                
+                // Death explosion
+                createParticles(snake.x, snake.y, 50, '#ef4444');
+                
+                // Show game over screen
+                ui.finalScore.textContent = snake.score;
+                ui.finalLength.textContent = Math.floor(snake.length);
+                ui.gameOverMenu.style.display = 'block';
+            }
+
+            // Input handlers
+            canvas.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                input.mouse.x = (e.clientX - rect.left) * DPR;
+                input.mouse.y = (e.clientY - rect.top) * DPR;
+            });
+            
+            window.addEventListener('mousedown', () => input.mouse.down = true);
+            window.addEventListener('mouseup', () => input.mouse.down = false);
+            window.addEventListener('keydown', e => input.keys[e.key.toLowerCase()] = true);
+            window.addEventListener('keyup', e => input.keys[e.key.toLowerCase()] = false);
+
+            // Touch controls
+            canvas.addEventListener('touchstart', (e) => {
+                input.touch = true;
+                input.mouse.down = true;
+                const t = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                input.mouse.x = (t.clientX - rect.left) * DPR;
+                input.mouse.y = (t.clientY - rect.top) * DPR;
+            }, { passive: true });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                const t = e.touches[0];
+                if (!t) return;
+                const rect = canvas.getBoundingClientRect();
+                input.mouse.x = (t.clientX - rect.left) * DPR;
+                input.mouse.y = (t.clientY - rect.top) * DPR;
+            }, { passive: true });
+            
+            canvas.addEventListener('touchend', () => {
+                input.mouse.down = false;
+                input.touch = false;
+            }, { passive: true });
+
+            // Helper functions
+            function wrap(v, max) {
+                if (v < 0) return v + max;
+                if (v >= max) return v - max;
+                return v;
+            }
+
+            function dist2(ax, ay, bx, by) {
+                const dx = ax - bx, dy = ay - by;
+                return dx * dx + dy * dy;
+            }
+
+            function dist(ax, ay, bx, by) {
+                return Math.sqrt(dist2(ax, ay, bx, by));
+            }
+
+            // Game update
+            function update(dt) {
+                if (!snake.alive || !gameRunning) return;
+
+                // Update particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    if (!particles[i].update(dt)) {
+                        particles.splice(i, 1);
+                    }
+                }
+
+                // Controls
+                const cx = canvas.width / 2, cy = canvas.height / 2;
+                let desiredAngle = snake.angle;
+
+                // Mouse/touch control
+                if (input.touch || input.mouse.x || input.mouse.y) {
+                    const dx = input.mouse.x - cx, dy = input.mouse.y - cy;
+                    if (dx * dx + dy * dy > 400) {
+                        desiredAngle = Math.atan2(dy, dx);
+                    }
+                }
+
+                // Keyboard controls
+                const steer = (input.keys['arrowleft'] || input.keys['a'] ? -1 : 0) + 
+                             (input.keys['arrowright'] || input.keys['d'] ? 1 : 0);
+                if (steer) {
+                    desiredAngle = snake.angle + steer * snake.turnSpeed * 2.5;
+                }
+
+                // Smooth turning
+                let da = ((desiredAngle - snake.angle + Math.PI * 3) % TAU) - Math.PI;
+                snake.angle = snake.angle + clamp(da, -snake.turnSpeed, snake.turnSpeed);
+
+                // Boost system
+                snake.boost = input.mouse.down || input.keys[' '];
+                const baseSpeed = snake.maxSpeed * (snake.boost ? 1.2 : 0.8);
+                snake.speed = lerp(snake.speed, baseSpeed, 0.2);
+
+                // Boost effects and length consumption
+                if (snake.boost && snake.length > 40) {
+                    if (Math.random() < 0.3) {
+                        const bx = wrap(snake.x - Math.cos(snake.angle) * 25, world.size);
+                        const by = wrap(snake.y - Math.sin(snake.angle) * 25, world.size);
+                        spawnPellet(bx, by, 2);
+                        createParticles(bx, by, 3, '#10b981');
+                    }
+                    snake.length -= 0.08;
+                }
+
+                // Move snake head
+                snake.x = wrap(snake.x + Math.cos(snake.angle) * snake.speed * 2.5, world.size);
+                snake.y = wrap(snake.y + Math.sin(snake.angle) * snake.speed * 2.5, world.size);
+
+                // Update trail
+                snake.trail.unshift({ x: snake.x, y: snake.y });
+                const targetTrail = Math.floor(snake.length * 2.5);
+                while (snake.trail.length > targetTrail) {
+                    snake.trail.pop();
+                }
+
+                // Enhanced self-collision detection
+                const headR = snake.radius * 0.8;
+                for (let i = 25; i < snake.trail.length; i += 3) {
+                    const segment = snake.trail[i];
+                    if (dist2(snake.x, snake.y, segment.x, segment.y) < (headR * headR)) {
+                        gameOver();
+                        return;
+                    }
+                }
+
+                // Enhanced food system with magnetic attraction
+                const magnetRadius = snake.radius * 4;
+                for (let i = pellets.length - 1; i >= 0; i--) {
+                    const p = pellets[i];
+                    const distance = dist(snake.x, snake.y, p.x, p.y);
+                    
+                    // Magnetic attraction when close
+                    if (distance < magnetRadius && distance > snake.radius + 8) {
+                        const attraction = 1 - (distance / magnetRadius);
+                        const pullForce = attraction * 0.5;
+                        const angle = Math.atan2(snake.y - p.y, snake.x - p.x);
+                        
+                        p.x += Math.cos(angle) * pullForce * dt * 0.5;
+                        p.y += Math.sin(angle) * pullForce * dt * 0.5;
+                        
+                        // Create magnetic effect particles
+                        if (Math.random() < 0.1) {
+                            createParticles(p.x, p.y, 1, '#22d3ee');
+                        }
+                    }
+                    
+                    // Eat pellet
+                    const eatRadius = snake.radius + 6;
+                    if (distance < eatRadius) {
+                        pellets.splice(i, 1);
+                        snake.length += 2 * p.val;
+                        snake.score += 15 * p.val;
+                        
+                        // Eating effects
+                        createParticles(p.x, p.y, 10, '#10b981');
+                        
+                        // Respawn pellet
+                        spawnPellet();
+                    }
+                }
+
+                // Camera system
+                cam.x = lerp(cam.x, snake.x, 0.15);
+                cam.y = lerp(cam.y, snake.y, 0.15);
+                const targetZoom = clamp(1.8 - (snake.length / 400), 0.5, 1.5);
+                cam.zoom = lerp(cam.zoom, targetZoom, 0.08);
+
+                // Update UI
+                ui.len.textContent = Math.floor(snake.length).toString();
+                ui.score.textContent = snake.score.toString();
+                ui.foodCount.textContent = pellets.length.toString();
+            }
+
+            // Enhanced rendering
+            function render() {
+                ctx.save();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Camera transform
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(cam.zoom * DPR, cam.zoom * DPR);
+                ctx.translate(-cam.x, -cam.y);
+
+                // Animated background grid
+                const grid = 100;
+                const time = performance.now() * 0.001;
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = `rgba(16, 185, 129, ${0.05 + 0.02 * Math.sin(time)})`;
+                
+                const startX = Math.floor((cam.x - canvas.width / 2 / (cam.zoom * DPR)) / grid) * grid - grid * 2;
+                const endX = startX + Math.ceil(canvas.width / (cam.zoom * DPR)) + grid * 4;
+                const startY = Math.floor((cam.y - canvas.height / 2 / (cam.zoom * DPR)) / grid) * grid - grid * 2;
+                const endY = startY + Math.ceil(canvas.height / (cam.zoom * DPR)) + grid * 4;
+                
+                ctx.beginPath();
+                for (let x = startX; x < startX + endX; x += grid) {
+                    ctx.moveTo(x, startY);
+                    ctx.lineTo(x, startY + endY);
+                }
+                for (let y = startY; y < startY + endY; y += grid) {
+                    ctx.moveTo(startX, y);
+                    ctx.lineTo(startX + endX, y);
+                }
+                ctx.stroke();
+
+                // World border
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+                ctx.lineWidth = 8;
+                ctx.strokeRect(0, 0, world.size, world.size);
+
+                // Render particles
+                particles.forEach(p => p.render());
+
+                // Enhanced pellets
+                for (const p of pellets) {
+                    const pulse = 0.6 + 0.4 * Math.sin(time * 2 + p.pulsePhase);
+                    const r = 4 + 2 * pulse + p.val * 0.8;
+                    
+                    // Outer glow
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(16, 185, 129, ${0.3 * pulse})`;
+                    ctx.arc(p.x, p.y, r * 1.5, 0, TAU);
+                    ctx.fill();
+                    
+                    // Main pellet
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+                    gradient.addColorStop(0, '#6ee7b7');
+                    gradient.addColorStop(0.7, '#10b981');
+                    gradient.addColorStop(1, '#047857');
+                    
+                    ctx.beginPath();
+                    ctx.fillStyle = gradient;
+                    ctx.arc(p.x, p.y, r, 0, TAU);
+                    ctx.fill();
+                    
+                    // Inner highlight
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * pulse})`;
+                    ctx.arc(p.x, p.y, r * 0.4, 0, TAU);
+                    ctx.fill();
+                }
+
+                // Enhanced snake body
+                if (snake.trail.length > 1) {
+                    for (let i = snake.trail.length - 1; i > 0; i--) {
+                        const t = i / snake.trail.length;
+                        const sR = lerp(snake.radius * 0.4, snake.radius, 1 - t);
+                        const seg = snake.trail[i];
+                        
+                        // Body gradient
+                        const bodyGrad = ctx.createRadialGradient(seg.x, seg.y, 0, seg.x, seg.y, sR);
+                        const hue = 120 + (1 - t) * 60;
+                        bodyGrad.addColorStop(0, `hsl(${hue}, 70%, 60%)`);
+                        bodyGrad.addColorStop(0.8, `hsl(${hue}, 60%, 40%)`);
+                        bodyGrad.addColorStop(1, `hsl(${hue}, 50%, 20%)`);
+                        
+                        ctx.beginPath();
+                        ctx.fillStyle = bodyGrad;
+                        ctx.arc(seg.x, seg.y, sR, 0, TAU);
+                        ctx.fill();
+                        
+                        // Body highlight
+                        ctx.beginPath();
+                        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * (1 - t)})`;
+                        ctx.arc(seg.x, seg.y, sR * 0.6, 0, TAU);
+                        ctx.fill();
+                    }
+                }
+
+                // Enhanced snake head
+                const headGrad = ctx.createRadialGradient(snake.x, snake.y, 0, snake.x, snake.y, snake.radius);
+                headGrad.addColorStop(0, '#6ee7b7');
+                headGrad.addColorStop(0.6, '#10b981');
+                headGrad.addColorStop(1, '#047857');
+                
+                ctx.beginPath();
+                ctx.fillStyle = headGrad;
+                ctx.arc(snake.x, snake.y, snake.radius, 0, TAU);
+                ctx.fill();
+
+                // Head glow effect
+                if (snake.boost) {
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+                    ctx.arc(snake.x, snake.y, snake.radius * 1.5, 0, TAU);
+                    ctx.fill();
+                }
+
+                // Enhanced eyes
+                const ex = Math.cos(snake.angle), ey = Math.sin(snake.angle);
+                const eyeOff = 6, eyeR = 3;
+                
+                // Eye whites
+                ctx.beginPath();
+                ctx.fillStyle = 'white';
+                ctx.arc(snake.x + ex * eyeOff - ey * 4, snake.y + ey * eyeOff + ex * 4, eyeR, 0, TAU);
+                ctx.arc(snake.x + ex * eyeOff + ey * 4, snake.y + ey * eyeOff - ex * 4, eyeR, 0, TAU);
+                ctx.fill();
+                
+                // Eye pupils
+                ctx.beginPath();
+                ctx.fillStyle = '#0b0f1a';
+                ctx.arc(snake.x + ex * (eyeOff + 1) - ey * 4, snake.y + ey * (eyeOff + 1) + ex * 4, eyeR * 0.6, 0, TAU);
+                ctx.arc(snake.x + ex * (eyeOff + 1) + ey * 4, snake.y + ey * (eyeOff + 1) - ex * 4, eyeR * 0.6, 0, TAU);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            // Game loop
+            let perfNow = 0, accum = 0;
+            function loop(ts) {
+                perfNow = ts;
+                if (!last) last = ts;
+                const dt = Math.min(33, ts - last);
+                last = ts;
+                accum = lerp(accum, dt, 0.15);
+                fps = Math.round(1000 / accum);
+                ui.fps.textContent = fps.toString();
+
+                update(dt / 16.67);
+                render();
+                requestAnimationFrame(loop);
+            }
+
+            // Event listeners
+            ui.startBtn.addEventListener('click', reset);
+            ui.restartBtn.addEventListener('click', reset);
+
+            // Start the game loop
+            requestAnimationFrame(loop);
+        })();
+    </script>
+</body>
+</html>
