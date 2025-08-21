@@ -1,0 +1,453 @@
+
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ASHURA Volley — Advanced (Demo)</title>
+<style>
+  :root{--bg:#071426;--panel:rgba(255,255,255,0.03);--accent:#ffb86b;--muted:#bcd1ff;--white:#eef6ff;}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#051022,#001422);color:var(--white);font-family:Inter,system-ui,-apple-system;display:flex;align-items:center;justify-content:center;min-height:100vh}
+  #wrap{width:1000px;max-width:96vw;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  h1{font-size:18px;margin:0;color:var(--accent)}
+  .controls{display:flex;gap:10px;align-items:center}
+  button{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--white);padding:8px 12px;border-radius:8px;cursor:pointer}
+  #gameCanvas{display:block;background:#022230;border-radius:8px;width:100%;height:560px}
+  .hud{display:flex;gap:12px;align-items:center;margin-top:10px;justify-content:space-between}
+  .panel{background:var(--panel);padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  input, select{padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--white)}
+  .credit{font-size:12px;opacity:.8}
+  .small{font-size:13px;opacity:.95}
+  .note{font-size:12px; color:var(--muted)}
+  #overlayStart{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+  .floatingMenu{pointer-events:auto}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>ASHURA Volley — Advanced Physics & AI</h1>
+    <div class="controls">
+      <div class="panel small">Mode:
+        <select id="mode">
+          <option value="single">1 Player vs AI</option>
+          <option value="local">Local 2 Players</option>
+        </select>
+      </div>
+      <div class="panel small">Points:
+        <select id="pts"><option>5</option><option selected>10</option><option>15</option></select>
+      </div>
+      <button id="startBtn">Start / Restart</button>
+    </div>
+  </header>
+
+  <div style="position:relative">
+    <canvas id="gameCanvas" width="960" height="560"></canvas>
+    <div id="overlayStart" class="floatingMenu" style="display:none">
+      <div style="background:rgba(4,12,20,0.7);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.04)">
+        <div style="font-size:16px;margin-bottom:8px">Click canvas to serve • Press Start for controls</div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button id="serveLeft">Serve Left</button>
+          <button id="serveRight">Serve Right</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <div class="panel small">Left: <span id="scoreL">0</span> — Right: <span id="scoreR">0</span></div>
+    <div class="panel small note">Controls — Left: A/D move, W jump • Right: ◀/▶ move, ↑ jump • Click to serve/serve direction</div>
+    <div class="credit">ASHURA Games © 2025</div>
+  </div>
+</div>
+
+<script>
+/*
+  ASHURA Volley — Advanced single-file demo
+  - Advanced ball physics including spin (angular velocity) + Magnus effect
+  - Improved player-ball collision (contact point impulse, spike logic)
+  - Predictive AI that intercepts and chooses spike or lob
+  - Rebranded human-ish characters drawn with canvas shapes
+  - No external assets; safe to host and play
+*/
+
+// ---- Setup canvas ----
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
+function resizeCanvas(){
+  DPR = Math.max(1, Math.min(2, devicePixelRatio || 1));
+  const Wcss = canvas.clientWidth || 960, Hcss = canvas.clientHeight || 560;
+  canvas.width = Math.round(Wcss * DPR);
+  canvas.height = Math.round(Hcss * DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ---- Constants ----
+const W = 960, H = 560;
+const groundY = H - 28;
+const net = { x: W/2 - 6, w: 12, h: 160, top: groundY - 160 };
+const gravity = 0.48;
+const airDrag = 0.998;
+const bounceLoss = 0.78;
+const spinDamping = 0.995; // spin decay
+const magnusCoeff = 0.0009; // Magnus effect strength
+
+// ---- State ----
+let scoreL = 0, scoreR = 0;
+const scoreLEl = document.getElementById('scoreL'), scoreREl = document.getElementById('scoreR');
+const startBtn = document.getElementById('startBtn'), modeSel = document.getElementById('mode'), ptsSel = document.getElementById('pts');
+const overlay = document.getElementById('overlayStart');
+const serveLeftBtn = document.getElementById('serveLeft'), serveRightBtn = document.getElementById('serveRight');
+
+function makePlayer(side='left', color='#ffb86b'){
+  return {
+    x: side==='left'? 140 : W - 188,
+    y: groundY - 66,
+    w: 44, h: 66,
+    vx:0, vy:0,
+    color, facing: side==='left'?1:-1,
+    grounded:true, jumping:false,
+    side, score:0,
+    // movement helpers
+    moveSpeed: 3.6,
+    lastHitTime: 0
+  };
+}
+let p1 = makePlayer('left', '#ff9f6b');
+let p2 = makePlayer('right', '#66d0ff');
+
+// ball with spin (omega). omega positive -> clockwise spin; Magnus applies lateral force perpendicular to velocity
+let ball = { x: W/2, y: net.top - 60, vx: 4*(Math.random()<0.5?1:-1), vy: -3, r: 14, omega: 0 }; 
+let running = false;
+let mode = 'single';
+
+// ---- Input ----
+const keys = {};
+window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+canvas.addEventListener('click', (e)=>{
+  if(!running) { overlay.style.display='block'; return; }
+  // if running, allow serve from whichever side clicked when not in play (ball.stuck true)
+  if(ball.stuck){
+    const rect=canvas.getBoundingClientRect();
+    const clickX = (e.clientX - rect.left);
+    if(clickX < rect.width/2) resetRally('left'); else resetRally('right');
+  }
+});
+
+// Serve overlay buttons
+serveLeftBtn.onclick = ()=> { overlay.style.display='none'; resetRally('left'); running=true; };
+serveRightBtn.onclick = ()=> { overlay.style.display='none'; resetRally('right'); running=true; };
+
+// ---- Helpers ----
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
+function sign(n){ return n<0?-1:1; }
+
+// ---- Reset / Rally ----
+function resetRally(server='left'){
+  ball.x = server === 'left' ? 240 : W - 240;
+  ball.y = net.top - 60;
+  ball.vx = (server === 'left' ? 4 : -4) * (Math.random()*0.5 + 0.8);
+  ball.vy = -3;
+  ball.omega = (Math.random()-0.5)*1.4;
+  p1.x = 140; p1.y = groundY - p1.h; p1.vx = p1.vy = 0;
+  p2.x = W - 188; p2.y = groundY - p2.h; p2.vx = p2.vy = 0;
+  ball.stuck = false;
+}
+
+// ---- AI: predictive intercept + decision ----
+function predictBallLanding(b){
+  // simple physics step-predict ignoring Magnus (approx)
+  let bx = b.x, by = b.y, vx = b.vx, vy = b.vy;
+  let t = 0;
+  for(let i=0;i<400;i++){
+    // integrate small dt
+    vy += gravity * 0.7;
+    vx *= 0.999;
+    bx += vx * 1;
+    by += vy * 1;
+    if(by + b.r >= groundY) { t = i; break; }
+  }
+  return { x: bx, t };
+}
+function aiController(ai, dt){
+  // move towards predicted landing point with some aggression
+  const pred = predictBallLanding(ball);
+  let targetX = ai.side === 'right' ? Math.max(W/2+40, pred.x) : Math.min(W/2-40, pred.x);
+  // if ball is very near and descending, prepare jump/spike
+  const near = Math.abs(ball.x - ai.x) < 120 && ball.y < ai.y + 40;
+  // move
+  if(Math.abs(targetX - ai.x) > 18) ai.vx = (targetX > ai.x ? ai.moveSpeed : -ai.moveSpeed);
+  else ai.vx = 0;
+  // jump if ball above and near and descending into hitting zone
+  // calculating time to reach horizontal position roughly
+  const dx = Math.abs(ball.x - ai.x);
+  if(ai.grounded && (near || (ball.vy > 0 && dx < 80 && ball.y < ai.y - 10 && Math.random() > 0.3))) {
+    ai.vy = -11 - Math.random()*1.8;
+    ai.grounded = false;
+    ai.jumping = true;
+  }
+  // occasionally perform aggressive spike: if ball low and near and ai in front, impart extra forward vx when hitting
+  // handled in collision impulse
+}
+
+// ---- Physics step per frame ----
+function step(dt){
+  // update players - left controls A/D/W, right either arrows or AI
+  // left
+  p1.vx = 0;
+  if(keys['a']) p1.vx = -p1.moveSpeed;
+  if(keys['d']) p1.vx = p1.moveSpeed;
+  if((keys['w'] || keys[' ']) && p1.grounded) { p1.vy = -11; p1.grounded=false; p1.jumping=true; }
+  // right
+  if(mode === 'local') {
+    p2.vx = 0;
+    if(keys['arrowleft']) p2.vx = -p2.moveSpeed;
+    if(keys['arrowright']) p2.vx = p2.moveSpeed;
+    if(keys['arrowup'] && p2.grounded) { p2.vy = -11; p2.grounded=false; p2.jumping=true; }
+  } else {
+    aiController(p2, dt);
+  }
+
+  // integrate players
+  [p1,p2].forEach(p=>{
+    p.x += p.vx;
+    p.vy += gravity;
+    p.y += p.vy;
+    if(p.y + p.h > groundY){ p.y = groundY - p.h; p.vy = 0; p.grounded = true; p.jumping = false; }
+    p.x = Math.max(12, Math.min(W - p.w - 12, p.x));
+  });
+
+  // ball physics: gravity
+  ball.vy += gravity;
+  // Magnus effect (approx): lateral acceleration = magnusCoeff * omega * vy
+  const magX = magnusCoeff * ball.omega * ball.vy;
+  const magY = 0; // small vertical change could be implemented
+  ball.vx += magX;
+  ball.vy += magY;
+  // integrate
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+  // air drag & spin decay
+  ball.vx *= airDrag;
+  ball.vy *= airDrag;
+  ball.omega *= spinDamping;
+
+  // floor collision
+  if(ball.y + ball.r > groundY){
+    ball.y = groundY - ball.r;
+    // invert vy with loss
+    ball.vy = -Math.abs(ball.vy) * bounceLoss;
+    // small spin change from ground friction
+    ball.omega *= 0.7;
+    ball.vx *= 0.98;
+  }
+  // side walls
+  if(ball.x - ball.r < 0){ ball.x = ball.r; ball.vx = -ball.vx * 0.9; ball.omega *= 0.92; }
+  if(ball.x + ball.r > W){ ball.x = W - ball.r; ball.vx = -ball.vx * 0.9; ball.omega *= 0.92; }
+
+  // net collision - box approximation with bounce and slide
+  if(ball.x + ball.r > net.x && ball.x - ball.r < net.x + net.w && ball.y + ball.r > net.top){
+    // push to side
+    if(ball.x < W/2){
+      ball.x = net.x - ball.r - 0.5;
+      ball.vx = -Math.abs(ball.vx) * 0.6;
+      ball.vy *= 0.85;
+      ball.omega *= 0.9;
+    } else {
+      ball.x = net.x + net.w + ball.r + 0.5;
+      ball.vx = Math.abs(ball.vx) * 0.6;
+      ball.vy *= 0.85;
+      ball.omega *= 0.9;
+    }
+  }
+
+  // player-ball collisions: circle-rect collision with impulse based on contact point
+  [p1,p2].forEach(p=>{
+    // closest point on rect
+    const cx = clamp(ball.x, p.x, p.x + p.w);
+    const cy = clamp(ball.y, p.y, p.y + p.h);
+    const dx = ball.x - cx, dy = ball.y - cy;
+    const dist2c = dx*dx + dy*dy;
+    if(dist2c < (ball.r + 0.01)*(ball.r + 0.01)){
+      const distc = Math.sqrt(Math.max(0.0001, dist2c));
+      // normal
+      const nx = dx/distc, ny = dy/distc;
+      // relative velocity at contact (approx)
+      const relvx = ball.vx - p.vx;
+      const relvy = ball.vy - p.vy;
+      const relNorm = relvx * nx + relvy * ny;
+      // impulse magnitude
+      const restitution = 0.95; // lively collisions with players
+      let j = -(1 + restitution) * relNorm;
+      // scale by human mass approximation
+      j /= 1/1.0; // simple
+
+      // apply impulse to ball (player heavy, not moved)
+      ball.vx += nx * j;
+      ball.vy += ny * j;
+
+      // impart spin based on tangential relative velocity (simulate wrist/arm spin)
+      // tangential direction perpendicular to normal
+      const tx = -ny, ty = nx;
+      const tangVel = relvx * tx + relvy * ty;
+      // player's horizontal movement influences spin (sidespin)
+      const spinFromMovement = p.vx * 0.12;
+      ball.omega += tangVel * 0.06 + spinFromMovement * 0.12;
+
+      // nudge ball outside collision
+      const push = (ball.r - distc + 0.5);
+      ball.x += nx * push;
+      ball.y += ny * push;
+
+      // if collision occurred while jumping and moving down, make it a spike (extra forward)
+      if(!p.grounded && p.vy > -5){
+        ball.vx += p.facing * 2.2;
+        ball.vy += -1.6;
+        ball.omega += p.facing * 0.6;
+      }
+      p.lastHitTime = performance.now();
+    }
+  });
+
+  // scoring: if ball touches ground on left or right side beyond net
+  if(ball.y + ball.r >= groundY - 0.5){
+    if(ball.x < W/2){
+      scoreR++;
+      scoreREl.textContent = scoreR;
+      resetRally('right');
+    } else {
+      scoreL++;
+      scoreLEl.textContent = scoreL;
+      resetRally('left');
+    }
+    // check match end
+    const target = parseInt(ptsSel.value,10) || 10;
+    if(scoreL >= target || scoreR >= target){
+      // show winner
+      const winner = scoreL > scoreR ? 'Left Player' : 'Right Player';
+      setTimeout(()=>{ alert('Game Over — Winner: ' + winner + ' (ASHURA Volley)'); scoreL = scoreR = 0; scoreLEl.textContent='0'; scoreREl.textContent='0'; }, 80);
+      running = false;
+      overlay.style.display='block';
+    }
+  }
+}
+
+// ---- Drawing (people as simple character sprites) ----
+function draw(){
+  // clear
+  ctx.clearRect(0,0,W,H);
+  // background gradient
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#022a3a'); g.addColorStop(1,'#001022');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // court ground
+  ctx.fillStyle = '#082b36'; ctx.fillRect(0,groundY, W, H-groundY);
+  // center faint area
+  ctx.fillStyle = 'rgba(255,255,255,0.02)'; ctx.fillRect(0,groundY, W, 6);
+  // net
+  ctx.fillStyle = '#cfdbe6'; ctx.fillRect(net.x, net.top, net.w, net.h);
+  // net texture lines
+  ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth=1;
+  for(let y=net.top; y<net.top+net.h; y+=22){ ctx.beginPath(); ctx.moveTo(net.x, y); ctx.lineTo(net.x+net.w, y); ctx.stroke(); }
+
+  // draw players
+  drawPlayer(p1);
+  drawPlayer(p2);
+
+  // ball shadow
+  ctx.beginPath(); ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.ellipse(ball.x, groundY + 8, ball.r*1.1, 6, 0,0,Math.PI*2); ctx.fill();
+
+  // ball with subtle glow reflecting spin
+  const hue = 200 + (ball.omega*30);
+  const radGrad = ctx.createRadialGradient(ball.x - 6, ball.y - 6, ball.r*0.1, ball.x, ball.y, ball.r*2);
+  radGrad.addColorStop(0, `hsl(${hue},90%,95%)`);
+  radGrad.addColorStop(0.4, `hsl(${hue},80%,85%)`);
+  radGrad.addColorStop(1, `rgba(255,255,255,0.05)`);
+  ctx.beginPath(); ctx.fillStyle = radGrad; ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+  // ball rim
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth=1; ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.stroke();
+
+  // HUD scores
+  ctx.fillStyle = '#fff'; ctx.font = '22px Inter'; ctx.textAlign = 'center';
+  ctx.fillText(scoreL, W*0.25, 40); ctx.fillText(scoreR, W*0.75, 40);
+}
+
+function drawPlayer(p){
+  // simple stylized human: shadow, body, head, limbs
+  // shadow
+  ctx.beginPath(); ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.ellipse(p.x + p.w/2, groundY + 6, p.w*0.5, 6, 0,0,Math.PI*2); ctx.fill();
+  // body (rounded rect)
+  ctx.fillStyle = p.color;
+  roundRect(ctx, p.x, p.y, p.w, p.h, 8);
+  // highlights
+  ctx.fillStyle = 'rgba(255,255,255,0.06)'; roundRect(ctx, p.x+6, p.y+6, p.w-12, p.h-12, 6);
+  // head
+  ctx.beginPath(); ctx.fillStyle = '#ffe6cc'; ctx.arc(p.x + p.w/2, p.y - 10, 12, 0, Math.PI*2); ctx.fill();
+  // eye
+  ctx.beginPath(); ctx.fillStyle = '#111'; ctx.arc(p.x + (p.facing>0? p.w*0.62 : p.w*0.38), p.y - 12, 2.8, 0, Math.PI*2); ctx.fill();
+  // arm (simple)
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(p.x + p.w/2, p.y + p.h*0.32);
+  ctx.lineTo(p.x + p.w/2 + p.facing*18, p.y + p.h*0.16); ctx.stroke();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.fill();
+}
+
+// ---- Game loop ----
+let lastTime = performance.now();
+function gameLoop(now){
+  const dt = Math.min(40, now - lastTime) / 16.67;
+  lastTime = now;
+  if(running) step(dt);
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+// ---- Controls to start/reset ----
+startBtn.addEventListener('click', ()=>{
+  mode = modeSel.value;
+  scoreL = 0; scoreR = 0; scoreLEl.textContent='0'; scoreREl.textContent='0';
+  p1 = makePlayer('left', '#ff9f6b'); p2 = makePlayer('right', '#66d0ff');
+  resetRally('left');
+  running = true; overlay.style.display='block';
+  setTimeout(()=> overlay.style.display='block', 80);
+});
+
+// overlay serve hide when running
+overlay.addEventListener('click', ()=>{ overlay.style.display='none'; });
+
+// initial state show overlay
+overlay.style.display='block';
+
+// ---- Utility: reset rally ----
+function resetRally(server='left'){
+  ball.x = server==='left' ? 240 : W - 240;
+  ball.y = net.top - 60;
+  ball.vx = (server==='left' ? 4 : -4) * (Math.random()*0.5 + 0.8);
+  ball.vy = -3;
+  ball.omega = (Math.random()-0.5) * 1.6;
+  p1.x = 140; p1.y = groundY - p1.h; p1.vx = p1.vy = 0; p1.grounded=true;
+  p2.x = W-188; p2.y = groundY - p2.h; p2.vx = p2.vy = 0; p2.grounded=true;
+  ball.stuck = false;
+}
+
+// Start with rally stopped
+running = false;
+resetRally('left');
+
+// expose for debug if needed
+window.__ashura = { p1,p2,ball,resetRally };
+</script>
+</body>
+</html>

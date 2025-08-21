@@ -689,14 +689,50 @@ export class MemStorage implements IStorage {
     isNew: true,
     isTrending: true,
   },
+  {
+    title: "Volleyball Championship",
+    description: "เกมวอลเลย์บอลสุดมันส์ พร้อม AI และฟิสิกส์สมจริง",
+    thumbnail: "/games/volleyball-championship.html",
+    gameUrl: "/games/volleyball-championship.html",
+    category: "Sports",
+    playCount: 0,
+    rating: 4.7,
+    isNew: true,
+    isTrending: false
+  },
+  {
+    id: "ashura-volleyball-advanced",
+    title: "ASHURA Volleyball Advanced",
+    description: "วอลเลย์บอลขั้นสูง พร้อมฟิสิกส์ลูกบอล Magnus Effect และ AI ที่ฉลาด",
+    thumbnail: "/games/ashura-volleyball-advanced.html",
+    gameUrl: "/games/ashura-volleyball-advanced.html",
+    category: "Sports",
+    playCount: 0,
+    rating: 4.9,
+    isNew: true,
+    isTrending: true
+  },
 ];
 
     defaultGames.forEach((gameData, index) => {
-      const id = randomUUID();
+      // Use randomUUID for all games except the explicitly defined one
+      const id = gameData.id || randomUUID();
       const game: Game = {
-        ...gameData,
+        // Ensure all required fields are present, providing defaults if necessary
         id,
-        createdAt: new Date()
+        title: gameData.title,
+        description: gameData.description,
+        thumbnail: gameData.thumbnail || '',
+        gameUrl: gameData.gameUrl,
+        gameFile: gameData.gameFile || null,
+        isEmbedded: gameData.isEmbedded || false,
+        category: gameData.category,
+        rating: gameData.rating || 0,
+        plays: gameData.playCount || gameData.plays || 0, // Handle both playCount and plays
+        isNew: gameData.isNew || false,
+        isTrending: gameData.isTrending || false,
+        createdAt: gameData.createdAt || new Date(),
+        updatedAt: gameData.updatedAt || new Date()
       };
       this.games.set(id, game);
     });
