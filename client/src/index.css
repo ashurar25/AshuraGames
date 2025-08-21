@@ -249,3 +249,110 @@
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* Enhanced responsive design and mobile optimizations */
+@media (max-width: 640px) {
+  .game-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 
+      0 15px 30px -8px rgba(0, 255, 127, 0.2),
+      0 0 0 1px rgba(0, 255, 127, 0.1);
+  }
+  
+  .animate-slide-up {
+    animation-duration: 0.3s;
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .mint-gradient {
+    background: linear-gradient(135deg, hsl(140 100% 50%) 0%, hsl(174 72% 56%) 100%);
+  }
+  
+  .category-button {
+    min-height: 4rem;
+  }
+}
+
+/* Touch-friendly mobile interactions */
+@media (hover: none) and (pointer: coarse) {
+  .game-card:active {
+    transform: translateY(-4px) scale(1.01);
+    transition-duration: 0.1s;
+  }
+  
+  .category-button:active {
+    transform: scale(0.98);
+    transition-duration: 0.1s;
+  }
+  
+  .glass:active {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .glass-dark:active {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+  }
+  
+  .animate-float,
+  .animate-glow,
+  .animate-bounce-subtle,
+  .animate-shimmer,
+  .animate-gradient {
+    animation: none !important;
+  }
+}
+
+/* Enhanced contrast for better accessibility */
+@media (prefers-contrast: high) {
+  .glass {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(0, 255, 127, 0.6);
+  }
+  
+  .text-gray-400 {
+    color: rgb(156 163 175) !important;
+  }
+}
+
+/* Large screens optimization */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 2560px) {
+  .container {
+    max-width: 2000px;
+  }
+  
+  .game-card {
+    max-width: 300px;
+  }
+}
