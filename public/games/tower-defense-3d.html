@@ -1,0 +1,651 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .game-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+        }
+
+        canvas {
+            border-radius: 15px;
+            background: linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 100%);
+            display: block;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+
+        .ui {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+
+        .tower-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tower-btn {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tower-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ff6b6b;
+            display: none;
+            z-index: 20;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .controls {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #00ff88;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui">
+            <div>💰 เงิน: <span id="money">200</span></div>
+            <div>❤️ ชีวิต: <span id="lives">20</span></div>
+            <div>🌊 เวฟ: <span id="wave">1</span></div>
+            <div>👹 ศัตรู: <span id="enemiesLeft">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="tower-panel">
+            <button class="tower-btn" onclick="selectTower('basic')" title="ปืนกล (50฿)">🔫</button>
+            <button class="tower-btn" onclick="selectTower('missile')" title="จรวด (100฿)">🚀</button>
+            <button class="tower-btn" onclick="selectTower('laser')" title="เลเซอร์ (150฿)">⚡</button>
+            <button class="tower-btn" onclick="selectTower('freeze')" title="แช่แข็ง (80฿)">❄️</button>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 style="color: #ff6b6b; margin-top: 0;">🛡️ เกมจบแล้ว!</h2>
+            <p>เวฟสุดท้าย: <span id="finalWave">1</span></p>
+            <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
+        </div>
+
+        <div class="controls">
+            คลิกเพื่อสร้างป้อมปืน | ป้องกันฐานของคุณจากศัตรู!
+        </div>
+    </div>
+
+    <div class="credit">© ASHURA Games</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameRunning = false;
+        let money = 200;
+        let lives = 20;
+        let wave = 1;
+        let selectedTower = null;
+        let enemiesInWave = 5;
+        let enemiesSpawned = 0;
+        let enemiesLeft = 0;
+
+        // เส้นทาง
+        const path = [
+            {x: 0, y: 300},
+            {x: 200, y: 300},
+            {x: 200, y: 150},
+            {x: 400, y: 150},
+            {x: 400, y: 450},
+            {x: 600, y: 450},
+            {x: 600, y: 200},
+            {x: 800, y: 200}
+        ];
+
+        let towers = [];
+        let enemies = [];
+        let bullets = [];
+        let particles = [];
+
+        // คลาส Tower
+        class Tower {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.lastShot = 0;
+                this.target = null;
+                this.level = 1;
+
+                switch(type) {
+                    case 'basic':
+                        this.damage = 20;
+                        this.range = 120;
+                        this.fireRate = 500;
+                        this.cost = 50;
+                        this.color = '#ffff00';
+                        break;
+                    case 'missile':
+                        this.damage = 50;
+                        this.range = 150;
+                        this.fireRate = 1000;
+                        this.cost = 100;
+                        this.color = '#ff4444';
+                        break;
+                    case 'laser':
+                        this.damage = 30;
+                        this.range = 200;
+                        this.fireRate = 200;
+                        this.cost = 150;
+                        this.color = '#00ffff';
+                        break;
+                    case 'freeze':
+                        this.damage = 10;
+                        this.range = 100;
+                        this.fireRate = 800;
+                        this.cost = 80;
+                        this.color = '#88ccff';
+                        break;
+                }
+            }
+
+            update() {
+                this.findTarget();
+                this.shoot();
+            }
+
+            findTarget() {
+                this.target = null;
+                let closestDistance = this.range;
+
+                enemies.forEach(enemy => {
+                    const distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+                    if (distance < closestDistance) {
+                        this.target = enemy;
+                        closestDistance = distance;
+                    }
+                });
+            }
+
+            shoot() {
+                if (this.target && Date.now() - this.lastShot > this.fireRate) {
+                    bullets.push(new Bullet(this.x, this.y, this.target, this));
+                    this.lastShot = Date.now();
+                }
+            }
+
+            draw() {
+                // วาดฐาน
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
+
+                // วาดกล้อง
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // วาดช่วงยิง
+                if (selectedTower === this.type) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // คลาส Enemy
+        class Enemy {
+            constructor() {
+                this.x = path[0].x;
+                this.y = path[0].y;
+                this.pathIndex = 0;
+                this.speed = 1 + wave * 0.1;
+                this.health = 50 + wave * 10;
+                this.maxHealth = this.health;
+                this.size = 15;
+                this.reward = 10 + wave * 2;
+                this.frozen = false;
+                this.freezeTime = 0;
+            }
+
+            update() {
+                if (this.frozen && Date.now() - this.freezeTime > 2000) {
+                    this.frozen = false;
+                }
+
+                const currentSpeed = this.frozen ? this.speed * 0.3 : this.speed;
+
+                if (this.pathIndex < path.length - 1) {
+                    const target = path[this.pathIndex + 1];
+                    const dx = target.x - this.x;
+                    const dy = target.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 5) {
+                        this.pathIndex++;
+                    } else {
+                        this.x += (dx / distance) * currentSpeed;
+                        this.y += (dy / distance) * currentSpeed;
+                    }
+                } else {
+                    // ถึงปลายทาง
+                    lives--;
+                    return false;
+                }
+
+                return true;
+            }
+
+            takeDamage(damage, type) {
+                this.health -= damage;
+                
+                if (type === 'freeze') {
+                    this.frozen = true;
+                    this.freezeTime = Date.now();
+                }
+
+                // สร้างอนุภาค
+                for (let i = 0; i < 3; i++) {
+                    particles.push(new Particle(this.x, this.y, '#ff4444'));
+                }
+
+                if (this.health <= 0) {
+                    money += this.reward;
+                    return true;
+                }
+                return false;
+            }
+
+            draw() {
+                // วาดศัตรู
+                ctx.fillStyle = this.frozen ? '#88ccff' : '#ff6666';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // แถบเลือด
+                const barWidth = 30;
+                const barHeight = 6;
+                const healthPercent = this.health / this.maxHealth;
+
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size - 15, barWidth, barHeight);
+
+                ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.size - 15, barWidth * healthPercent, barHeight);
+            }
+        }
+
+        // คลาส Bullet
+        class Bullet {
+            constructor(x, y, target, tower) {
+                this.x = x;
+                this.y = y;
+                this.target = target;
+                this.tower = tower;
+                this.speed = 8;
+                this.size = 4;
+            }
+
+            update() {
+                if (!this.target) return false;
+
+                const dx = this.target.x - this.x;
+                const dy = this.target.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 10) {
+                    // ถูกเป้า
+                    const killed = this.target.takeDamage(this.tower.damage, this.tower.type);
+                    if (killed) {
+                        enemies.splice(enemies.indexOf(this.target), 1);
+                    }
+
+                    // ระเบิดสำหรับจรวด
+                    if (this.tower.type === 'missile') {
+                        enemies.forEach(enemy => {
+                            const dist = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+                            if (dist < 50) {
+                                enemy.takeDamage(this.tower.damage * 0.5, this.tower.type);
+                            }
+                        });
+                    }
+
+                    return false;
+                } else {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+                }
+
+                return true;
+            }
+
+            draw() {
+                ctx.fillStyle = this.tower.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // คลาส Particle
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 0.5) * 6;
+                this.color = color;
+                this.life = 30;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / 30;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // วาดเส้นทาง
+        function drawPath() {
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 30;
+            ctx.beginPath();
+            
+            for (let i = 0; i < path.length; i++) {
+                if (i === 0) {
+                    ctx.moveTo(path[i].x, path[i].y);
+                } else {
+                    ctx.lineTo(path[i].x, path[i].y);
+                }
+            }
+            ctx.stroke();
+
+            // จุดเริ่มต้นและจุดสิ้นสุด
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(path[0].x, path[0].y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(path[path.length-1].x, path[path.length-1].y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // เลือกประเภทป้อม
+        function selectTower(type) {
+            selectedTower = type;
+        }
+
+        // วางป้อม
+        function placeTower(x, y) {
+            if (!selectedTower) return;
+
+            const towerCosts = { basic: 50, missile: 100, laser: 150, freeze: 80 };
+            const cost = towerCosts[selectedTower];
+
+            if (money < cost) return;
+
+            // ตรวจสอบว่าไม่อยู่ในเส้นทาง
+            let onPath = false;
+            for (let i = 0; i < path.length - 1; i++) {
+                const p1 = path[i];
+                const p2 = path[i + 1];
+                
+                // ตรวจสอบระยะห่างจากเส้น
+                const A = p2.y - p1.y;
+                const B = p1.x - p2.x;
+                const C = A * p1.x + B * p1.y;
+                const distance = Math.abs(A * x + B * y - C) / Math.sqrt(A * A + B * B);
+                
+                if (distance < 40) {
+                    onPath = true;
+                    break;
+                }
+            }
+
+            if (!onPath) {
+                towers.push(new Tower(x, y, selectedTower));
+                money -= cost;
+                selectedTower = null;
+            }
+        }
+
+        // สร้างศัตรูใหม่
+        function spawnEnemy() {
+            if (enemiesSpawned < enemiesInWave) {
+                enemies.push(new Enemy());
+                enemiesSpawned++;
+            }
+        }
+
+        // เวฟใหม่
+        function nextWave() {
+            wave++;
+            enemiesInWave = 5 + wave * 2;
+            enemiesSpawned = 0;
+            money += 50;
+        }
+
+        // อัปเดตเกม
+        function update() {
+            if (!gameRunning) return;
+
+            // สร้างศัตรู
+            if (Math.random() < 0.02) {
+                spawnEnemy();
+            }
+
+            // อัปเดตป้อม
+            towers.forEach(tower => tower.update());
+
+            // อัปเดตศัตรู
+            enemies = enemies.filter(enemy => enemy.update());
+
+            // อัปเดตกระสุน
+            bullets = bullets.filter(bullet => bullet.update());
+
+            // อัปเดตอนุภาค
+            particles = particles.filter(particle => {
+                particle.update();
+                return particle.life > 0;
+            });
+
+            // ตรวจสอบเวฟใหม่
+            enemiesLeft = enemies.length + (enemiesInWave - enemiesSpawned);
+            if (enemiesLeft === 0) {
+                setTimeout(nextWave, 2000);
+            }
+
+            // ตรวจสอบการแพ้
+            if (lives <= 0) {
+                gameOver();
+            }
+
+            updateUI();
+        }
+
+        // วาดเกม
+        function draw() {
+            // ล้างหน้าจอ
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawPath();
+
+            // วาดองค์ประกอบ
+            towers.forEach(tower => tower.draw());
+            enemies.forEach(enemy => enemy.draw());
+            bullets.forEach(bullet => bullet.draw());
+            particles.forEach(particle => particle.draw());
+
+            // วาดตัวชี้สำหรับการวางป้อม
+            if (selectedTower) {
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(mouseX - 15, mouseY - 15, 30, 30);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // อัปเดต UI
+        function updateUI() {
+            document.getElementById('money').textContent = money;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('wave').textContent = wave;
+            document.getElementById('enemiesLeft').textContent = enemiesLeft;
+        }
+
+        // จบเกม
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalWave').textContent = wave;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        // เริ่มเกม
+        function startGame() {
+            gameRunning = true;
+            money = 200;
+            lives = 20;
+            wave = 1;
+            towers = [];
+            enemies = [];
+            bullets = [];
+            particles = [];
+            enemiesInWave = 5;
+            enemiesSpawned = 0;
+            selectedTower = null;
+            
+            document.getElementById('gameOver').style.display = 'none';
+            updateUI();
+        }
+
+        // ลูปเกม
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ควบคุมเมาส์
+        let mouseX = 0;
+        let mouseY = 0;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            placeTower(x, y);
+        });
+
+        // เริ่มเกม
+        startGame();
+        gameLoop(0);
+    </script>
+</body>
+</html>

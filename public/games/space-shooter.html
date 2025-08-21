@@ -46,9 +46,10 @@
                 this.y = canvas.height - 60;
                 this.width = 40;
                 this.height = 40;
-                this.speed = 5;
+                this.speed = 6;
                 this.bullets = [];
                 this.lastShot = 0;
+                this.trail = [];
             }
 
             update() {
@@ -74,8 +75,26 @@
             }
 
             draw() {
+                // วาดหางยาน
+                this.trail.push({x: this.x + this.width/2, y: this.y + this.height, life: 20});
+                this.trail = this.trail.filter(t => t.life > 0);
+                
+                this.trail.forEach((t, i) => {
+                    t.life--;
+                    ctx.save();
+                    ctx.globalAlpha = t.life / 20;
+                    ctx.fillStyle = '#00ff88';
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y + i * 2, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
                 // วาดยานอวกาศ
-                ctx.fillStyle = '#00ff88';
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height);
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(1, '#00cc66');
+                ctx.fillStyle = gradient;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
 
                 // วาดรายละเอียด
@@ -85,6 +104,11 @@
 
                 ctx.fillStyle = '#ffff00';
                 ctx.fillRect(this.x + 15, this.y + 5, 10, 15);
+
+                // วาดเอฟเฟกต์เกราะ
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - 2, this.y - 2, this.width + 4, this.height + 4);
 
                 this.bullets.forEach(bullet => bullet.draw());
             }

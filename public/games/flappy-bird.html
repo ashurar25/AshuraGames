@@ -277,15 +277,21 @@
             const grassHeight = 20;
 
             // ดิน
-            ctx.fillStyle = '#8B4513';
+            const groundGradient = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height);
+            groundGradient.addColorStop(0, '#8B4513');
+            groundGradient.addColorStop(1, '#654321');
+            ctx.fillStyle = groundGradient;
             ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
 
             // หญ้า
-            ctx.fillStyle = '#228B22';
+            const grassGradient = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height - groundHeight + grassHeight);
+            grassGradient.addColorStop(0, '#32CD32');
+            grassGradient.addColorStop(1, '#228B22');
+            ctx.fillStyle = grassGradient;
             ctx.fillRect(0, canvas.height - groundHeight, canvas.width, grassHeight);
 
             // ใบหญ้า
-            ctx.fillStyle = '#32CD32';
+            ctx.fillStyle = '#00FF00';
             for (let x = 0; x < canvas.width; x += 20) {
                 ctx.fillRect(x, canvas.height - groundHeight, 3, 8);
                 ctx.fillRect(x + 5, canvas.height - groundHeight, 2, 6);
