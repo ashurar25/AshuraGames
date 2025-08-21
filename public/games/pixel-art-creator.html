@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Art Creator - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #9c27b0;
+            box-shadow: 0 0 30px rgba(156,39,176,0.4);
+            max-width: 1000px;
+        }
+        canvas {
+            border: 3px solid #9c27b0;
+            background: #ffffff;
+            border-radius: 10px;
+            cursor: crosshair;
+            image-rendering: pixelated;
+        }
+        .tools-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .panel {
+            background: rgba(156,39,176,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #9c27b0;
+        }
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .color-cell {
+            width: 25px;
+            height: 25px;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .color-cell:hover {
+            transform: scale(1.2);
+        }
+        .color-cell.selected {
+            border-color: #ffeb3b;
+            transform: scale(1.3);
+        }
+        .tool-button {
+            padding: 8px 12px;
+            margin: 3px;
+            background: linear-gradient(45deg, #9c27b0, #e91e63);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .tool-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(156,39,176,0.5);
+        }
+        .tool-button.active {
+            background: linear-gradient(45deg, #e91e63, #ff5722);
+            box-shadow: 0 0 15px rgba(233,30,99,0.8);
+        }
+        .size-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .gallery-item {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #9c27b0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.1);
+        }
+        .controls {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: linear-gradient(45deg, #9c27b0, #e91e63);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(156,39,176,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h2>🎨 Pixel Art Creator</h2>
+        
+        <div class="tools-panel">
+            <div class="panel">
+                <h3>🎨 เครื่องมือ</h3>
+                <div class="tools">
+                    <button class="tool-button active" data-tool="brush">🖌️ พู่กัน</button>
+                    <button class="tool-button" data-tool="eraser">🧹 ยางลบ</button>
+                    <button class="tool-button" data-tool="fill">🪣 เติมสี</button>
+                    <button class="tool-button" data-tool="line">📏 เส้นตรง</button>
+                    <button class="tool-button" data-tool="rectangle">⬛ สี่เหลี่ยม</button>
+                    <button class="tool-button" data-tool="circle">⭕ วงกลม</button>
+                    <button class="tool-button" data-tool="eyedropper">💧 หยด</button>
+                </div>
+                
+                <h4>📏 ขนาดพู่กัน</h4>
+                <input type="range" class="size-slider" id="brushSize" min="1" max="10" value="1">
+                <span id="sizeDisplay">1</span>
+                
+                <h4>🖼️ ขนาดแคนวาส</h4>
+                <select id="canvasSize">
+                    <option value="16">16x16</option>
+                    <option value="32" selected>32x32</option>
+                    <option value="64">64x64</option>
+                </select>
+            </div>
+
+            <div class="panel">
+                <h3>🌈 สี</h3>
+                <div class="color-palette" id="colorPalette">
+                    <!-- Colors will be generated by JavaScript -->
+                </div>
+                
+                <h4>สีปัจจุบัน</h4>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div id="currentColor" style="width: 40px; height: 40px; border: 2px solid white; background: #000000;"></div>
+                    <input type="color" id="colorPicker" value="#000000">
+                </div>
+                
+                <h4>เครื่องมือสี</h4>
+                <button class="tool-button" onclick="randomColor()">🎲 สีสุ่ม</button>
+                <button class="tool-button" onclick="addToFavorites()">❤️ บันทึกสี</button>
+            </div>
+
+            <div class="panel">
+                <h3>💾 ผลงาน</h3>
+                <div class="gallery" id="gallery">
+                    <!-- Saved artworks will appear here -->
+                </div>
+                
+                <h4>การกระทำ</h4>
+                <button class="tool-button" onclick="saveArtwork()">💾 บันทึก</button>
+                <button class="tool-button" onclick="loadTemplate()">📁 โหลด</button>
+                <button class="tool-button" onclick="clearCanvas()">🗑️ ล้าง</button>
+                <button class="tool-button" onclick="exportImage()">📤 ส่งออก</button>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="512" height="512"></canvas>
+        
+        <div style="margin: 15px 0;">
+            <button onclick="undo()">↶ ย้อนกลับ</button>
+            <button onclick="redo()">↷ ทำซ้ำ</button>
+            <button onclick="flipHorizontal()">↔️ พลิกแนวนอน</button>
+            <button onclick="flipVertical()">↕️ พลิกแนวตั้ง</button>
+            <button onclick="rotate90()">↻ หมุน 90°</button>
+        </div>
+        
+        <div class="controls">
+            คลิกเพื่อวาด • ลากเพื่อวาดต่อเนื่อง • เลือกเครื่องมือและสี • บันทึกผลงานสวยๆ
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = {
+            currentTool: 'brush',
+            currentColor: '#000000',
+            brushSize: 1,
+            gridSize: 32,
+            pixelSize: 16,
+            isDrawing: false,
+            lastX: 0,
+            lastY: 0,
+            history: [],
+            historyStep: -1,
+            savedArtworks: [],
+            grid: []
+        };
+        
+        const colors = [
+            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+            '#800000', '#008000', '#000080', '#808000', '#800080', '#008080', '#C0C0C0', '#808080',
+            '#FF8080', '#80FF80', '#8080FF', '#FFFF80', '#FF80FF', '#80FFFF', '#FFA500', '#800040'
+        ];
+        
+        function initCanvas() {
+            gameState.gridSize = parseInt(document.getElementById('canvasSize').value);
+            gameState.pixelSize = 512 / gameState.gridSize;
+            
+            // Initialize grid
+            gameState.grid = Array(gameState.gridSize).fill().map(() => 
+                Array(gameState.gridSize).fill('#ffffff')
+            );
+            
+            ctx.imageSmoothingEnabled = false;
+            drawGrid();
+            saveState();
+        }
+        
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw pixels
+            for (let x = 0; x < gameState.gridSize; x++) {
+                for (let y = 0; y < gameState.gridSize; y++) {
+                    ctx.fillStyle = gameState.grid[x][y];
+                    ctx.fillRect(
+                        x * gameState.pixelSize,
+                        y * gameState.pixelSize,
+                        gameState.pixelSize,
+                        gameState.pixelSize
+                    );
+                }
+            }
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let x = 0; x <= gameState.gridSize; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * gameState.pixelSize, 0);
+                ctx.lineTo(x * gameState.pixelSize, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= gameState.gridSize; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * gameState.pixelSize);
+                ctx.lineTo(canvas.width, y * gameState.pixelSize);
+                ctx.stroke();
+            }
+        }
+        
+        function getGridCoordinate(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((clientX - rect.left) / gameState.pixelSize);
+            const y = Math.floor((clientY - rect.top) / gameState.pixelSize);
+            return { x: Math.max(0, Math.min(x, gameState.gridSize - 1)), 
+                    y: Math.max(0, Math.min(y, gameState.gridSize - 1)) };
+        }
+        
+        function drawPixel(x, y, color = gameState.currentColor) {
+            if (x >= 0 && x < gameState.gridSize && y >= 0 && y < gameState.gridSize) {
+                gameState.grid[x][y] = color;
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(
+                    x * gameState.pixelSize,
+                    y * gameState.pixelSize,
+                    gameState.pixelSize,
+                    gameState.pixelSize
+                );
+            }
+        }
+        
+        function useTool(x, y, isSecondaryAction = false) {
+            switch (gameState.currentTool) {
+                case 'brush':
+                    drawBrush(x, y);
+                    break;
+                case 'eraser':
+                    drawBrush(x, y, '#ffffff');
+                    break;
+                case 'fill':
+                    floodFill(x, y, gameState.currentColor);
+                    break;
+                case 'line':
+                    if (!gameState.startPoint) {
+                        gameState.startPoint = { x, y };
+                    } else {
+                        drawLine(gameState.startPoint.x, gameState.startPoint.y, x, y);
+                        gameState.startPoint = null;
+                    }
+                    break;
+                case 'rectangle':
+                    if (!gameState.startPoint) {
+                        gameState.startPoint = { x, y };
+                    } else {
+                        drawRectangle(gameState.startPoint.x, gameState.startPoint.y, x, y);
+                        gameState.startPoint = null;
+                    }
+                    break;
+                case 'circle':
+                    if (!gameState.startPoint) {
+                        gameState.startPoint = { x, y };
+                    } else {
+                        drawCircle(gameState.startPoint.x, gameState.startPoint.y, x, y);
+                        gameState.startPoint = null;
+                    }
+                    break;
+                case 'eyedropper':
+                    gameState.currentColor = gameState.grid[x][y];
+                    document.getElementById('currentColor').style.background = gameState.currentColor;
+                    document.getElementById('colorPicker').value = gameState.currentColor;
+                    break;
+            }
+        }
+        
+        function drawBrush(x, y, color = gameState.currentColor) {
+            const size = gameState.brushSize;
+            const halfSize = Math.floor(size / 2);
+            
+            for (let dx = -halfSize; dx <= halfSize; dx++) {
+                for (let dy = -halfSize; dy <= halfSize; dy++) {
+                    if (dx * dx + dy * dy <= halfSize * halfSize) {
+                        drawPixel(x + dx, y + dy, color);
+                    }
+                }
+            }
+        }
+        
+        function floodFill(startX, startY, newColor) {
+            const originalColor = gameState.grid[startX][startY];
+            if (originalColor === newColor) return;
+            
+            const stack = [[startX, startY]];
+            
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                
+                if (x < 0 || x >= gameState.gridSize || y < 0 || y >= gameState.gridSize) continue;
+                if (gameState.grid[x][y] !== originalColor) continue;
+                
+                gameState.grid[x][y] = newColor;
+                
+                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+            }
+            
+            drawGrid();
+        }
+        
+        function drawLine(x1, y1, x2, y2) {
+            const dx = Math.abs(x2 - x1);
+            const dy = Math.abs(y2 - y1);
+            const sx = x1 < x2 ? 1 : -1;
+            const sy = y1 < y2 ? 1 : -1;
+            let err = dx - dy;
+            
+            let x = x1, y = y1;
+            
+            while (true) {
+                drawPixel(x, y);
+                
+                if (x === x2 && y === y2) break;
+                
+                const e2 = 2 * err;
+                if (e2 > -dy) {
+                    err -= dy;
+                    x += sx;
+                }
+                if (e2 < dx) {
+                    err += dx;
+                    y += sy;
+                }
+            }
+        }
+        
+        function drawRectangle(x1, y1, x2, y2) {
+            const minX = Math.min(x1, x2);
+            const maxX = Math.max(x1, x2);
+            const minY = Math.min(y1, y2);
+            const maxY = Math.max(y1, y2);
+            
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    if (x === minX || x === maxX || y === minY || y === maxY) {
+                        drawPixel(x, y);
+                    }
+                }
+            }
+        }
+        
+        function drawCircle(centerX, centerY, edgeX, edgeY) {
+            const radius = Math.sqrt((edgeX - centerX) ** 2 + (edgeY - centerY) ** 2);
+            
+            for (let x = 0; x < gameState.gridSize; x++) {
+                for (let y = 0; y < gameState.gridSize; y++) {
+                    const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                    if (Math.abs(distance - radius) < 0.5) {
+                        drawPixel(x, y);
+                    }
+                }
+            }
+        }
+        
+        function saveState() {
+            gameState.historyStep++;
+            if (gameState.historyStep < gameState.history.length) {
+                gameState.history.length = gameState.historyStep;
+            }
+            gameState.history.push(JSON.parse(JSON.stringify(gameState.grid)));
+        }
+        
+        function undo() {
+            if (gameState.historyStep > 0) {
+                gameState.historyStep--;
+                gameState.grid = JSON.parse(JSON.stringify(gameState.history[gameState.historyStep]));
+                drawGrid();
+            }
+        }
+        
+        function redo() {
+            if (gameState.historyStep < gameState.history.length - 1) {
+                gameState.historyStep++;
+                gameState.grid = JSON.parse(JSON.stringify(gameState.history[gameState.historyStep]));
+                drawGrid();
+            }
+        }
+        
+        function clearCanvas() {
+            gameState.grid = Array(gameState.gridSize).fill().map(() => 
+                Array(gameState.gridSize).fill('#ffffff')
+            );
+            drawGrid();
+            saveState();
+        }
+        
+        function flipHorizontal() {
+            for (let y = 0; y < gameState.gridSize; y++) {
+                gameState.grid[y].reverse();
+            }
+            drawGrid();
+            saveState();
+        }
+        
+        function flipVertical() {
+            gameState.grid.reverse();
+            drawGrid();
+            saveState();
+        }
+        
+        function rotate90() {
+            const newGrid = Array(gameState.gridSize).fill().map(() => 
+                Array(gameState.gridSize).fill('#ffffff')
+            );
+            
+            for (let x = 0; x < gameState.gridSize; x++) {
+                for (let y = 0; y < gameState.gridSize; y++) {
+                    newGrid[y][gameState.gridSize - 1 - x] = gameState.grid[x][y];
+                }
+            }
+            
+            gameState.grid = newGrid;
+            drawGrid();
+            saveState();
+        }
+        
+        function saveArtwork() {
+            const imageData = canvas.toDataURL();
+            gameState.savedArtworks.push({
+                data: imageData,
+                grid: JSON.parse(JSON.stringify(gameState.grid)),
+                timestamp: Date.now()
+            });
+            
+            updateGallery();
+            alert('💾 บันทึกผลงานแล้ว!');
+        }
+        
+        function updateGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            
+            gameState.savedArtworks.forEach((artwork, index) => {
+                const img = document.createElement('img');
+                img.src = artwork.data;
+                img.className = 'gallery-item';
+                img.onclick = () => loadArtwork(index);
+                gallery.appendChild(img);
+            });
+        }
+        
+        function loadArtwork(index) {
+            const artwork = gameState.savedArtworks[index];
+            gameState.grid = JSON.parse(JSON.stringify(artwork.grid));
+            drawGrid();
+            saveState();
+        }
+        
+        function exportImage() {
+            const link = document.createElement('a');
+            link.download = `pixel-art-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function randomColor() {
+            const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            gameState.currentColor = randomHex;
+            document.getElementById('currentColor').style.background = randomHex;
+            document.getElementById('colorPicker').value = randomHex;
+        }
+        
+        function setupColorPalette() {
+            const palette = document.getElementById('colorPalette');
+            colors.forEach(color => {
+                const colorCell = document.createElement('div');
+                colorCell.className = 'color-cell';
+                colorCell.style.background = color;
+                colorCell.onclick = () => selectColor(color);
+                palette.appendChild(colorCell);
+            });
+        }
+        
+        function selectColor(color) {
+            gameState.currentColor = color;
+            document.getElementById('currentColor').style.background = color;
+            document.getElementById('colorPicker').value = color;
+            
+            // Update selected state
+            document.querySelectorAll('.color-cell').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+        
+        // Event listeners
+        canvas.addEventListener('mousedown', (e) => {
+            gameState.isDrawing = true;
+            const coord = getGridCoordinate(e.clientX, e.clientY);
+            useTool(coord.x, coord.y);
+            gameState.lastX = coord.x;
+            gameState.lastY = coord.y;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameState.isDrawing) return;
+            const coord = getGridCoordinate(e.clientX, e.clientY);
+            
+            if (gameState.currentTool === 'brush' || gameState.currentTool === 'eraser') {
+                // Draw line from last position to current
+                drawLine(gameState.lastX, gameState.lastY, coord.x, coord.y);
+                if (gameState.currentTool === 'eraser') {
+                    drawBrush(coord.x, coord.y, '#ffffff');
+                } else {
+                    drawBrush(coord.x, coord.y);
+                }
+            }
+            
+            gameState.lastX = coord.x;
+            gameState.lastY = coord.y;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            if (gameState.isDrawing) {
+                gameState.isDrawing = false;
+                saveState();
+            }
+        });
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const coord = getGridCoordinate(touch.clientX, touch.clientY);
+            useTool(coord.x, coord.y);
+        });
+        
+        // Tool selection
+        document.querySelectorAll('.tool-button[data-tool]').forEach(button => {
+            button.addEventListener('click', () => {
+                gameState.currentTool = button.dataset.tool;
+                gameState.startPoint = null; // Reset for line/rectangle/circle tools
+                
+                document.querySelectorAll('.tool-button[data-tool]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+            });
+        });
+        
+        // Brush size
+        document.getElementById('brushSize').addEventListener('input', (e) => {
+            gameState.brushSize = parseInt(e.target.value);
+            document.getElementById('sizeDisplay').textContent = gameState.brushSize;
+        });
+        
+        // Canvas size change
+        document.getElementById('canvasSize').addEventListener('change', () => {
+            initCanvas();
+        });
+        
+        // Color picker
+        document.getElementById('colorPicker').addEventListener('input', (e) => {
+            gameState.currentColor = e.target.value;
+            document.getElementById('currentColor').style.background = e.target.value;
+        });
+        
+        // Initialize
+        setupColorPalette();
+        initCanvas();
+    </script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking Master 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a8b, #fad0c4);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #ff6b35;
+            box-shadow: 0 0 30px rgba(255,107,53,0.4);
+        }
+        canvas {
+            border: 3px solid #ff6b35;
+            background: linear-gradient(to bottom, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .ui-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .panel {
+            background: rgba(255,107,53,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ff6b35;
+        }
+        .ingredient-slot {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ff6b35;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .ingredient-slot:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,107,53,0.5);
+        }
+        .ingredient-slot.selected {
+            background: rgba(255,107,53,0.5);
+            border-color: #ffd93d;
+        }
+        .cooking-timer {
+            width: 200px;
+            height: 20px;
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            margin: 15px auto;
+            background: rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        .recipe-list {
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .recipe-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .recipe-item:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .controls {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255,107,53,0.5);
+        }
+        .cooking-animation {
+            position: absolute;
+            font-size: 30px;
+            animation: cookingBubble 1s infinite;
+            pointer-events: none;
+        }
+        @keyframes cookingBubble {
+            0% { transform: scale(1) translateY(0); opacity: 1; }
+            100% { transform: scale(1.5) translateY(-20px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui-panel">
+            <div class="panel">
+                <h3>🥘 วัตถุดิบ</h3>
+                <div id="ingredientSlots">
+                    <div class="ingredient-slot" data-ingredient="tomato">🍅</div>
+                    <div class="ingredient-slot" data-ingredient="onion">🧅</div>
+                    <div class="ingredient-slot" data-ingredient="meat">🥩</div>
+                    <div class="ingredient-slot" data-ingredient="cheese">🧀</div>
+                    <div class="ingredient-slot" data-ingredient="bread">🍞</div>
+                    <div class="ingredient-slot" data-ingredient="egg">🥚</div>
+                    <div class="ingredient-slot" data-ingredient="fish">🐟</div>
+                    <div class="ingredient-slot" data-ingredient="rice">🍚</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📝 สูตรอาหาร</h3>
+                <div class="recipe-list" id="recipeList">
+                    <div class="recipe-item" data-recipe="sandwich">🥪 แซนด์วิช: 🍞+🧀+🍅</div>
+                    <div class="recipe-item" data-recipe="burger">🍔 เบอร์เกอร์: 🍞+🥩+🧅</div>
+                    <div class="recipe-item" data-recipe="pizza">🍕 พิซซ่า: 🍞+🧀+🍅</div>
+                    <div class="recipe-item" data-recipe="omelette">🍳 ไข่เจียว: 🥚+🧅</div>
+                    <div class="recipe-item" data-recipe="sushi">🍣 ซูชิ: 🐟+🍚</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📊 คะแนน</h3>
+                <div>คะแนน: <span id="score">0</span></div>
+                <div>เงิน: <span id="money">100</span>฿</div>
+                <div>ลูกค้า: <span id="customers">0</span></div>
+                <div>ชื่อเสียง: <span id="reputation">⭐⭐⭐</span></div>
+                <div style="margin-top: 10px;">
+                    <button onclick="buyIngredient()">🛒 ซื้อวัตถุดิบ</button>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        
+        <div class="cooking-timer">
+            <div class="timer-fill" id="timerFill"></div>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <button onclick="startCooking()" id="cookBtn">👨‍🍳 เริ่มทำอาหาร</button>
+            <button onclick="serveFood()" id="serveBtn">🍽️ เสิร์ฟอาหาร</button>
+            <button onclick="clearPlate()">🧹 ล้างจาน</button>
+            <button onclick="newGame()">🔄 เริ่มใหม่</button>
+        </div>
+        
+        <div class="controls">
+            เลือกวัตถุดิบจากสูตรอาหาร • คลิกเพื่อเพิ่มใส่จาน • ทำอาหารตามออเดอร์ลูกค้า
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = {
+            score: 0,
+            money: 100,
+            customers: 0,
+            reputation: 3,
+            selectedIngredients: [],
+            currentOrder: null,
+            cookingTime: 0,
+            maxCookingTime: 100,
+            isCooking: false,
+            plateItems: [],
+            customerQueue: [],
+            gameTime: 0
+        };
+        
+        const ingredients = {
+            tomato: { name: 'มะเขือเทศ', icon: '🍅', cost: 10 },
+            onion: { name: 'หัวหอม', icon: '🧅', cost: 8 },
+            meat: { name: 'เนื้อ', icon: '🥩', cost: 25 },
+            cheese: { name: 'ชีส', icon: '🧀', cost: 15 },
+            bread: { name: 'ขนมปัง', icon: '🍞', cost: 5 },
+            egg: { name: 'ไข่', icon: '🥚', cost: 6 },
+            fish: { name: 'ปลา', icon: '🐟', cost: 20 },
+            rice: { name: 'ข้าว', icon: '🍚', cost: 3 }
+        };
+        
+        const recipes = {
+            sandwich: { 
+                name: 'แซนด์วิช', 
+                icon: '🥪', 
+                ingredients: ['bread', 'cheese', 'tomato'],
+                price: 60,
+                time: 30
+            },
+            burger: { 
+                name: 'เบอร์เกอร์', 
+                icon: '🍔', 
+                ingredients: ['bread', 'meat', 'onion'],
+                price: 80,
+                time: 50
+            },
+            pizza: { 
+                name: 'พิซซ่า', 
+                icon: '🍕', 
+                ingredients: ['bread', 'cheese', 'tomato'],
+                price: 90,
+                time: 60
+            },
+            omelette: { 
+                name: 'ไข่เจียว', 
+                icon: '🍳', 
+                ingredients: ['egg', 'onion'],
+                price: 40,
+                time: 25
+            },
+            sushi: { 
+                name: 'ซูชิ', 
+                icon: '🍣', 
+                ingredients: ['fish', 'rice'],
+                price: 70,
+                time: 40
+            }
+        };
+        
+        function drawKitchen() {
+            // Kitchen background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#fff3e0');
+            gradient.addColorStop(1, '#ffe0b2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Kitchen counter
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+            
+            // Stove
+            ctx.fillStyle = '#37474f';
+            ctx.fillRect(450, 200, 120, 100);
+            ctx.fillStyle = '#ff5722';
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.arc(470 + (i % 2) * 40, 220 + Math.floor(i / 2) * 40, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Cooking pot if cooking
+            if (gameState.isCooking) {
+                ctx.fillStyle = '#424242';
+                ctx.fillRect(460, 180, 40, 30);
+                
+                // Steam
+                for (let i = 0; i < 5; i++) {
+                    ctx.fillStyle = `rgba(255,255,255,${0.8 - i * 0.15})`;
+                    ctx.beginPath();
+                    ctx.arc(480 + Math.sin(gameState.gameTime * 0.01 + i) * 10, 
+                           170 - i * 15, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            // Plate
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(150, 250, 80, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Items on plate
+            gameState.plateItems.forEach((item, index) => {
+                const angle = (index / gameState.plateItems.length) * Math.PI * 2;
+                const x = 150 + Math.cos(angle) * 30;
+                const y = 250 + Math.sin(angle) * 30;
+                
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(ingredients[item].icon, x, y);
+            });
+            
+            // Customer queue
+            gameState.customerQueue.forEach((customer, index) => {
+                const x = 50 + index * 100;
+                const y = 50;
+                
+                // Customer
+                ctx.font = '40px Arial';
+                ctx.fillText('👨‍💼', x, y);
+                
+                // Order bubble
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.fillRect(x + 30, y - 40, 60, 30);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x + 30, y - 40, 60, 30);
+                
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
+                ctx.fillText(recipes[customer.order].icon, x + 60, y - 20);
+                
+                // Patience bar
+                ctx.fillStyle = customer.patience > 0.5 ? '#4caf50' : '#f44336';
+                ctx.fillRect(x, y + 10, customer.patience * 80, 5);
+            });
+        }
+        
+        function generateCustomer() {
+            const recipeKeys = Object.keys(recipes);
+            const randomRecipe = recipeKeys[Math.floor(Math.random() * recipeKeys.length)];
+            
+            return {
+                order: randomRecipe,
+                patience: 1.0,
+                maxWaitTime: 200 + Math.random() * 100
+            };
+        }
+        
+        function addIngredientToPlate(ingredient) {
+            if (gameState.plateItems.length < 6) {
+                gameState.plateItems.push(ingredient);
+                
+                // Visual feedback
+                createCookingAnimation(150, 250, ingredients[ingredient].icon);
+            }
+        }
+        
+        function startCooking() {
+            if (gameState.plateItems.length === 0 || gameState.isCooking) return;
+            
+            gameState.isCooking = true;
+            gameState.cookingTime = 0;
+            
+            // Check if we have a valid recipe
+            const currentRecipe = checkRecipe();
+            if (currentRecipe) {
+                gameState.maxCookingTime = recipes[currentRecipe].time;
+            } else {
+                gameState.maxCookingTime = 50; // Default cooking time
+            }
+        }
+        
+        function checkRecipe() {
+            const plateIngredients = [...gameState.plateItems].sort();
+            
+            for (const [recipeName, recipe] of Object.entries(recipes)) {
+                const recipeIngredients = [...recipe.ingredients].sort();
+                if (JSON.stringify(plateIngredients) === JSON.stringify(recipeIngredients)) {
+                    return recipeName;
+                }
+            }
+            return null;
+        }
+        
+        function serveFood() {
+            if (!gameState.isCooking || gameState.cookingTime < gameState.maxCookingTime) {
+                alert('อาหารยังไม่สุก!');
+                return;
+            }
+            
+            const recipe = checkRecipe();
+            if (!recipe) {
+                alert('สูตรอาหารไม่ถูกต้อง!');
+                return;
+            }
+            
+            // Find customer with matching order
+            const customerIndex = gameState.customerQueue.findIndex(c => c.order === recipe);
+            if (customerIndex === -1) {
+                alert('ไม่มีลูกค้าสั่งอาหารนี้!');
+                return;
+            }
+            
+            // Serve to customer
+            const customer = gameState.customerQueue[customerIndex];
+            const recipeData = recipes[recipe];
+            const tip = customer.patience > 0.7 ? 20 : customer.patience > 0.3 ? 10 : 0;
+            
+            gameState.score += recipeData.price + tip;
+            gameState.money += recipeData.price + tip;
+            gameState.customers++;
+            
+            // Remove customer
+            gameState.customerQueue.splice(customerIndex, 1);
+            
+            // Clear plate
+            clearPlate();
+            
+            createCookingAnimation(canvas.width/2, canvas.height/2, '💰');
+            updateDisplay();
+        }
+        
+        function clearPlate() {
+            gameState.plateItems = [];
+            gameState.isCooking = false;
+            gameState.cookingTime = 0;
+        }
+        
+        function buyIngredient() {
+            if (gameState.money < 50) {
+                alert('เงินไม่พอ!');
+                return;
+            }
+            
+            gameState.money -= 50;
+            alert('ซื้อวัตถุดิบเพิ่มแล้ว!');
+            updateDisplay();
+        }
+        
+        function createCookingAnimation(x, y, icon) {
+            const animation = document.createElement('div');
+            animation.className = 'cooking-animation';
+            animation.textContent = icon;
+            animation.style.left = x + 'px';
+            animation.style.top = y + 'px';
+            animation.style.position = 'absolute';
+            
+            document.body.appendChild(animation);
+            
+            setTimeout(() => {
+                document.body.removeChild(animation);
+            }, 1000);
+        }
+        
+        function updateCooking() {
+            if (gameState.isCooking) {
+                gameState.cookingTime++;
+                const progress = (gameState.cookingTime / gameState.maxCookingTime) * 100;
+                document.getElementById('timerFill').style.width = Math.min(progress, 100) + '%';
+                
+                if (gameState.cookingTime >= gameState.maxCookingTime) {
+                    // Food is ready
+                    createCookingAnimation(480, 180, '✨');
+                }
+            }
+            
+            // Update customer patience
+            gameState.customerQueue.forEach((customer, index) => {
+                customer.patience -= 0.002;
+                if (customer.patience <= 0) {
+                    // Customer leaves
+                    gameState.customerQueue.splice(index, 1);
+                    gameState.reputation = Math.max(1, gameState.reputation - 0.5);
+                }
+            });
+            
+            // Generate new customers
+            if (Math.random() < 0.01 && gameState.customerQueue.length < 3) {
+                gameState.customerQueue.push(generateCustomer());
+            }
+            
+            gameState.gameTime++;
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('money').textContent = gameState.money;
+            document.getElementById('customers').textContent = gameState.customers;
+            
+            const stars = '⭐'.repeat(Math.floor(gameState.reputation));
+            document.getElementById('reputation').textContent = stars;
+        }
+        
+        function newGame() {
+            gameState = {
+                score: 0,
+                money: 100,
+                customers: 0,
+                reputation: 3,
+                selectedIngredients: [],
+                currentOrder: null,
+                cookingTime: 0,
+                maxCookingTime: 100,
+                isCooking: false,
+                plateItems: [],
+                customerQueue: [],
+                gameTime: 0
+            };
+            
+            // Add initial customer
+            gameState.customerQueue.push(generateCustomer());
+            updateDisplay();
+        }
+        
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawKitchen();
+            updateCooking();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners
+        document.querySelectorAll('.ingredient-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                const ingredient = slot.dataset.ingredient;
+                addIngredientToPlate(ingredient);
+                
+                slot.classList.add('selected');
+                setTimeout(() => slot.classList.remove('selected'), 300);
+            });
+        });
+        
+        document.querySelectorAll('.recipe-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const recipe = item.dataset.recipe;
+                alert(`สูตร ${recipes[recipe].name}: ${recipes[recipe].ingredients.map(i => ingredients[i].icon).join(' + ')}`);
+            });
+        });
+        
+        // Touch controls for mobile
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if clicked on plate
+            if (Math.sqrt((x - 150) ** 2 + (y - 250) ** 2) < 80) {
+                if (gameState.plateItems.length > 0) {
+                    clearPlate();
+                }
+            }
+        });
+        
+        // Start game
+        newGame();
+        gameLoop();
+    </script>
+</body>
+</html>

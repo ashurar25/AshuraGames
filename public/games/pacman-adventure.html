@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Adventure - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff80;
+            box-shadow: 0 0 30px rgba(0,255,128,0.3);
+        }
+        canvas {
+            border: 3px solid #00ff80;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,255,128,0.5);
+        }
+        .score-board {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #00ff80;
+            text-shadow: 0 0 10px #00ff80;
+        }
+        .controls {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ff6b6b;
+            display: none;
+            z-index: 10;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #00ff80, #00cc66);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,128,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            คะแนน: <span id="score">0</span> | ชีวิต: <span id="lives">3</span> | ระดับ: <span id="level">1</span>
+        </div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="controls">
+            ใช้ลูกศรหรือ WASD เพื่อเคลื่อนที่ • กิน dots ทั้งหมดเพื่อไปด่านต่อไป
+        </div>
+        <div class="game-over" id="gameOver">
+            <h2>เกมจบแล้ว!</h2>
+            <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">เล่นใหม่</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let gameRunning = true;
+        
+        // Game objects
+        const pacman = {
+            x: 50,
+            y: 200,
+            size: 15,
+            dx: 0,
+            dy: 0,
+            speed: 3,
+            direction: 0,
+            mouth: 0
+        };
+        
+        const ghosts = [
+            { x: 550, y: 50, dx: -2, dy: 0, color: '#ff0000' },
+            { x: 550, y: 150, dx: -2, dy: 0, color: '#ff69b4' },
+            { x: 550, y: 250, dx: -1.5, dy: 0, color: '#00ffff' },
+            { x: 550, y: 350, dx: -1.5, dy: 0, color: '#ffa500' }
+        ];
+        
+        let dots = [];
+        let powerPellets = [];
+        
+        function initGame() {
+            // Create dots
+            dots = [];
+            for (let x = 30; x < canvas.width - 30; x += 40) {
+                for (let y = 30; y < canvas.height - 30; y += 40) {
+                    if (Math.abs(x - pacman.x) > 50 || Math.abs(y - pacman.y) > 50) {
+                        dots.push({ x, y, collected: false });
+                    }
+                }
+            }
+            
+            // Create power pellets
+            powerPellets = [
+                { x: 80, y: 80, collected: false },
+                { x: canvas.width - 80, y: 80, collected: false },
+                { x: 80, y: canvas.height - 80, collected: false },
+                { x: canvas.width - 80, y: canvas.height - 80, collected: false }
+            ];
+        }
+        
+        function drawPacman() {
+            ctx.save();
+            ctx.translate(pacman.x, pacman.y);
+            ctx.rotate(pacman.direction);
+            
+            // Pac-man body
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(0, 0, pacman.size, pacman.mouth, Math.PI * 2 - pacman.mouth);
+            ctx.lineTo(0, 0);
+            ctx.fill();
+            
+            // Update mouth animation
+            pacman.mouth += 0.3;
+            if (pacman.mouth > 0.8) pacman.mouth = 0;
+            
+            ctx.restore();
+        }
+        
+        function drawGhosts() {
+            ghosts.forEach(ghost => {
+                ctx.fillStyle = ghost.color;
+                ctx.beginPath();
+                ctx.arc(ghost.x, ghost.y, 12, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(ghost.x - 8, ghost.y - 5, 4, 6);
+                ctx.fillRect(ghost.x + 4, ghost.y - 5, 4, 6);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(ghost.x - 7, ghost.y - 3, 2, 3);
+                ctx.fillRect(ghost.x + 5, ghost.y - 3, 2, 3);
+            });
+        }
+        
+        function drawDots() {
+            dots.forEach(dot => {
+                if (!dot.collected) {
+                    ctx.fillStyle = '#ffff80';
+                    ctx.beginPath();
+                    ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            powerPellets.forEach(pellet => {
+                if (!pellet.collected) {
+                    ctx.fillStyle = '#ff80ff';
+                    ctx.beginPath();
+                    ctx.arc(pellet.x, pellet.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Glow effect
+                    ctx.shadowColor = '#ff80ff';
+                    ctx.shadowBlur = 20;
+                    ctx.beginPath();
+                    ctx.arc(pellet.x, pellet.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+        }
+        
+        function updateGame() {
+            if (!gameRunning) return;
+            
+            // Move Pac-man
+            pacman.x += pacman.dx;
+            pacman.y += pacman.dy;
+            
+            // Boundary collision
+            if (pacman.x < pacman.size) pacman.x = pacman.size;
+            if (pacman.x > canvas.width - pacman.size) pacman.x = canvas.width - pacman.size;
+            if (pacman.y < pacman.size) pacman.y = pacman.size;
+            if (pacman.y > canvas.height - pacman.size) pacman.y = canvas.height - pacman.size;
+            
+            // Move ghosts
+            ghosts.forEach(ghost => {
+                ghost.x += ghost.dx;
+                ghost.y += ghost.dy;
+                
+                // Boundary collision for ghosts
+                if (ghost.x < 12 || ghost.x > canvas.width - 12) ghost.dx = -ghost.dx;
+                if (ghost.y < 12 || ghost.y > canvas.height - 12) ghost.dy = -ghost.dy;
+                
+                // Random direction change
+                if (Math.random() < 0.01) {
+                    ghost.dx = (Math.random() - 0.5) * 4;
+                    ghost.dy = (Math.random() - 0.5) * 4;
+                }
+            });
+            
+            // Check dot collection
+            dots.forEach(dot => {
+                if (!dot.collected && 
+                    Math.abs(pacman.x - dot.x) < 20 && 
+                    Math.abs(pacman.y - dot.y) < 20) {
+                    dot.collected = true;
+                    score += 10;
+                }
+            });
+            
+            // Check power pellet collection
+            powerPellets.forEach(pellet => {
+                if (!pellet.collected && 
+                    Math.abs(pacman.x - pellet.x) < 25 && 
+                    Math.abs(pacman.y - pellet.y) < 25) {
+                    pellet.collected = true;
+                    score += 50;
+                }
+            });
+            
+            // Check ghost collision
+            ghosts.forEach(ghost => {
+                if (Math.abs(pacman.x - ghost.x) < 25 && 
+                    Math.abs(pacman.y - ghost.y) < 25) {
+                    lives--;
+                    pacman.x = 50;
+                    pacman.y = 200;
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+            
+            // Check level completion
+            if (dots.every(dot => dot.collected) && powerPellets.every(pellet => pellet.collected)) {
+                level++;
+                score += 200;
+                initGame();
+                pacman.x = 50;
+                pacman.y = 200;
+            }
+            
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('level').textContent = level;
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            gameRunning = true;
+            pacman.x = 50;
+            pacman.y = 200;
+            pacman.dx = 0;
+            pacman.dy = 0;
+            initGame();
+            document.getElementById('gameOver').style.display = 'none';
+        }
+        
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw starfield background
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 137) % canvas.width;
+                const y = (i * 197) % canvas.height;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            drawDots();
+            drawPacman();
+            drawGhosts();
+            updateGame();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    pacman.dx = 0;
+                    pacman.dy = -pacman.speed;
+                    pacman.direction = -Math.PI / 2;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    pacman.dx = 0;
+                    pacman.dy = pacman.speed;
+                    pacman.direction = Math.PI / 2;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    pacman.dx = -pacman.speed;
+                    pacman.dy = 0;
+                    pacman.direction = Math.PI;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    pacman.dx = pacman.speed;
+                    pacman.dy = 0;
+                    pacman.direction = 0;
+                    break;
+            }
+        });
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!gameRunning) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 30) {
+                    pacman.dx = pacman.speed;
+                    pacman.dy = 0;
+                    pacman.direction = 0;
+                } else if (deltaX < -30) {
+                    pacman.dx = -pacman.speed;
+                    pacman.dy = 0;
+                    pacman.direction = Math.PI;
+                }
+            } else {
+                if (deltaY > 30) {
+                    pacman.dx = 0;
+                    pacman.dy = pacman.speed;
+                    pacman.direction = Math.PI / 2;
+                } else if (deltaY < -30) {
+                    pacman.dx = 0;
+                    pacman.dy = -pacman.speed;
+                    pacman.direction = -Math.PI / 2;
+                }
+            }
+        });
+        
+        // Initialize and start game
+        initGame();
+        updateDisplay();
+        gameLoop();
+    </script>
+</body>
+</html>

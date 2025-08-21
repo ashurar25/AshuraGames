@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Penalty Shootout - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e4d72, #2e5c3e);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #4caf50;
+            box-shadow: 0 0 30px rgba(76,175,80,0.3);
+        }
+        canvas {
+            border: 3px solid #4caf50;
+            background: linear-gradient(to bottom, #87CEEB 0%, #228B22 70%);
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+        .ui-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #4caf50;
+        }
+        .power-meter {
+            width: 200px;
+            height: 20px;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            margin: 15px auto;
+            position: relative;
+            background: rgba(0,0,0,0.3);
+        }
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        .controls {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #4caf50;
+            display: none;
+            z-index: 10;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(76,175,80,0.5);
+        }
+        .shoot-button {
+            background: linear-gradient(45deg, #ff5722, #f44336);
+            font-size: 20px;
+            padding: 15px 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui-bar">
+            <div>เป้าหมาย: <span id="goals">0</span>/10</div>
+            <div>ครั้งที่: <span id="attempt">1</span></div>
+            <div>คะแนน: <span id="score">0</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <div class="power-meter">
+            <div class="power-fill" id="powerFill"></div>
+        </div>
+        <div style="margin: 15px 0;">
+            <button class="shoot-button" id="shootButton" onclick="shootBall()">ยิง!</button>
+            <button onclick="resetPower()">รีเซ็ตพลัง</button>
+        </div>
+        <div class="controls">
+            คลิกเพื่อเลือกทิศทาง • ใช้ปุ่มยิงเมื่อพลังถูกต้อง • เป้าหมาย 10 ลูกใน 15 ครั้ง
+        </div>
+        <div class="game-over" id="gameOver">
+            <h2 id="gameResult">เกมจบ!</h2>
+            <p>เป้าหมายที่ทำได้: <span id="finalGoals">0</span>/10</p>
+            <p>คะแนนรวม: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">เล่นใหม่</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let goals = 0;
+        let attempt = 1;
+        let score = 0;
+        let power = 0;
+        let powerDirection = 1;
+        let powerActive = false;
+        let aimX = canvas.width / 2;
+        let aimY = canvas.height / 2;
+        let ball = null;
+        let goalkeeper = { x: canvas.width / 2, y: 100, dx: 2, width: 60, height: 80 };
+        
+        function drawField() {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.7, '#228B22');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Goal
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(150, 20, 300, 120);
+            ctx.strokeRect(180, 20, 240, 100);
+            
+            // Goal net
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(150 + i * 30, 20);
+                ctx.lineTo(150 + i * 30, 140);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(150, 20 + i * 12);
+                ctx.lineTo(450, 20 + i * 12);
+                ctx.stroke();
+            }
+            
+            // Penalty spot
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height - 80, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ball starting position
+            if (!ball) {
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height - 80, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Ball pattern
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height - 80, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2 - 8, canvas.height - 80);
+                ctx.lineTo(canvas.width / 2 + 8, canvas.height - 80);
+                ctx.stroke();
+            }
+        }
+        
+        function drawGoalkeeper() {
+            // Move goalkeeper
+            goalkeeper.x += goalkeeper.dx;
+            if (goalkeeper.x < 160 || goalkeeper.x > 430) goalkeeper.dx = -goalkeeper.dx;
+            
+            // Body
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(goalkeeper.x - goalkeeper.width/2, goalkeeper.y, goalkeeper.width, goalkeeper.height);
+            
+            // Head
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath();
+            ctx.arc(goalkeeper.x, goalkeeper.y - 10, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes
+            ctx.fillStyle = 'black';
+            ctx.fillRect(goalkeeper.x - 8, goalkeeper.y - 15, 3, 3);
+            ctx.fillRect(goalkeeper.x + 5, goalkeeper.y - 15, 3, 3);
+            
+            // Gloves
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(goalkeeper.x - 35, goalkeeper.y + 30, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(goalkeeper.x + 35, goalkeeper.y + 30, 12, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawAim() {
+            if (!ball) {
+                ctx.strokeStyle = 'rgba(255,0,0,0.7)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, canvas.height - 80);
+                ctx.lineTo(aimX, aimY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Aim target
+                ctx.fillStyle = 'rgba(255,0,0,0.8)';
+                ctx.beginPath();
+                ctx.arc(aimX, aimY, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        function drawBall() {
+            if (ball) {
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Ball shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(ball.x, canvas.height - 10, ball.size * 1.5, ball.size * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function updatePower() {
+            if (powerActive) {
+                power += powerDirection * 2;
+                if (power >= 100) {
+                    power = 100;
+                    powerDirection = -1;
+                } else if (power <= 0) {
+                    power = 0;
+                    powerDirection = 1;
+                }
+                document.getElementById('powerFill').style.width = power + '%';
+            }
+        }
+        
+        function shootBall() {
+            if (ball || attempt > 15) return;
+            
+            const startX = canvas.width / 2;
+            const startY = canvas.height - 80;
+            const targetX = aimX;
+            const targetY = aimY;
+            
+            const distance = Math.sqrt((targetX - startX) ** 2 + (targetY - startY) ** 2);
+            const speed = (power / 100) * 15 + 5;
+            
+            ball = {
+                x: startX,
+                y: startY,
+                dx: (targetX - startX) / distance * speed,
+                dy: (targetY - startY) / distance * speed,
+                size: 12,
+                speed: speed
+            };
+            
+            powerActive = false;
+            attempt++;
+            
+            // Animate ball
+            const animateBall = () => {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                ball.dy += 0.3; // Gravity
+                
+                // Check goal
+                if (ball.y <= 140 && ball.x >= 150 && ball.x <= 450) {
+                    // Check if goalkeeper catches it
+                    if (ball.x >= goalkeeper.x - 30 && ball.x <= goalkeeper.x + 30 && 
+                        ball.y >= goalkeeper.y - 20 && ball.y <= goalkeeper.y + 80) {
+                        // Goalkeeper save
+                        ball = null;
+                        setTimeout(() => {
+                            if (attempt <= 15) setupNextShot();
+                            else gameOver();
+                        }, 1000);
+                        return;
+                    } else {
+                        // Goal!
+                        goals++;
+                        score += Math.floor(power / 10) * 100 + 500;
+                        ball = null;
+                        setTimeout(() => {
+                            if (attempt <= 15) setupNextShot();
+                            else gameOver();
+                        }, 1000);
+                        return;
+                    }
+                }
+                
+                // Ball out of bounds
+                if (ball.x < 0 || ball.x > canvas.width || ball.y > canvas.height) {
+                    ball = null;
+                    setTimeout(() => {
+                        if (attempt <= 15) setupNextShot();
+                        else gameOver();
+                    }, 1000);
+                    return;
+                }
+                
+                requestAnimationFrame(animateBall);
+            };
+            
+            animateBall();
+        }
+        
+        function setupNextShot() {
+            ball = null;
+            power = 0;
+            powerActive = true;
+            aimX = canvas.width / 2;
+            aimY = canvas.height / 2;
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('goals').textContent = goals;
+            document.getElementById('attempt').textContent = attempt;
+            document.getElementById('score').textContent = score;
+        }
+        
+        function gameOver() {
+            powerActive = false;
+            document.getElementById('finalGoals').textContent = goals;
+            document.getElementById('finalScore').textContent = score;
+            
+            if (goals >= 10) {
+                document.getElementById('gameResult').textContent = 'ยอดเยี่ยม! คุณผ่านแล้ว!';
+            } else if (goals >= 7) {
+                document.getElementById('gameResult').textContent = 'ดีมาก! เกือบแล้ว!';
+            } else {
+                document.getElementById('gameResult').textContent = 'ลองใหม่อีกครั้ง!';
+            }
+            
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            goals = 0;
+            attempt = 1;
+            score = 0;
+            power = 0;
+            powerActive = true;
+            ball = null;
+            aimX = canvas.width / 2;
+            aimY = canvas.height / 2;
+            goalkeeper.x = canvas.width / 2;
+            updateDisplay();
+            document.getElementById('gameOver').style.display = 'none';
+        }
+        
+        function resetPower() {
+            power = 0;
+            powerActive = true;
+            document.getElementById('powerFill').style.width = '0%';
+        }
+        
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawField();
+            drawGoalkeeper();
+            drawAim();
+            drawBall();
+            updatePower();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Mouse controls
+        canvas.addEventListener('click', (e) => {
+            if (ball) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            aimX = e.clientX - rect.left;
+            aimY = e.clientY - rect.top;
+            
+            // Limit aim to goal area
+            if (aimY < 20) aimY = 20;
+            if (aimY > 140) aimY = 140;
+            if (aimX < 150) aimX = 150;
+            if (aimX > 450) aimX = 450;
+        });
+        
+        // Touch controls
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (ball) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            aimX = touch.clientX - rect.left;
+            aimY = touch.clientY - rect.top;
+            
+            // Limit aim to goal area
+            if (aimY < 20) aimY = 20;
+            if (aimY > 140) aimY = 140;
+            if (aimX < 150) aimX = 150;
+            if (aimX > 450) aimX = 450;
+        });
+        
+        // Start game
+        powerActive = true;
+        updateDisplay();
+        gameLoop();
+    </script>
+</body>
+</html>
