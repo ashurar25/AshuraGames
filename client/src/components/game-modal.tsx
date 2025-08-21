@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Copyright, Gamepad2 } from 'lucide-react';
@@ -37,9 +37,14 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
       >
         <DialogHeader className="flex flex-row items-center justify-between p-3 md:p-4 border-b border-mint-500/20 bg-black/50 backdrop-blur-sm">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <DialogTitle className="text-lg md:text-2xl font-bold text-white truncate" data-testid="text-game-title">
-              {game.title}
-            </DialogTitle>
+            <div>
+              <DialogTitle className="text-lg md:text-2xl font-bold text-white truncate" data-testid="text-game-title">
+                {game.title}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                {game.description}
+              </DialogDescription>
+            </div>
             <Badge className="glass px-2 md:px-3 py-1 text-xs text-mint-300 border-mint-500/30 hidden sm:inline-flex">
               Powered by ASHURA Games
             </Badge>
@@ -72,10 +77,15 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 src={game.gameUrl}
                 className="w-full h-full border-0"
                 title={game.title}
-                allow="fullscreen; gamepad; microphone; camera; autoplay"
+                allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write"
                 allowFullScreen
+                sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads"
                 data-testid="iframe-game"
                 onLoad={() => setIsLoading(false)}
+                onError={(e) => {
+                  console.error('Game loading error:', e);
+                  setIsLoading(false);
+                }}
                 style={{ minHeight: '60vh' }}
               />
             )}
