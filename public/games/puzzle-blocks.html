@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Blocks - ASHURA Games</title>
+    <style>
+        body { margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: Arial, sans-serif; overflow: hidden; }
+        canvas { display: block; margin: 20px auto; border: 3px solid #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .ui { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 18px; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px; }
+        .controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>คะแนน: <span id="score">0</span></div>
+        <div>เลเวล: <span id="level">1</span></div>
+        <div>แถวที่ลบ: <span id="lines">0</span></div>
+    </div>
+    <div class="controls">
+        <div>← → : เลื่อน | ↓ : ตกเร็ว | ↑ : หมุน | Space : ตกทันที</div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400;
+        canvas.height = 600;
+
+        const BOARD_WIDTH = 10;
+        const BOARD_HEIGHT = 20;
+        const BLOCK_SIZE = canvas.width / BOARD_WIDTH;
+
+        let score = 0;
+        let level = 1;
+        let linesCleared = 0;
+        let dropTime = 0;
+        let lastTime = 0;
+
+        // สีของบล็อก
+        const COLORS = [
+            '#000000', // ว่าง
+            '#ff0000', // I
+            '#00ff00', // O
+            '#0000ff', // T
+            '#ffff00', // S
+            '#ff00ff', // Z
+            '#00ffff', // J
+            '#ffa500'  // L
+        ];
+
+        // รูปทรงของบล็อก
+        const PIECES = [
+            [], // ว่าง
+            [ // I
+                [1,1,1,1]
+            ],
+            [ // O
+                [1,1],
+                [1,1]
+            ],
+            [ // T
+                [0,1,0],
+                [1,1,1]
+            ],
+            [ // S
+                [0,1,1],
+                [1,1,0]
+            ],
+            [ // Z
+                [1,1,0],
+                [0,1,1]
+            ],
+            [ // J
+                [1,0,0],
+                [1,1,1]
+            ],
+            [ // L
+                [0,0,1],
+                [1,1,1]
+            ]
+        ];
+
+        // กระดานเกม
+        const board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+
+        // ชิ้นปัจจุบัน
+        let currentPiece = {
+            type: 0,
+            x: 0,
+            y: 0,
+            rotation: 0
+        };
+
+        // สร้างชิ้นใหม่
+        function createPiece() {
+            const type = Math.floor(Math.random() * (PIECES.length - 1)) + 1;
+            return {
+                type: type,
+                x: Math.floor(BOARD_WIDTH / 2) - 1,
+                y: 0,
+                rotation: 0
+            };
+        }
+
+        // หมุนชิ้น
+        function rotatePiece(piece) {
+            const shape = PIECES[piece.type];
+            const rotated = [];
+            for (let i = 0; i < shape[0].length; i++) {
+                rotated[i] = [];
+                for (let j = shape.length - 1; j >= 0; j--) {
+                    rotated[i][shape.length - 1 - j] = shape[j][i];
+                }
+            }
+            return rotated;
+        }
+
+        // ตรวจสอบการชน
+        function isValidMove(piece, newX, newY, rotation = piece.rotation) {
+            let shape = PIECES[piece.type];
+            
+            // หมุนถ้าจำเป็น
+            for (let r = 0; r < rotation; r++) {
+                shape = rotatePiece({type: piece.type});
+            }
+
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const boardX = newX + x;
+                        const boardY = newY + y;
+                        
+                        if (boardX < 0 || boardX >= BOARD_WIDTH || 
+                            boardY >= BOARD_HEIGHT || 
+                            (boardY >= 0 && board[boardY][boardX])) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        // วางชิ้นลงกระดาน
+        function placePiece(piece) {
+            let shape = PIECES[piece.type];
+            
+            for (let r = 0; r < piece.rotation; r++) {
+                shape = rotatePiece({type: piece.type});
+            }
+
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const boardY = piece.y + y;
+                        const boardX = piece.x + x;
+                        if (boardY >= 0) {
+                            board[boardY][boardX] = piece.type;
+                        }
+                    }
+                }
+            }
+        }
+
+        // ลบแถวที่เต็ม
+        function clearLines() {
+            let linesCleared = 0;
+            
+            for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(BOARD_WIDTH).fill(0));
+                    linesCleared++;
+                    y++; // ตรวจสอบแถวเดิมอีกครั้ง
+                }
+            }
+
+            if (linesCleared > 0) {
+                const points = [0, 100, 300, 500, 800][linesCleared] * level;
+                score += points;
+                window.linesCleared += linesCleared;
+                level = Math.floor(window.linesCleared / 10) + 1;
+            }
+        }
+
+        // วาดบล็อก
+        function drawBlock(x, y, type) {
+            const pixelX = x * BLOCK_SIZE;
+            const pixelY = y * BLOCK_SIZE;
+            
+            ctx.fillStyle = COLORS[type];
+            ctx.fillRect(pixelX, pixelY, BLOCK_SIZE, BLOCK_SIZE);
+            
+            if (type !== 0) {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(pixelX, pixelY, BLOCK_SIZE, BLOCK_SIZE);
+                
+                // เอฟเฟกต์เงา
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(pixelX + 2, pixelY + 2, BLOCK_SIZE - 4, 6);
+            }
+        }
+
+        // วาดกระดาน
+        function drawBoard() {
+            for (let y = 0; y < BOARD_HEIGHT; y++) {
+                for (let x = 0; x < BOARD_WIDTH; x++) {
+                    drawBlock(x, y, board[y][x]);
+                }
+            }
+        }
+
+        // วาดชิ้นปัจจุบัน
+        function drawCurrentPiece() {
+            let shape = PIECES[currentPiece.type];
+            
+            for (let r = 0; r < currentPiece.rotation; r++) {
+                shape = rotatePiece({type: currentPiece.type});
+            }
+
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        drawBlock(currentPiece.x + x, currentPiece.y + y, currentPiece.type);
+                    }
+                }
+            }
+        }
+
+        // วาดเงาของชิ้น
+        function drawGhost() {
+            let ghostY = currentPiece.y;
+            while (isValidMove(currentPiece, currentPiece.x, ghostY + 1)) {
+                ghostY++;
+            }
+
+            let shape = PIECES[currentPiece.type];
+            for (let r = 0; r < currentPiece.rotation; r++) {
+                shape = rotatePiece({type: currentPiece.type});
+            }
+
+            ctx.globalAlpha = 0.3;
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        drawBlock(currentPiece.x + x, ghostY + y, currentPiece.type);
+                    }
+                }
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // อัปเดตเกม
+        function update(time) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            
+            dropTime += deltaTime;
+            const dropInterval = Math.max(50, 500 - (level - 1) * 50);
+            
+            if (dropTime > dropInterval) {
+                if (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1)) {
+                    currentPiece.y++;
+                } else {
+                    placePiece(currentPiece);
+                    clearLines();
+                    currentPiece = createPiece();
+                    
+                    if (!isValidMove(currentPiece, currentPiece.x, currentPiece.y)) {
+                        // Game Over
+                        alert('เกมจบแล้ว! คะแนน: ' + score);
+                        resetGame();
+                    }
+                }
+                dropTime = 0;
+            }
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            score = 0;
+            level = 1;
+            window.linesCleared = 0;
+            board.forEach(row => row.fill(0));
+            currentPiece = createPiece();
+        }
+
+        // วาดเกม
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // พื้นหลัง
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawBoard();
+            drawGhost();
+            drawCurrentPiece();
+            
+            // อัปเดต UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = window.linesCleared;
+        }
+
+        // ลูปเกม
+        function gameLoop(time) {
+            update(time);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // การควบคุม
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (isValidMove(currentPiece, currentPiece.x - 1, currentPiece.y)) {
+                        currentPiece.x--;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (isValidMove(currentPiece, currentPiece.x + 1, currentPiece.y)) {
+                        currentPiece.x++;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1)) {
+                        currentPiece.y++;
+                    }
+                    break;
+                case 'ArrowUp':
+                    const newRotation = (currentPiece.rotation + 1) % 4;
+                    if (isValidMove(currentPiece, currentPiece.x, currentPiece.y, newRotation)) {
+                        currentPiece.rotation = newRotation;
+                    }
+                    break;
+                case ' ':
+                    while (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1)) {
+                        currentPiece.y++;
+                    }
+                    break;
+            }
+            e.preventDefault();
+        });
+
+        // เริ่มเกม
+        window.linesCleared = 0;
+        currentPiece = createPiece();
+        gameLoop(0);
+    </script>
+</body>
+</html>

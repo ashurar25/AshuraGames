@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter - ASHURA Games</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: Arial, sans-serif; }
+        canvas { display: block; margin: 0 auto; background: linear-gradient(to bottom, #001122, #003366); }
+        .ui { position: absolute; top: 10px; left: 10px; color: #00ff88; font-size: 18px; z-index: 10; }
+        .game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff0044; font-size: 32px; text-align: center; z-index: 20; }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>คะแนน: <span id="score">0</span></div>
+        <div>ชีวิต: <span id="lives">3</span></div>
+    </div>
+    <div id="gameOver" class="game-over" style="display: none;">
+        <div>เกมจบแล้ว!</div>
+        <div style="font-size: 18px; margin-top: 10px;">กด SPACE เพื่อเล่นใหม่</div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let gameState = 'playing';
+        let score = 0;
+        let lives = 3;
+        let keys = {};
+
+        // เสียงเกม (จำลอง)
+        const playSound = (type) => {
+            // สำหรับเสียงจริงสามารถเพิ่ม Web Audio API ได้
+            console.log(`เสียง: ${type}`);
+        };
+
+        // คลาส Player
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 60;
+                this.width = 40;
+                this.height = 40;
+                this.speed = 5;
+                this.bullets = [];
+                this.lastShot = 0;
+            }
+
+            update() {
+                if (keys['ArrowLeft'] && this.x > 0) this.x -= this.speed;
+                if (keys['ArrowRight'] && this.x < canvas.width - this.width) this.x += this.speed;
+                if (keys['ArrowUp'] && this.y > 0) this.y -= this.speed;
+                if (keys['ArrowDown'] && this.y < canvas.height - this.height) this.y += this.speed;
+                
+                if (keys[' '] && Date.now() - this.lastShot > 150) {
+                    this.shoot();
+                    this.lastShot = Date.now();
+                }
+
+                this.bullets = this.bullets.filter(bullet => {
+                    bullet.update();
+                    return bullet.y > 0;
+                });
+            }
+
+            shoot() {
+                this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8));
+                playSound('shoot');
+            }
+
+            draw() {
+                // วาดยานอวกาศ
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // วาดรายละเอียด
+                ctx.fillStyle = '#0088ff';
+                ctx.fillRect(this.x + 5, this.y + 10, 10, 20);
+                ctx.fillRect(this.x + 25, this.y + 10, 10, 20);
+                
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(this.x + 15, this.y + 5, 10, 15);
+
+                this.bullets.forEach(bullet => bullet.draw());
+            }
+        }
+
+        // คลาส Bullet
+        class Bullet {
+            constructor(x, y, speedY) {
+                this.x = x;
+                this.y = y;
+                this.speedY = speedY;
+                this.width = 4;
+                this.height = 10;
+            }
+
+            update() {
+                this.y += this.speedY;
+            }
+
+            draw() {
+                ctx.fillStyle = this.speedY < 0 ? '#ffff00' : '#ff4444';
+                ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
+            }
+        }
+
+        // คลาส Enemy
+        class Enemy {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 35;
+                this.height = 35;
+                this.speed = 1 + Math.random() * 2;
+                this.bullets = [];
+                this.lastShot = Date.now() + Math.random() * 2000;
+            }
+
+            update() {
+                this.y += this.speed;
+                
+                if (Math.random() < 0.002 && Date.now() - this.lastShot > 1000) {
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y + this.height, 4));
+                    this.lastShot = Date.now();
+                }
+
+                this.bullets = this.bullets.filter(bullet => {
+                    bullet.update();
+                    return bullet.y < canvas.height;
+                });
+            }
+
+            draw() {
+                // วาดศัตรู
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                ctx.fillStyle = '#880000';
+                ctx.fillRect(this.x + 5, this.y + 5, 25, 25);
+                
+                ctx.fillStyle = '#ffaa00';
+                ctx.fillRect(this.x + 10, this.y + 10, 15, 15);
+
+                this.bullets.forEach(bullet => bullet.draw());
+            }
+        }
+
+        // คลาส Star สำหรับพื้นหลัง
+        class Star {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = 1 + Math.random() * 3;
+                this.size = Math.random() * 2;
+            }
+
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        // เริ่มต้นเกม
+        const player = new Player();
+        let enemies = [];
+        let stars = [];
+        let lastEnemySpawn = 0;
+
+        // สร้างดาว
+        for (let i = 0; i < 50; i++) {
+            stars.push(new Star());
+        }
+
+        // ตรวจสอบการชน
+        function checkCollisions() {
+            // กระสุนผู้เล่นชนศัตรู
+            player.bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (bullet.x > enemy.x && bullet.x < enemy.x + enemy.width &&
+                        bullet.y > enemy.y && bullet.y < enemy.y + enemy.height) {
+                        player.bullets.splice(bulletIndex, 1);
+                        enemies.splice(enemyIndex, 1);
+                        score += 100;
+                        playSound('explosion');
+                    }
+                });
+            });
+
+            // กระสุนศัตรูชนผู้เล่น
+            enemies.forEach(enemy => {
+                enemy.bullets.forEach((bullet, bulletIndex) => {
+                    if (bullet.x > player.x && bullet.x < player.x + player.width &&
+                        bullet.y > player.y && bullet.y < player.y + player.height) {
+                        enemy.bullets.splice(bulletIndex, 1);
+                        lives--;
+                        playSound('hit');
+                        if (lives <= 0) {
+                            gameState = 'gameOver';
+                        }
+                    }
+                });
+            });
+
+            // ศัตรูชนผู้เล่น
+            enemies.forEach((enemy, index) => {
+                if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
+                    enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
+                    enemies.splice(index, 1);
+                    lives--;
+                    playSound('hit');
+                    if (lives <= 0) {
+                        gameState = 'gameOver';
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันเกมลูป
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'playing') {
+                // อัปเดตดาว
+                stars.forEach(star => {
+                    star.update();
+                    star.draw();
+                });
+
+                // สร้างศัตรูใหม่
+                if (Date.now() - lastEnemySpawn > 2000) {
+                    enemies.push(new Enemy(Math.random() * (canvas.width - 35), -35));
+                    lastEnemySpawn = Date.now();
+                }
+
+                // อัปเดตผู้เล่น
+                player.update();
+                player.draw();
+
+                // อัปเดตศัตรู
+                enemies = enemies.filter(enemy => {
+                    enemy.update();
+                    enemy.draw();
+                    return enemy.y < canvas.height + 50;
+                });
+
+                // ตรวจสอบการชน
+                checkCollisions();
+
+                // อัปเดต UI
+                document.getElementById('score').textContent = score;
+                document.getElementById('lives').textContent = lives;
+                document.getElementById('gameOver').style.display = 'none';
+            } else if (gameState === 'gameOver') {
+                document.getElementById('gameOver').style.display = 'block';
+                
+                if (keys[' ']) {
+                    // รีเซ็ตเกม
+                    score = 0;
+                    lives = 3;
+                    enemies = [];
+                    player.x = canvas.width / 2;
+                    player.y = canvas.height - 60;
+                    player.bullets = [];
+                    gameState = 'playing';
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // เริ่มเกม
+        gameLoop();
+    </script>
+</body>
+</html>

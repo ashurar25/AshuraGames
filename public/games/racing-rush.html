@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Rush - ASHURA Games</title>
+    <style>
+        body { margin: 0; padding: 0; background: #222; overflow: hidden; font-family: Arial, sans-serif; }
+        canvas { display: block; margin: 0 auto; background: linear-gradient(to bottom, #87CEEB, #228B22); }
+        .ui { position: absolute; top: 10px; left: 10px; color: #fff; font-size: 20px; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+        .controls { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: #fff; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>ความเร็ว: <span id="speed">0</span> km/h</div>
+        <div>ระยะทาง: <span id="distance">0</span> m</div>
+        <div>คะแนน: <span id="score">0</span></div>
+    </div>
+    <div class="controls">
+        <div>← → : หลีกเลี่ยง | ↑ ↓ : เร่ง/ลดความเร็ว</div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let gameSpeed = 2;
+        let score = 0;
+        let distance = 0;
+        let roadOffset = 0;
+        let keys = {};
+
+        // ตัวแปรรถ
+        const car = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 120,
+            width: 50,
+            height: 80,
+            speed: 5
+        };
+
+        // รถคันอื่น
+        let otherCars = [];
+        let lastCarSpawn = 0;
+
+        // อนุภาคควัน
+        let particles = [];
+
+        // คลาสรถอื่น
+        class OtherCar {
+            constructor() {
+                this.width = 45;
+                this.height = 75;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = -this.height;
+                this.speed = gameSpeed + Math.random() * 3;
+                this.color = this.getRandomColor();
+            }
+
+            getRandomColor() {
+                const colors = ['#ff4444', '#4444ff', '#44ff44', '#ffff44', '#ff44ff', '#44ffff', '#ff8844'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speed;
+            }
+
+            draw() {
+                // วาดรถ
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // วาดหน้าต่าง
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(this.x + 5, this.y + 10, this.width - 10, 20);
+                ctx.fillRect(this.x + 5, this.y + 35, this.width - 10, 15);
+                
+                // วาดไฟหน้า
+                ctx.fillStyle = '#ffff99';
+                ctx.fillRect(this.x + 5, this.y + this.height - 10, 12, 8);
+                ctx.fillRect(this.x + this.width - 17, this.y + this.height - 10, 12, 8);
+                
+                // วาดล้อ
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x - 3, this.y + 15, 8, 12);
+                ctx.fillRect(this.x + this.width - 5, this.y + 15, 8, 12);
+                ctx.fillRect(this.x - 3, this.y + this.height - 25, 8, 12);
+                ctx.fillRect(this.x + this.width - 5, this.y + this.height - 25, 8, 12);
+            }
+        }
+
+        // คลาสอนุภาคควัน
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = Math.random() * 2 + 1;
+                this.size = Math.random() * 5 + 2;
+                this.alpha = 1;
+                this.decay = 0.02;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= this.decay;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = '#666';
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        // วาดถนน
+        function drawRoad() {
+            // พื้นหลัง
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.3, '#98FB98');
+            gradient.addColorStop(1, '#228B22');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // ถนน
+            ctx.fillStyle = '#444';
+            ctx.fillRect(canvas.width * 0.2, 0, canvas.width * 0.6, canvas.height);
+
+            // ขอบถนน
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(canvas.width * 0.2 - 5, 0, 5, canvas.height);
+            ctx.fillRect(canvas.width * 0.8, 0, 5, canvas.height);
+
+            // เส้นกลางถนน
+            ctx.fillStyle = '#ffff00';
+            const lineHeight = 30;
+            const lineGap = 20;
+            roadOffset += gameSpeed;
+            if (roadOffset > lineHeight + lineGap) roadOffset = 0;
+
+            for (let y = -roadOffset; y < canvas.height; y += lineHeight + lineGap) {
+                ctx.fillRect(canvas.width / 2 - 2, y, 4, lineHeight);
+            }
+
+            // ต้นไม้ข้างทาง
+            ctx.fillStyle = '#228B22';
+            for (let i = 0; i < 10; i++) {
+                const treeY = (i * 80 - roadOffset) % canvas.height;
+                // ต้นไม้ซ้าย
+                ctx.fillRect(50, treeY, 20, 30);
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(55, treeY + 25, 10, 15);
+                ctx.fillStyle = '#228B22';
+                
+                // ต้นไม้ขวา
+                ctx.fillRect(canvas.width - 70, treeY, 20, 30);
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(canvas.width - 65, treeY + 25, 10, 15);
+                ctx.fillStyle = '#228B22';
+            }
+        }
+
+        // วาดรถผู้เล่น
+        function drawPlayerCar() {
+            // เงารถ
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(car.x + 5, car.y + car.height + 2, car.width, 10);
+
+            // ตัวรถ
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(car.x, car.y, car.width, car.height);
+
+            // รายละเอียดรถ
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(car.x + 5, car.y + 15, car.width - 10, 25);
+
+            // ไฟหน้า
+            ctx.fillStyle = '#ffff99';
+            ctx.fillRect(car.x + 5, car.y, 12, 8);
+            ctx.fillRect(car.x + car.width - 17, car.y, 12, 8);
+
+            // กันชน
+            ctx.fillStyle = '#ccc';
+            ctx.fillRect(car.x, car.y - 3, car.width, 3);
+
+            // ล้อ
+            ctx.fillStyle = '#333';
+            ctx.fillRect(car.x - 3, car.y + 15, 8, 12);
+            ctx.fillRect(car.x + car.width - 5, car.y + 15, 8, 12);
+            ctx.fillRect(car.x - 3, car.y + car.height - 25, 8, 12);
+            ctx.fillRect(car.x + car.width - 5, car.y + car.height - 25, 8, 12);
+
+            // ไฟท้าย
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(car.x + 5, car.y + car.height - 8, 8, 6);
+            ctx.fillRect(car.x + car.width - 13, car.y + car.height - 8, 8, 6);
+        }
+
+        // ตรวจสอบการชน
+        function checkCollisions() {
+            const carLeft = car.x;
+            const carRight = car.x + car.width;
+            const carTop = car.y;
+            const carBottom = car.y + car.height;
+
+            for (let i = 0; i < otherCars.length; i++) {
+                const other = otherCars[i];
+                const otherLeft = other.x;
+                const otherRight = other.x + other.width;
+                const otherTop = other.y;
+                const otherBottom = other.y + other.height;
+
+                if (carLeft < otherRight && carRight > otherLeft &&
+                    carTop < otherBottom && carBottom > otherTop) {
+                    // ชน!
+                    gameSpeed = 0;
+                    alert('อุบัติเหตุ! คะแนน: ' + score);
+                    resetGame();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            gameSpeed = 2;
+            score = 0;
+            distance = 0;
+            car.x = canvas.width / 2 - 25;
+            otherCars = [];
+            particles = [];
+        }
+
+        // อัปเดตเกม
+        function update() {
+            // ควบคุมรถ
+            if (keys['ArrowLeft'] && car.x > canvas.width * 0.2) {
+                car.x -= car.speed;
+            }
+            if (keys['ArrowRight'] && car.x < canvas.width * 0.8 - car.width) {
+                car.x += car.speed;
+            }
+            if (keys['ArrowUp'] && gameSpeed < 8) {
+                gameSpeed += 0.1;
+            }
+            if (keys['ArrowDown'] && gameSpeed > 1) {
+                gameSpeed -= 0.1;
+            }
+
+            // สร้างรถคันอื่น
+            if (Date.now() - lastCarSpawn > 2000 - gameSpeed * 200) {
+                otherCars.push(new OtherCar());
+                lastCarSpawn = Date.now();
+            }
+
+            // อัปเดตรถคันอื่น
+            otherCars = otherCars.filter(otherCar => {
+                otherCar.update();
+                return otherCar.y < canvas.height + 100;
+            });
+
+            // อัปเดตอนุภาค
+            particles = particles.filter(particle => {
+                particle.update();
+                return particle.alpha > 0;
+            });
+
+            // สร้างอนุภาคควัน
+            if (Math.random() < 0.3) {
+                particles.push(new Particle(
+                    car.x + car.width / 2 + (Math.random() - 0.5) * 10,
+                    car.y + car.height
+                ));
+            }
+
+            // อัปเดตคะแนนและระยะทาง
+            distance += gameSpeed;
+            score = Math.floor(distance / 10);
+
+            // ตรวจสอบการชน
+            checkCollisions();
+        }
+
+        // วาดเกม
+        function draw() {
+            drawRoad();
+            
+            // วาดรถคันอื่น
+            otherCars.forEach(otherCar => otherCar.draw());
+            
+            // วาดอนุภาค
+            particles.forEach(particle => particle.draw());
+            
+            drawPlayerCar();
+
+            // อัปเดต UI
+            document.getElementById('speed').textContent = Math.floor(gameSpeed * 50);
+            document.getElementById('distance').textContent = Math.floor(distance);
+            document.getElementById('score').textContent = score;
+        }
+
+        // ลูปเกม
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // เริ่มเกม
+        gameLoop();
+    </script>
+</body>
+</html>
