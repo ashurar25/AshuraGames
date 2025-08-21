@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Explosion - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 900px;
+            height: 700px;
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #000428 0%, #004e92 100%);
+            cursor: crosshair;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            z-index: 10;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ffff;
+            text-align: right;
+            z-index: 10;
+        }
+        
+        .control-btn {
+            background: linear-gradient(45deg, #ff006e, #8338ec);
+            border: 2px solid #00ffff;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 2px;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+        
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(0, 255, 255, 1), 0 0 30px rgba(0, 255, 255, 0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div class="glow">💥 อนุภาคที่ระเบิด: <span id="explosionCount">0</span></div>
+            <div>⚡ พลังงาน: <span id="energy">100</span>%</div>
+            <div>🎨 โหมด: <span id="currentMode">คลาสสิก</span></div>
+        </div>
+        <div id="controls">
+            <button class="control-btn" onclick="changeMode()">🔄 เปลี่ยนโหมด</button>
+            <button class="control-btn" onclick="clearParticles()">🧹 เคลียร์</button>
+            <button class="control-btn" onclick="toggleAutoExplosion()">⚡ ระเบิดอัตโนมัติ</button>
+        </div>
+        <div id="instructions">
+            <p class="glow">🖱️ คลิกเพื่อสร้างการระเบิดอนุภาค | ลากเมาส์เพื่อสร้างการระเบิดต่อเนื่อง</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+        
+        if (!gl) {
+            alert('WebGL is not supported');
+        }
+        
+        canvas.width = 900;
+        canvas.height = 700;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        
+        // Game state
+        let gameState = {
+            particles: [],
+            explosionCount: 0,
+            energy: 100,
+            mode: 0, // 0: classic, 1: rainbow, 2: fire, 3: electric
+            modes: ['คลาสสิก', 'รุ้งสี', 'ไฟ', 'ฟ้าผ่า'],
+            autoExplosion: false,
+            mouseDown: false
+        };
+        
+        // Particle class
+        class Particle {
+            constructor(x, y, vx, vy, color, life, size) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.gravity = -0.001;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += this.gravity;
+                this.life--;
+                
+                // Fade out
+                const alpha = this.life / this.maxLife;
+                this.color[3] = alpha;
+                
+                return this.life > 0;
+            }
+        }
+        
+        // WebGL shaders
+        const vertexShaderSource = `
+            attribute vec2 a_position;
+            attribute vec4 a_color;
+            attribute float a_size;
+            uniform vec2 u_resolution;
+            varying vec4 v_color;
+            
+            void main() {
+                vec2 position = (a_position / u_resolution) * 2.0 - 1.0;
+                position.y *= -1.0;
+                gl_Position = vec4(position, 0.0, 1.0);
+                gl_PointSize = a_size;
+                v_color = a_color;
+            }
+        `;
+        
+        const fragmentShaderSource = `
+            precision mediump float;
+            varying vec4 v_color;
+            
+            void main() {
+                vec2 coord = gl_PointCoord - vec2(0.5);
+                float dist = length(coord);
+                if (dist > 0.5) discard;
+                
+                float glow = 1.0 - (dist * 2.0);
+                glow = pow(glow, 2.0);
+                
+                gl_FragColor = vec4(v_color.rgb, v_color.a * glow);
+            }
+        `;
+        
+        // Create shader
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Error compiling shader:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        // Create program
+        function createProgram(gl, vertexShader, fragmentShader) {
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Error linking program:', gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                return null;
+            }
+            
+            return program;
+        }
+        
+        // Initialize WebGL
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const program = createProgram(gl, vertexShader, fragmentShader);
+        
+        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+        const colorAttributeLocation = gl.getAttribLocation(program, 'a_color');
+        const sizeAttributeLocation = gl.getAttribLocation(program, 'a_size');
+        const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution');
+        
+        // Create buffers
+        const positionBuffer = gl.createBuffer();
+        const colorBuffer = gl.createBuffer();
+        const sizeBuffer = gl.createBuffer();
+        
+        // Color schemes for different modes
+        const colorSchemes = {
+            0: () => [Math.random(), Math.random() * 0.5, Math.random() * 0.3, 1], // Classic
+            1: (i) => { // Rainbow
+                const hue = (Date.now() * 0.001 + i * 0.1) % 1;
+                return hslToRgb(hue * 360, 100, 50);
+            },
+            2: () => [1, Math.random() * 0.5, Math.random() * 0.2, 1], // Fire
+            3: () => [Math.random() * 0.3, Math.random() * 0.5, 1, 1] // Electric
+        };
+        
+        function hslToRgb(h, s, l) {
+            s /= 100;
+            l /= 100;
+            const c = (1 - Math.abs(2 * l - 1)) * s;
+            const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+            const m = l - c / 2;
+            let r = 0, g = 0, b = 0;
+            
+            if (0 <= h && h < 60) {
+                r = c; g = x; b = 0;
+            } else if (60 <= h && h < 120) {
+                r = x; g = c; b = 0;
+            } else if (120 <= h && h < 180) {
+                r = 0; g = c; b = x;
+            } else if (180 <= h && h < 240) {
+                r = 0; g = x; b = c;
+            } else if (240 <= h && h < 300) {
+                r = x; g = 0; b = c;
+            } else if (300 <= h && h < 360) {
+                r = c; g = 0; b = x;
+            }
+            
+            return [r + m, g + m, b + m, 1];
+        }
+        
+        function createExplosion(x, y, intensity = 50) {
+            if (gameState.energy <= 0) return;
+            
+            gameState.energy = Math.max(0, gameState.energy - 5);
+            gameState.explosionCount++;
+            
+            for (let i = 0; i < intensity; i++) {
+                const angle = (Math.PI * 2 * i) / intensity + Math.random() * 0.2;
+                const speed = Math.random() * 5 + 1;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                
+                const color = colorSchemes[gameState.mode](i);
+                const life = Math.random() * 60 + 30;
+                const size = Math.random() * 8 + 2;
+                
+                gameState.particles.push(new Particle(x, y, vx, vy, color, life, size));
+            }
+            
+            // Create secondary explosions for some modes
+            if (gameState.mode === 2 || gameState.mode === 3) {
+                setTimeout(() => {
+                    if (Math.random() < 0.3) {
+                        const offsetX = (Math.random() - 0.5) * 100;
+                        const offsetY = (Math.random() - 0.5) * 100;
+                        createExplosion(x + offsetX, y + offsetY, intensity * 0.5);
+                    }
+                }, Math.random() * 500 + 200);
+            }
+        }
+        
+        function updateParticles() {
+            gameState.particles = gameState.particles.filter(particle => particle.update());
+            
+            // Regenerate energy
+            if (gameState.energy < 100) {
+                gameState.energy = Math.min(100, gameState.energy + 0.2);
+            }
+        }
+        
+        function render() {
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            gl.clearColor(0.02, 0.05, 0.15, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            if (gameState.particles.length === 0) return;
+            
+            gl.useProgram(program);
+            gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+            
+            const positions = [];
+            const colors = [];
+            const sizes = [];
+            
+            gameState.particles.forEach(particle => {
+                positions.push(particle.x, particle.y);
+                colors.push(...particle.color);
+                sizes.push(particle.size);
+            });
+            
+            // Position buffer
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+            gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionAttributeLocation);
+            
+            // Color buffer
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+            gl.vertexAttribPointer(colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(colorAttributeLocation);
+            
+            // Size buffer
+            gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sizes), gl.DYNAMIC_DRAW);
+            gl.vertexAttribPointer(sizeAttributeLocation, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(sizeAttributeLocation);
+            
+            gl.drawArrays(gl.POINTS, 0, gameState.particles.length);
+        }
+        
+        function gameLoop() {
+            updateParticles();
+            render();
+            
+            // Auto explosion
+            if (gameState.autoExplosion && Math.random() < 0.05) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                createExplosion(x, y, 30);
+            }
+            
+            // Update UI
+            document.getElementById('explosionCount').textContent = gameState.explosionCount;
+            document.getElementById('energy').textContent = Math.floor(gameState.energy);
+            document.getElementById('currentMode').textContent = gameState.modes[gameState.mode];
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            gameState.mouseDown = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            createExplosion(x, y);
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            gameState.mouseDown = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameState.mouseDown) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                if (Math.random() < 0.3) {
+                    createExplosion(x, y, 20);
+                }
+            }
+        });
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            createExplosion(x, y);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            if (Math.random() < 0.3) {
+                createExplosion(x, y, 20);
+            }
+        });
+        
+        // Control functions
+        function changeMode() {
+            gameState.mode = (gameState.mode + 1) % gameState.modes.length;
+        }
+        
+        function clearParticles() {
+            gameState.particles = [];
+        }
+        
+        function toggleAutoExplosion() {
+            gameState.autoExplosion = !gameState.autoExplosion;
+        }
+        
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>

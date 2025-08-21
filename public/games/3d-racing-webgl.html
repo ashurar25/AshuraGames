@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Racing WebGL - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 1000px;
+            height: 700px;
+            border: 3px solid #ff4444;
+            border-radius: 15px;
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #228B22 100%);
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        #speedometer {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(255,68,68,0.2) 100%);
+            border: 3px solid #ff4444;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
+        #minimap {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            z-index: 10;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        .boost-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .boost-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.5);
+        }
+        
+        .boost-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        
+        .collision {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div>🏁 ระยะทาง: <span id="distance">0</span> ม.</div>
+            <div>🏆 คะแนน: <span id="score">0</span></div>
+            <div>⚡ เวลา: <span id="time">0</span> วิ</div>
+            <div>🚗 รถที่แซง: <span id="overtaken">0</span></div>
+        </div>
+        <div id="speedometer">
+            <div style="font-size: 24px;" id="speedValue">0</div>
+            <div style="font-size: 12px;">KM/H</div>
+            <div style="font-size: 10px; margin-top: 5px;">
+                เกียร์: <span id="gear">1</span>
+            </div>
+        </div>
+        <canvas id="minimap"></canvas>
+        <div id="controls">
+            🎮 W/S: เร่ง/เบรก<br>
+            A/D: หักซ้าย/ขวา<br>
+            Space: ใช้บูสเตอร์
+        </div>
+        <button class="boost-btn" id="boostBtn" onclick="activateBoost()">
+            🚀 บูสเตอร์ (<span id="boostCount">3</span>)
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+        const minimap = document.getElementById('minimap');
+        const minimapCtx = minimap.getContext('2d');
+        
+        if (!gl) {
+            alert('WebGL is not supported');
+        }
+        
+        canvas.width = 1000;
+        canvas.height = 700;
+        minimap.width = 150;
+        minimap.height = 150;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        
+        // Game state
+        let gameState = {
+            playerX: 0,
+            playerY: 0,
+            playerZ: 0,
+            speed: 0,
+            maxSpeed: 15,
+            acceleration: 0.5,
+            friction: 0.95,
+            turning: 0,
+            distance: 0,
+            score: 0,
+            time: 0,
+            overtaken: 0,
+            cars: [],
+            roadSegments: [],
+            boostCount: 3,
+            boosting: false,
+            boostTimer: 0,
+            gear: 1,
+            cameraHeight: 2,
+            roadWidth: 2000,
+            running: true
+        };
+        
+        // Road and car generation
+        function generateRoad() {
+            for (let i = 0; i < 1000; i++) {
+                const z = i * 100;
+                const curve = Math.sin(i * 0.02) * 500;
+                const hill = Math.sin(i * 0.01) * 200;
+                
+                gameState.roadSegments.push({
+                    z: z,
+                    x: curve,
+                    y: hill,
+                    width: gameState.roadWidth + Math.sin(i * 0.05) * 200
+                });
+            }
+        }
+        
+        function generateCars() {
+            for (let i = 0; i < 50; i++) {
+                gameState.cars.push({
+                    x: (Math.random() - 0.5) * 1000,
+                    y: 0,
+                    z: Math.random() * 50000 + 1000,
+                    speed: Math.random() * 3 + 1,
+                    lane: Math.floor(Math.random() * 3) - 1, // -1, 0, 1
+                    color: [Math.random(), Math.random(), Math.random()],
+                    passed: false
+                });
+            }
+        }
+        
+        // WebGL shaders
+        const vertexShaderSource = `
+            attribute vec3 a_position;
+            attribute vec3 a_color;
+            uniform mat4 u_matrix;
+            varying vec3 v_color;
+            
+            void main() {
+                gl_Position = u_matrix * vec4(a_position, 1.0);
+                v_color = a_color;
+            }
+        `;
+        
+        const fragmentShaderSource = `
+            precision mediump float;
+            varying vec3 v_color;
+            
+            void main() {
+                gl_FragColor = vec4(v_color, 1.0);
+            }
+        `;
+        
+        // Matrix operations
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Error compiling shader:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        function createProgram(gl, vertexShader, fragmentShader) {
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Error linking program:', gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                return null;
+            }
+            
+            return program;
+        }
+        
+        function multiplyMatrices(a, b) {
+            const result = new Array(16);
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    result[i * 4 + j] = 0;
+                    for (let k = 0; k < 4; k++) {
+                        result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+                    }
+                }
+            }
+            return result;
+        }
+        
+        function perspectiveMatrix(fov, aspect, near, far) {
+            const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
+            const rangeInv = 1.0 / (near - far);
+            
+            return [
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (near + far) * rangeInv, -1,
+                0, 0, near * far * rangeInv * 2, 0
+            ];
+        }
+        
+        function translationMatrix(tx, ty, tz) {
+            return [
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                tx, ty, tz, 1
+            ];
+        }
+        
+        function rotationYMatrix(angle) {
+            const c = Math.cos(angle);
+            const s = Math.sin(angle);
+            return [
+                c, 0, s, 0,
+                0, 1, 0, 0,
+                -s, 0, c, 0,
+                0, 0, 0, 1
+            ];
+        }
+        
+        function scaleMatrix(sx, sy, sz) {
+            return [
+                sx, 0, 0, 0,
+                0, sy, 0, 0,
+                0, 0, sz, 0,
+                0, 0, 0, 1
+            ];
+        }
+        
+        // Initialize WebGL
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const program = createProgram(gl, vertexShader, fragmentShader);
+        
+        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+        const colorAttributeLocation = gl.getAttribLocation(program, 'a_color');
+        const matrixUniformLocation = gl.getUniformLocation(program, 'u_matrix');
+        
+        // Create car geometry
+        function createCarGeometry() {
+            const positions = [
+                // Car body
+                -0.5, 0, 1,   0.5, 0, 1,   0.5, 0.5, 1,  -0.5, 0.5, 1,   // Front
+                -0.5, 0, -1,  -0.5, 0.5, -1,  0.5, 0.5, -1,  0.5, 0, -1,  // Back
+                -0.5, 0.5, 1,  0.5, 0.5, 1,  0.5, 0.5, -1,  -0.5, 0.5, -1, // Top
+                -0.5, 0, 1,   -0.5, 0.5, 1,  -0.5, 0.5, -1,  -0.5, 0, -1,  // Left
+                0.5, 0, 1,    0.5, 0, -1,   0.5, 0.5, -1,   0.5, 0.5, 1    // Right
+            ];
+            
+            const indices = [
+                0, 1, 2,  0, 2, 3,    // Front
+                4, 5, 6,  4, 6, 7,    // Back
+                8, 9, 10, 8, 10, 11,  // Top
+                12, 13, 14, 12, 14, 15, // Left
+                16, 17, 18, 16, 18, 19  // Right
+            ];
+            
+            return { positions, indices };
+        }
+        
+        // Create road segment geometry
+        function createRoadSegment(segment, nextSegment) {
+            const w = segment.width;
+            const positions = [
+                -w, segment.y, segment.z,
+                w, segment.y, segment.z,
+                w, nextSegment.y, nextSegment.z,
+                -w, nextSegment.y, nextSegment.z
+            ];
+            
+            const indices = [0, 1, 2, 0, 2, 3];
+            return { positions, indices };
+        }
+        
+        const carGeometry = createCarGeometry();
+        
+        // Create buffers
+        const carPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, carPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(carGeometry.positions), gl.STATIC_DRAW);
+        
+        const carIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, carIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(carGeometry.indices), gl.STATIC_DRAW);
+        
+        // Input handling
+        const keys = {};
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            if (e.key === ' ') {
+                e.preventDefault();
+                activateBoost();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        function activateBoost() {
+            if (gameState.boostCount > 0 && !gameState.boosting) {
+                gameState.boosting = true;
+                gameState.boostTimer = 120; // 2 seconds at 60fps
+                gameState.boostCount--;
+                
+                // Visual effect
+                document.getElementById('gameContainer').style.filter = 'hue-rotate(180deg)';
+                setTimeout(() => {
+                    document.getElementById('gameContainer').style.filter = '';
+                }, 500);
+            }
+        }
+        
+        function update() {
+            if (!gameState.running) return;
+            
+            // Handle input
+            if (keys['w'] || keys['arrowup']) {
+                gameState.speed = Math.min(gameState.maxSpeed, gameState.speed + gameState.acceleration);
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                gameState.speed = Math.max(-gameState.maxSpeed * 0.5, gameState.speed - gameState.acceleration * 2);
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                gameState.turning = Math.max(-0.1, gameState.turning - 0.02);
+            }
+            if (keys['d'] || keys['arrowright']) {
+                gameState.turning = Math.min(0.1, gameState.turning + 0.02);
+            }
+            
+            // Apply friction
+            gameState.speed *= gameState.friction;
+            gameState.turning *= 0.9;
+            
+            // Handle boost
+            if (gameState.boosting) {
+                gameState.speed *= 1.5;
+                gameState.boostTimer--;
+                if (gameState.boostTimer <= 0) {
+                    gameState.boosting = false;
+                }
+            }
+            
+            // Update player position
+            gameState.playerX += gameState.turning * gameState.speed;
+            gameState.playerZ += gameState.speed;
+            gameState.distance += Math.abs(gameState.speed);
+            
+            // Update cars
+            gameState.cars.forEach(car => {
+                car.z -= car.speed;
+                
+                // Check if player passed a car
+                if (!car.passed && car.z < gameState.playerZ && Math.abs(car.x - gameState.playerX) < 200) {
+                    car.passed = true;
+                    gameState.overtaken++;
+                    gameState.score += 100;
+                }
+                
+                // Reset cars that are too far behind
+                if (car.z < gameState.playerZ - 5000) {
+                    car.z = gameState.playerZ + Math.random() * 10000 + 2000;
+                    car.x = (Math.random() - 0.5) * 1000;
+                    car.passed = false;
+                }
+            });
+            
+            // Check collisions
+            gameState.cars.forEach(car => {
+                const distance = Math.sqrt(
+                    Math.pow(car.x - gameState.playerX, 2) +
+                    Math.pow(car.z - gameState.playerZ, 2)
+                );
+                
+                if (distance < 100) {
+                    gameState.speed *= 0.5;
+                    document.getElementById('gameContainer').classList.add('collision');
+                    setTimeout(() => {
+                        document.getElementById('gameContainer').classList.remove('collision');
+                    }, 500);
+                }
+            });
+            
+            // Update gear
+            const speedRatio = Math.abs(gameState.speed) / gameState.maxSpeed;
+            if (speedRatio < 0.2) gameState.gear = 1;
+            else if (speedRatio < 0.4) gameState.gear = 2;
+            else if (speedRatio < 0.6) gameState.gear = 3;
+            else if (speedRatio < 0.8) gameState.gear = 4;
+            else gameState.gear = 5;
+            
+            // Update time and score
+            gameState.time += 1/60;
+            gameState.score += Math.floor(Math.abs(gameState.speed));
+        }
+        
+        function render() {
+            gl.enable(gl.DEPTH_TEST);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.useProgram(program);
+            
+            // Create perspective matrix
+            const projectionMatrix = perspectiveMatrix(
+                Math.PI / 3,
+                canvas.width / canvas.height,
+                1,
+                10000
+            );
+            
+            // Create view matrix
+            const viewMatrix = multiplyMatrices(
+                translationMatrix(-gameState.playerX, -gameState.cameraHeight, -gameState.playerZ - 10),
+                rotationYMatrix(gameState.turning * 2)
+            );
+            
+            const viewProjectionMatrix = multiplyMatrices(projectionMatrix, viewMatrix);
+            
+            // Render road segments
+            for (let i = 0; i < gameState.roadSegments.length - 1; i++) {
+                const segment = gameState.roadSegments[i];
+                const nextSegment = gameState.roadSegments[i + 1];
+                
+                if (segment.z > gameState.playerZ - 1000 && segment.z < gameState.playerZ + 5000) {
+                    const roadGeometry = createRoadSegment(segment, nextSegment);
+                    
+                    // Create road color buffer
+                    const roadColors = [];
+                    const isFinishLine = Math.floor(segment.z / 1000) % 10 === 0;
+                    const color = isFinishLine ? [1, 1, 1] : [0.3, 0.3, 0.3];
+                    
+                    for (let j = 0; j < 4; j++) {
+                        roadColors.push(...color);
+                    }
+                    
+                    const roadColorBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, roadColorBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(roadColors), gl.STATIC_DRAW);
+                    
+                    const roadPositionBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, roadPositionBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(roadGeometry.positions), gl.STATIC_DRAW);
+                    
+                    const roadIndexBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, roadIndexBuffer);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(roadGeometry.indices), gl.STATIC_DRAW);
+                    
+                    // Position
+                    gl.bindBuffer(gl.ARRAY_BUFFER, roadPositionBuffer);
+                    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(positionAttributeLocation);
+                    
+                    // Color
+                    gl.bindBuffer(gl.ARRAY_BUFFER, roadColorBuffer);
+                    gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(colorAttributeLocation);
+                    
+                    gl.uniformMatrix4fv(matrixUniformLocation, false, viewProjectionMatrix);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, roadIndexBuffer);
+                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+                    
+                    // Clean up
+                    gl.deleteBuffer(roadPositionBuffer);
+                    gl.deleteBuffer(roadColorBuffer);
+                    gl.deleteBuffer(roadIndexBuffer);
+                }
+            }
+            
+            // Render cars
+            gameState.cars.forEach(car => {
+                if (car.z > gameState.playerZ - 500 && car.z < gameState.playerZ + 2000) {
+                    const carMatrix = multiplyMatrices(
+                        viewProjectionMatrix,
+                        multiplyMatrices(
+                            translationMatrix(car.x, car.y, car.z),
+                            scaleMatrix(50, 30, 100)
+                        )
+                    );
+                    
+                    // Create car color buffer
+                    const carColors = [];
+                    for (let i = 0; i < 20; i++) {
+                        carColors.push(...car.color);
+                    }
+                    
+                    const carColorBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, carColorBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(carColors), gl.STATIC_DRAW);
+                    
+                    // Position
+                    gl.bindBuffer(gl.ARRAY_BUFFER, carPositionBuffer);
+                    gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(positionAttributeLocation);
+                    
+                    // Color
+                    gl.bindBuffer(gl.ARRAY_BUFFER, carColorBuffer);
+                    gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(colorAttributeLocation);
+                    
+                    gl.uniformMatrix4fv(matrixUniformLocation, false, carMatrix);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, carIndexBuffer);
+                    gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_SHORT, 0);
+                    
+                    gl.deleteBuffer(carColorBuffer);
+                }
+            });
+            
+            // Render player car
+            const playerMatrix = multiplyMatrices(
+                viewProjectionMatrix,
+                multiplyMatrices(
+                    translationMatrix(gameState.playerX, gameState.playerY, gameState.playerZ),
+                    multiplyMatrices(
+                        rotationYMatrix(gameState.turning),
+                        scaleMatrix(50, 30, 100)
+                    )
+                )
+            );
+            
+            const playerColors = [];
+            for (let i = 0; i < 20; i++) {
+                if (gameState.boosting) {
+                    playerColors.push(1, 0.5, 0); // Orange when boosting
+                } else {
+                    playerColors.push(1, 0, 0); // Red normally
+                }
+            }
+            
+            const playerColorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, playerColorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(playerColors), gl.STATIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, carPositionBuffer);
+            gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionAttributeLocation);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, playerColorBuffer);
+            gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(colorAttributeLocation);
+            
+            gl.uniformMatrix4fv(matrixUniformLocation, false, playerMatrix);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, carIndexBuffer);
+            gl.drawElements(gl.TRIANGLES, 30, gl.UNSIGNED_SHORT, 0);
+            
+            gl.deleteBuffer(playerColorBuffer);
+        }
+        
+        function renderMinimap() {
+            minimapCtx.clearRect(0, 0, minimap.width, minimap.height);
+            minimapCtx.fillStyle = 'rgba(0, 100, 0, 0.8)';
+            minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
+            
+            // Draw road
+            minimapCtx.strokeStyle = '#444';
+            minimapCtx.lineWidth = 20;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(minimap.width / 2, minimap.height);
+            minimapCtx.lineTo(minimap.width / 2, 0);
+            minimapCtx.stroke();
+            
+            // Draw player
+            minimapCtx.fillStyle = 'red';
+            minimapCtx.fillRect(minimap.width / 2 - 2, minimap.height / 2 - 2, 4, 4);
+            
+            // Draw nearby cars
+            gameState.cars.forEach(car => {
+                if (Math.abs(car.z - gameState.playerZ) < 1000) {
+                    const relativeZ = (car.z - gameState.playerZ) / 1000;
+                    const y = minimap.height / 2 - relativeZ * minimap.height / 2;
+                    
+                    if (y >= 0 && y <= minimap.height) {
+                        minimapCtx.fillStyle = 'yellow';
+                        minimapCtx.fillRect(minimap.width / 2 - 1, y - 1, 2, 2);
+                    }
+                }
+            });
+        }
+        
+        function gameLoop() {
+            if (gameState.running) {
+                update();
+                render();
+                renderMinimap();
+                
+                // Update UI
+                document.getElementById('distance').textContent = Math.floor(gameState.distance);
+                document.getElementById('score').textContent = gameState.score;
+                document.getElementById('time').textContent = gameState.time.toFixed(1);
+                document.getElementById('overtaken').textContent = gameState.overtaken;
+                document.getElementById('speedValue').textContent = Math.floor(Math.abs(gameState.speed) * 10);
+                document.getElementById('gear').textContent = gameState.gear;
+                document.getElementById('boostCount').textContent = gameState.boostCount;
+                
+                const boostBtn = document.getElementById('boostBtn');
+                boostBtn.disabled = gameState.boostCount === 0 || gameState.boosting;
+                
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // Initialize game
+        generateRoad();
+        generateCars();
+        gl.clearColor(0.5, 0.8, 1.0, 1.0);
+        gameLoop();
+    </script>
+</body>
+</html>

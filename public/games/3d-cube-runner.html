@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Cube Runner - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            z-index: 10;
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 20;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div>คะแนน: <span id="score">0</span></div>
+            <div>ความเร็ว: <span id="speed">1</span></div>
+        </div>
+        <div id="gameOver">
+            <h2>🎮 เกมจบแล้ว!</h2>
+            <p>คะแนนของคุณ: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">🔄 เล่นใหม่</button>
+        </div>
+        <div id="instructions">
+            <p>🎯 ใช้ A/D หรือ ←/→ เพื่อหลบสิ่งกีดขวาง | Space เพื่อกระโดด</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+        
+        if (!gl) {
+            alert('WebGL not supported');
+        }
+        
+        // Set canvas size
+        canvas.width = 800;
+        canvas.height = 600;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        
+        // Game state
+        let gameState = {
+            running: true,
+            score: 0,
+            speed: 1,
+            playerX: 0,
+            playerY: 0,
+            playerZ: 0,
+            jumping: false,
+            jumpVelocity: 0,
+            obstacles: [],
+            particles: []
+        };
+        
+        // Shader sources
+        const vertexShaderSource = `
+            attribute vec3 a_position;
+            attribute vec3 a_color;
+            uniform mat4 u_matrix;
+            varying vec3 v_color;
+            
+            void main() {
+                gl_Position = u_matrix * vec4(a_position, 1.0);
+                v_color = a_color;
+            }
+        `;
+        
+        const fragmentShaderSource = `
+            precision mediump float;
+            varying vec3 v_color;
+            
+            void main() {
+                gl_FragColor = vec4(v_color, 1.0);
+            }
+        `;
+        
+        // Create shader
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Error compiling shader:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        // Create program
+        function createProgram(gl, vertexShader, fragmentShader) {
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Error linking program:', gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                return null;
+            }
+            
+            return program;
+        }
+        
+        // Matrix operations
+        function multiplyMatrices(a, b) {
+            const result = new Array(16);
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    result[i * 4 + j] = 0;
+                    for (let k = 0; k < 4; k++) {
+                        result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+                    }
+                }
+            }
+            return result;
+        }
+        
+        function perspectiveMatrix(fov, aspect, near, far) {
+            const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
+            const rangeInv = 1.0 / (near - far);
+            
+            return [
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (near + far) * rangeInv, -1,
+                0, 0, near * far * rangeInv * 2, 0
+            ];
+        }
+        
+        function translationMatrix(tx, ty, tz) {
+            return [
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                tx, ty, tz, 1
+            ];
+        }
+        
+        // Initialize WebGL
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const program = createProgram(gl, vertexShader, fragmentShader);
+        
+        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+        const colorAttributeLocation = gl.getAttribLocation(program, 'a_color');
+        const matrixUniformLocation = gl.getUniformLocation(program, 'u_matrix');
+        
+        // Create cube geometry
+        function createCube(size = 1) {
+            const positions = [
+                // Front face
+                -size, -size,  size,  size, -size,  size,  size,  size,  size, -size,  size,  size,
+                // Back face
+                -size, -size, -size, -size,  size, -size,  size,  size, -size,  size, -size, -size,
+                // Top face
+                -size,  size, -size, -size,  size,  size,  size,  size,  size,  size,  size, -size,
+                // Bottom face
+                -size, -size, -size,  size, -size, -size,  size, -size,  size, -size, -size,  size,
+                // Right face
+                 size, -size, -size,  size,  size, -size,  size,  size,  size,  size, -size,  size,
+                // Left face
+                -size, -size, -size, -size, -size,  size, -size,  size,  size, -size,  size, -size
+            ];
+            
+            const indices = [
+                0,  1,  2,    0,  2,  3,    // front
+                4,  5,  6,    4,  6,  7,    // back
+                8,  9,  10,   8,  10, 11,   // top
+                12, 13, 14,   12, 14, 15,   // bottom
+                16, 17, 18,   16, 18, 19,   // right
+                20, 21, 22,   20, 22, 23    // left
+            ];
+            
+            return { positions, indices };
+        }
+        
+        // Create buffers
+        const cubeGeometry = createCube(0.5);
+        
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeGeometry.positions), gl.STATIC_DRAW);
+        
+        const indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeGeometry.indices), gl.STATIC_DRAW);
+        
+        // Create color buffer for player (rainbow colors)
+        const playerColors = [];
+        for (let i = 0; i < 24; i++) {
+            const hue = (i / 24) * 360;
+            const rgb = hslToRgb(hue, 100, 50);
+            playerColors.push(rgb.r / 255, rgb.g / 255, rgb.b / 255);
+        }
+        
+        const playerColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, playerColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(playerColors), gl.STATIC_DRAW);
+        
+        // HSL to RGB conversion
+        function hslToRgb(h, s, l) {
+            s /= 100;
+            l /= 100;
+            const c = (1 - Math.abs(2 * l - 1)) * s;
+            const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+            const m = l - c / 2;
+            let r = 0, g = 0, b = 0;
+            
+            if (0 <= h && h < 60) {
+                r = c; g = x; b = 0;
+            } else if (60 <= h && h < 120) {
+                r = x; g = c; b = 0;
+            } else if (120 <= h && h < 180) {
+                r = 0; g = c; b = x;
+            } else if (180 <= h && h < 240) {
+                r = 0; g = x; b = c;
+            } else if (240 <= h && h < 300) {
+                r = x; g = 0; b = c;
+            } else if (300 <= h && h < 360) {
+                r = c; g = 0; b = x;
+            }
+            
+            return {
+                r: Math.round((r + m) * 255),
+                g: Math.round((g + m) * 255),
+                b: Math.round((b + m) * 255)
+            };
+        }
+        
+        // Obstacle management
+        function createObstacle(x, z) {
+            return {
+                x: x,
+                y: 0,
+                z: z,
+                size: 0.5,
+                color: [Math.random(), Math.random(), Math.random()]
+            };
+        }
+        
+        function updateObstacles() {
+            // Remove obstacles that are behind the player
+            gameState.obstacles = gameState.obstacles.filter(obs => obs.z > gameState.playerZ - 10);
+            
+            // Add new obstacles
+            while (gameState.obstacles.length < 10) {
+                const lastZ = gameState.obstacles.length > 0 ? 
+                    Math.max(...gameState.obstacles.map(o => o.z)) : gameState.playerZ;
+                const newZ = lastZ + 5 + Math.random() * 10;
+                const x = (Math.random() - 0.5) * 8;
+                gameState.obstacles.push(createObstacle(x, newZ));
+            }
+        }
+        
+        // Collision detection
+        function checkCollisions() {
+            const playerBounds = {
+                x: gameState.playerX,
+                y: gameState.playerY,
+                z: gameState.playerZ,
+                size: 0.5
+            };
+            
+            for (let obstacle of gameState.obstacles) {
+                const distance = Math.sqrt(
+                    Math.pow(playerBounds.x - obstacle.x, 2) +
+                    Math.pow(playerBounds.y - obstacle.y, 2) +
+                    Math.pow(playerBounds.z - obstacle.z, 2)
+                );
+                
+                if (distance < playerBounds.size + obstacle.size) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Input handling
+        const keys = {};
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                if (!gameState.jumping) {
+                    gameState.jumping = true;
+                    gameState.jumpVelocity = 0.3;
+                }
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Game loop
+        function update() {
+            if (!gameState.running) return;
+            
+            // Player movement
+            if (keys['a'] || keys['arrowleft']) {
+                gameState.playerX -= 0.1;
+            }
+            if (keys['d'] || keys['arrowright']) {
+                gameState.playerX += 0.1;
+            }
+            
+            // Limit player movement
+            gameState.playerX = Math.max(-4, Math.min(4, gameState.playerX));
+            
+            // Jumping
+            if (gameState.jumping) {
+                gameState.playerY += gameState.jumpVelocity;
+                gameState.jumpVelocity -= 0.02; // gravity
+                
+                if (gameState.playerY <= 0) {
+                    gameState.playerY = 0;
+                    gameState.jumping = false;
+                    gameState.jumpVelocity = 0;
+                }
+            }
+            
+            // Move forward
+            gameState.playerZ += gameState.speed * 0.1;
+            
+            // Update obstacles
+            updateObstacles();
+            
+            // Check collisions
+            if (checkCollisions()) {
+                gameOver();
+                return;
+            }
+            
+            // Update score and speed
+            gameState.score += Math.floor(gameState.speed);
+            gameState.speed += 0.001;
+            
+            // Update UI
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('speed').textContent = gameState.speed.toFixed(1);
+        }
+        
+        function drawCube(matrix, colorBuffer) {
+            // Position
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionAttributeLocation);
+            
+            // Color
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(colorAttributeLocation);
+            
+            // Draw
+            gl.uniformMatrix4fv(matrixUniformLocation, false, matrix);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+        }
+        
+        function render() {
+            gl.enable(gl.DEPTH_TEST);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.useProgram(program);
+            
+            // Create perspective matrix
+            const projectionMatrix = perspectiveMatrix(
+                Math.PI / 4, // 45 degrees
+                canvas.width / canvas.height,
+                0.1,
+                100
+            );
+            
+            // Create view matrix (camera follows player)
+            const viewMatrix = translationMatrix(
+                -gameState.playerX,
+                -gameState.playerY - 2,
+                -gameState.playerZ - 5
+            );
+            
+            const viewProjectionMatrix = multiplyMatrices(projectionMatrix, viewMatrix);
+            
+            // Draw player
+            const playerMatrix = multiplyMatrices(
+                viewProjectionMatrix,
+                translationMatrix(gameState.playerX, gameState.playerY, gameState.playerZ)
+            );
+            drawCube(playerMatrix, playerColorBuffer);
+            
+            // Draw obstacles
+            gameState.obstacles.forEach(obstacle => {
+                // Create obstacle color buffer
+                const obstacleColors = [];
+                for (let i = 0; i < 24; i++) {
+                    obstacleColors.push(...obstacle.color);
+                }
+                
+                const obstacleColorBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, obstacleColorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(obstacleColors), gl.STATIC_DRAW);
+                
+                const obstacleMatrix = multiplyMatrices(
+                    viewProjectionMatrix,
+                    translationMatrix(obstacle.x, obstacle.y, obstacle.z)
+                );
+                drawCube(obstacleMatrix, obstacleColorBuffer);
+                
+                gl.deleteBuffer(obstacleColorBuffer);
+            });
+        }
+        
+        function gameLoop() {
+            if (gameState.running) {
+                update();
+                render();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function gameOver() {
+            gameState.running = false;
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            gameState = {
+                running: true,
+                score: 0,
+                speed: 1,
+                playerX: 0,
+                playerY: 0,
+                playerZ: 0,
+                jumping: false,
+                jumpVelocity: 0,
+                obstacles: [],
+                particles: []
+            };
+            
+            document.getElementById('gameOver').style.display = 'none';
+            gameLoop();
+        }
+        
+        // Initialize game
+        gl.clearColor(0.5, 0.8, 1.0, 1.0); // Sky blue
+        gameLoop();
+    </script>
+</body>
+</html>
