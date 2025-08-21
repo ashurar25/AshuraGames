@@ -575,7 +575,7 @@
             document.getElementById('speed').textContent = '🚀 ความเร็ว: ' + gameSpeed.toFixed(1) + 'x';
         }
 
-        function gameLoop() {
+        function gameLoop(time) {
             drawBackground();
 
             // Draw buildings
@@ -588,7 +588,7 @@
             updateGame();
 
             if (gameRunning) {
-                requestAnimationFrame(gameLoop);
+                requestAnimationFrame((time) => gameLoop(time));
             }
         }
 
@@ -634,7 +634,7 @@
             updateUI();
             document.getElementById('gameOver').style.display = 'none';
 
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame((time) => gameLoop(time));
         }
 
         // Input handling
