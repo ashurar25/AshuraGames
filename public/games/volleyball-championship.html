@@ -1,0 +1,872 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volleyball Championship - ASHURA Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial Black', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .game-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            border-radius: 15px;
+            display: block;
+            background: linear-gradient(180deg, 
+                #87CEEB 0%, 
+                #87CEEB 60%, 
+                #DEB887 60%, 
+                #CD853F 100%);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .score {
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #FFD700;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-label {
+            font-size: 16px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .control-keys {
+            font-size: 14px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .power-btn {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            border: 3px solid #fff;
+            color: white;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .power-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.6);
+            background: linear-gradient(135deg, #FF8E8E, #FFB4B4);
+        }
+
+        .power-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .power-btn.cooldown {
+            background: linear-gradient(135deg, #6B7280, #9CA3AF);
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(20, 20, 20, 0.9));
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            display: none;
+            border: 3px solid #FFD700;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #10B981, #059669);
+            border: none;
+            color: white;
+            padding: 15px 35px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 15px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 14px;
+            color: #FFD700;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .show-instructions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        @keyframes ballHit {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes playerJump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes powerShot {
+            0% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+            100% { filter: brightness(1.5) drop-shadow(0 0 20px #FFD700); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui">
+            <div class="score" id="scoreP1">0</div>
+            <div style="color: white; font-size: 24px;">⚡ วอลเลย์บอล ⚡</div>
+            <div class="score" id="scoreP2">0</div>
+        </div>
+
+        <div class="show-instructions" onclick="toggleInstructions()">❓</div>
+        
+        <div class="instructions" id="instructions">
+            <strong>🎮 วิธีเล่น:</strong><br>
+            <strong>ผู้เล่น 1:</strong> A/D เคลื่อนที่ | W กระโดด<br>
+            <strong>ผู้เล่น 2:</strong> ← → เคลื่อนที่ | ↑ กระโดด<br>
+            <strong>Power Shot:</strong> คลิกปุ่มแรง! เพื่อตีลูกแรงขึ้น
+        </div>
+
+        <canvas id="gameCanvas" width="900" height="500"></canvas>
+
+        <div class="controls">
+            <div class="player-controls">
+                <div class="player-label">👨‍🦱 ผู้เล่น 1</div>
+                <div class="control-keys">A/D เคลื่อนที่<br>W กระโดด</div>
+            </div>
+
+            <button class="power-btn" id="powerBtn" onclick="activatePowerShot()">
+                ⚡ แรง! ⚡
+            </button>
+
+            <div class="player-controls">
+                <div class="player-label">👨‍🦳 ผู้เล่น 2</div>
+                <div class="control-keys">← → เคลื่อนที่<br>↑ กระโดด</div>
+            </div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 id="winnerText">🏆 ผู้ชนะ!</h2>
+            <div style="margin: 20px 0; font-size: 18px;">
+                <div>ผลการแข่งขัน:</div>
+                <div id="finalScore" style="color: #FFD700; font-size: 24px; margin: 10px 0;"></div>
+            </div>
+            <button class="restart-btn" onclick="resetGame()">🔄 เล่นใหม่</button>
+        </div>
+    </div>
+
+    <div class="credit">© ASHURA Games</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game constants
+        const GRAVITY = 0.5;
+        const COURT_WIDTH = canvas.width;
+        const COURT_HEIGHT = canvas.height;
+        const NET_HEIGHT = 120;
+        const NET_X = COURT_WIDTH / 2;
+        const GROUND_Y = COURT_HEIGHT - 80;
+        const WIN_SCORE = 15;
+
+        // Game state
+        let gameRunning = true;
+        let scoreP1 = 0;
+        let scoreP2 = 0;
+        let powerShotActive = false;
+        let powerShotCooldown = 0;
+        let particles = [];
+
+        // Ball object
+        let ball = {
+            x: COURT_WIDTH / 2,
+            y: 200,
+            vx: Math.random() > 0.5 ? 5 : -5,
+            vy: 0,
+            radius: 15,
+            bounce: 0.8,
+            trail: []
+        };
+
+        // Player objects
+        let player1 = {
+            x: 150,
+            y: GROUND_Y - 60,
+            width: 40,
+            height: 60,
+            vx: 0,
+            vy: 0,
+            onGround: true,
+            speed: 6,
+            jumpPower: 15,
+            facing: 1,
+            animFrame: 0
+        };
+
+        let player2 = {
+            x: COURT_WIDTH - 150,
+            y: GROUND_Y - 60,
+            width: 40,
+            height: 60,
+            vx: 0,
+            vy: 0,
+            onGround: true,
+            speed: 6,
+            jumpPower: 15,
+            facing: -1,
+            animFrame: 0
+        };
+
+        // Input handling
+        let keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Particle system
+        class Particle {
+            constructor(x, y, vx, vy, color, life = 30) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = Math.random() * 5 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.1;
+                this.vx *= 0.99;
+                this.life--;
+                return this.life > 0;
+            }
+
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createParticles(x, y, count, color) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                particles.push(new Particle(
+                    x, y,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    color
+                ));
+            }
+        }
+
+        // Power shot system
+        function activatePowerShot() {
+            if (powerShotCooldown > 0) return;
+            
+            powerShotActive = true;
+            powerShotCooldown = 300; // 5 seconds at 60fps
+            
+            const btn = document.getElementById('powerBtn');
+            btn.classList.add('cooldown');
+            btn.textContent = '⏳ รอ...';
+            
+            createParticles(canvas.width / 2, canvas.height / 2, 20, '#FFD700');
+            
+            setTimeout(() => {
+                powerShotActive = false;
+            }, 180); // 3 seconds
+        }
+
+        function updatePowerShot() {
+            if (powerShotCooldown > 0) {
+                powerShotCooldown--;
+                const btn = document.getElementById('powerBtn');
+                if (powerShotCooldown === 0) {
+                    btn.classList.remove('cooldown');
+                    btn.textContent = '⚡ แรง! ⚡';
+                } else {
+                    const seconds = Math.ceil(powerShotCooldown / 60);
+                    btn.textContent = `⏳ ${seconds}s`;
+                }
+            }
+        }
+
+        // Collision detection
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function ballPlayerCollision(player) {
+            const playerRect = {
+                x: player.x - player.width / 2,
+                y: player.y - player.height,
+                width: player.width,
+                height: player.height
+            };
+
+            const ballRect = {
+                x: ball.x - ball.radius,
+                y: ball.y - ball.radius,
+                width: ball.radius * 2,
+                height: ball.radius * 2
+            };
+
+            if (checkCollision(playerRect, ballRect)) {
+                // Calculate hit direction
+                const dx = ball.x - player.x;
+                const dy = ball.y - (player.y - player.height / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < ball.radius + player.width / 2) {
+                    // Normalize direction
+                    const normalX = dx / distance;
+                    const normalY = dy / distance;
+                    
+                    // Calculate hit power
+                    let hitPower = 8;
+                    if (powerShotActive) {
+                        hitPower = 15;
+                        createParticles(ball.x, ball.y, 15, '#FF6B6B');
+                    }
+                    
+                    // Apply velocity based on player movement
+                    ball.vx = normalX * hitPower + player.vx * 0.3;
+                    ball.vy = normalY * hitPower - 3;
+                    
+                    // Prevent ball from getting stuck
+                    ball.x = player.x + normalX * (ball.radius + player.width / 2 + 1);
+                    ball.y = player.y - player.height / 2 + normalY * (ball.radius + player.width / 2 + 1);
+                    
+                    createParticles(ball.x, ball.y, 8, '#FFD700');
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Update game logic
+        function update() {
+            if (!gameRunning) return;
+            
+            updatePowerShot();
+            
+            // Update players
+            updatePlayer(player1, ['a', 'd', 'w']);
+            updatePlayer(player2, ['ArrowLeft', 'ArrowRight', 'ArrowUp']);
+            
+            // Update ball
+            updateBall();
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                return particle.life > 0;
+            });
+            
+            // Check scoring
+            checkScoring();
+        }
+
+        function updatePlayer(player, controls) {
+            // Horizontal movement
+            if (keys[controls[0]]) { // Left
+                player.vx = -player.speed;
+                player.facing = -1;
+            } else if (keys[controls[1]]) { // Right
+                player.vx = player.speed;
+                player.facing = 1;
+            } else {
+                player.vx *= 0.8; // Friction
+            }
+            
+            // Jumping
+            if (keys[controls[2]] && player.onGround) {
+                player.vy = -player.jumpPower;
+                player.onGround = false;
+            }
+            
+            // Apply gravity
+            player.vy += GRAVITY;
+            
+            // Update position
+            player.x += player.vx;
+            player.y += player.vy;
+            
+            // Ground collision
+            if (player.y >= GROUND_Y - player.height) {
+                player.y = GROUND_Y - player.height;
+                player.vy = 0;
+                player.onGround = true;
+            }
+            
+            // Keep player in bounds
+            if (player.x < player.width / 2) player.x = player.width / 2;
+            if (player.x > COURT_WIDTH - player.width / 2) player.x = COURT_WIDTH - player.width / 2;
+            
+            // Net collision
+            if (Math.abs(player.x - NET_X) < player.width / 2 + 5) {
+                if (player.x < NET_X) {
+                    player.x = NET_X - player.width / 2 - 5;
+                } else {
+                    player.x = NET_X + player.width / 2 + 5;
+                }
+                player.vx = 0;
+            }
+            
+            // Animation
+            if (Math.abs(player.vx) > 0.1) {
+                player.animFrame += 0.2;
+            }
+        }
+
+        function updateBall() {
+            // Apply gravity
+            ball.vy += GRAVITY * 0.6;
+            
+            // Update position
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            
+            // Ball trail
+            ball.trail.push({x: ball.x, y: ball.y, life: 20});
+            ball.trail = ball.trail.filter(t => {
+                t.life--;
+                return t.life > 0;
+            });
+            if (ball.trail.length > 10) ball.trail.shift();
+            
+            // Ground bounce
+            if (ball.y + ball.radius >= GROUND_Y) {
+                ball.y = GROUND_Y - ball.radius;
+                ball.vy *= -ball.bounce;
+                ball.vx *= 0.9;
+                createParticles(ball.x, ball.y, 5, '#DEB887');
+            }
+            
+            // Side walls
+            if (ball.x - ball.radius <= 0 || ball.x + ball.radius >= COURT_WIDTH) {
+                ball.vx *= -0.8;
+                ball.x = ball.x - ball.radius <= 0 ? ball.radius : COURT_WIDTH - ball.radius;
+            }
+            
+            // Net collision
+            if (Math.abs(ball.x - NET_X) < ball.radius + 5 && 
+                ball.y + ball.radius >= GROUND_Y - NET_HEIGHT) {
+                ball.vx *= -0.8;
+                ball.x = ball.x < NET_X ? NET_X - ball.radius - 5 : NET_X + ball.radius + 5;
+                createParticles(ball.x, ball.y, 5, '#FFFFFF');
+            }
+            
+            // Player collisions
+            ballPlayerCollision(player1);
+            ballPlayerCollision(player2);
+        }
+
+        function checkScoring() {
+            if (ball.y > GROUND_Y + 50) { // Ball is clearly out of bounds
+                if (ball.x < NET_X) {
+                    scoreP2++;
+                    resetBallServe(1);
+                } else {
+                    scoreP1++;
+                    resetBallServe(-1);
+                }
+                
+                updateScore();
+                
+                if (scoreP1 >= WIN_SCORE || scoreP2 >= WIN_SCORE) {
+                    endGame();
+                }
+            }
+        }
+
+        function resetBallServe(direction) {
+            ball.x = NET_X + direction * 100;
+            ball.y = 150;
+            ball.vx = direction * (3 + Math.random() * 3);
+            ball.vy = -2;
+            ball.trail = [];
+            
+            createParticles(ball.x, ball.y, 10, '#87CEEB');
+        }
+
+        function updateScore() {
+            document.getElementById('scoreP1').textContent = scoreP1;
+            document.getElementById('scoreP2').textContent = scoreP2;
+        }
+
+        function endGame() {
+            gameRunning = false;
+            const winner = scoreP1 >= WIN_SCORE ? 'ผู้เล่น 1 👨‍🦱' : 'ผู้เล่น 2 👨‍🦳';
+            document.getElementById('winnerText').textContent = `🏆 ${winner} ชนะ!`;
+            document.getElementById('finalScore').textContent = `${scoreP1} - ${scoreP2}`;
+            document.getElementById('gameOver').style.display = 'block';
+            
+            // Victory particles
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createParticles(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height / 2,
+                        5, '#FFD700'
+                    );
+                }, i * 100);
+            }
+        }
+
+        function resetGame() {
+            scoreP1 = 0;
+            scoreP2 = 0;
+            gameRunning = true;
+            powerShotActive = false;
+            powerShotCooldown = 0;
+            particles = [];
+            
+            // Reset positions
+            player1.x = 150;
+            player1.y = GROUND_Y - 60;
+            player1.vx = 0;
+            player1.vy = 0;
+            player1.onGround = true;
+            
+            player2.x = COURT_WIDTH - 150;
+            player2.y = GROUND_Y - 60;
+            player2.vx = 0;
+            player2.vy = 0;
+            player2.onGround = true;
+            
+            ball.x = COURT_WIDTH / 2;
+            ball.y = 200;
+            ball.vx = Math.random() > 0.5 ? 5 : -5;
+            ball.vy = 0;
+            ball.trail = [];
+            
+            updateScore();
+            document.getElementById('gameOver').style.display = 'none';
+            
+            const btn = document.getElementById('powerBtn');
+            btn.classList.remove('cooldown');
+            btn.textContent = '⚡ แรง! ⚡';
+        }
+
+        function toggleInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' || 
+                                       instructions.style.display === '' ? 'block' : 'none';
+        }
+
+        // Drawing functions
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, COURT_WIDTH, COURT_HEIGHT);
+            
+            drawCourt();
+            drawNet();
+            drawBall();
+            drawPlayers();
+            drawParticles();
+        }
+
+        function drawCourt() {
+            // Sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(1, '#98FB98');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, COURT_WIDTH, GROUND_Y);
+            
+            // Ground
+            const groundGradient = ctx.createLinearGradient(0, GROUND_Y, 0, COURT_HEIGHT);
+            groundGradient.addColorStop(0, '#DEB887');
+            groundGradient.addColorStop(1, '#CD853F');
+            ctx.fillStyle = groundGradient;
+            ctx.fillRect(0, GROUND_Y, COURT_WIDTH, COURT_HEIGHT - GROUND_Y);
+            
+            // Court lines
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(COURT_WIDTH, GROUND_Y);
+            ctx.moveTo(NET_X, GROUND_Y);
+            ctx.lineTo(NET_X, GROUND_Y - NET_HEIGHT);
+            ctx.stroke();
+        }
+
+        function drawNet() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(NET_X - 2, GROUND_Y - NET_HEIGHT, 4, NET_HEIGHT);
+            
+            // Net pattern
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 1;
+            for (let y = GROUND_Y - NET_HEIGHT; y < GROUND_Y; y += 10) {
+                ctx.beginPath();
+                ctx.moveTo(NET_X - 15, y);
+                ctx.lineTo(NET_X + 15, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawBall() {
+            // Ball trail
+            ball.trail.forEach((t, index) => {
+                const alpha = (t.life / 20) * 0.5;
+                const size = ball.radius * (alpha + 0.3);
+                
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // Main ball
+            const gradient = ctx.createRadialGradient(ball.x - 5, ball.y - 5, 0, ball.x, ball.y, ball.radius);
+            gradient.addColorStop(0, '#FFFFFF');
+            gradient.addColorStop(0.3, '#FFD700');
+            gradient.addColorStop(1, '#FFA500');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ball pattern
+            ctx.strokeStyle = '#FF6B6B';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius * 0.7, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Power shot effect
+            if (powerShotActive) {
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius + 5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function drawPlayers() {
+            drawPlayer(player1, '#4A90E2');
+            drawPlayer(player2, '#E24A4A');
+        }
+
+        function drawPlayer(player, color) {
+            ctx.save();
+            ctx.translate(player.x, player.y - player.height / 2);
+            
+            // Player shadow
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#000';
+            ctx.scale(1, 0.3);
+            ctx.translate(0, player.height * 1.5);
+            drawPlayerShape(player, '#000');
+            ctx.restore();
+            
+            // Main player
+            drawPlayerShape(player, color);
+            
+            ctx.restore();
+        }
+
+        function drawPlayerShape(player, color) {
+            const animOffset = Math.sin(player.animFrame) * 3;
+            
+            // Body
+            ctx.fillStyle = color;
+            ctx.fillRect(-player.width / 2, -player.height / 2, player.width, player.height * 0.6);
+            
+            // Head
+            const headGradient = ctx.createRadialGradient(0, -player.height * 0.7, 0, 0, -player.height * 0.7, 15);
+            headGradient.addColorStop(0, '#FFDBAC');
+            headGradient.addColorStop(1, '#F4C2A1');
+            ctx.fillStyle = headGradient;
+            ctx.beginPath();
+            ctx.arc(0, -player.height * 0.7, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Arms
+            ctx.fillStyle = color;
+            ctx.fillRect(-player.width / 2 - 8, -player.height / 3 + animOffset, 8, 20);
+            ctx.fillRect(player.width / 2, -player.height / 3 - animOffset, 8, 20);
+            
+            // Legs
+            ctx.fillRect(-10, player.height * 0.1 + animOffset, 8, 25);
+            ctx.fillRect(2, player.height * 0.1 - animOffset, 8, 25);
+            
+            // Eyes
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(-4 * player.facing, -player.height * 0.7 - 2, 2, 0, Math.PI * 2);
+            ctx.arc(4 * player.facing, -player.height * 0.7 - 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(-4 * player.facing, -player.height * 0.7 - 2, 1, 0, Math.PI * 2);
+            ctx.arc(4 * player.facing, -player.height * 0.7 - 2, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => particle.draw());
+        }
+
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start game
+        updateScore();
+        gameLoop();
+    </script>
+</body>
+</html>
