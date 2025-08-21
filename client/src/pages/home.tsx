@@ -72,15 +72,15 @@ export default function Home() {
         <section className="container mx-auto px-4 py-12" data-testid="section-hero">
           <div className="text-center mb-12">
             <h2 className="text-5xl md:text-7xl font-bold text-white mb-4 animate-slide-up">
-              Play <span className="text-transparent bg-clip-text mint-gradient">Amazing</span> Games
+              เล่น<span className="text-transparent bg-clip-text mint-gradient">เกมส์</span>สุดมันส์
             </h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto animate-slide-up">
-              Discover thousands of free HTML5 games. No downloads, no registration required. Just click and play!
+              ค้นพบเกมส์ HTML5 ฟรีนับพันเกมส์ ไม่ต้องดาวน์โหลด ไม่ต้องสมัครสมาชิก แค่คลิกและเล่นได้เลย!
             </p>
             <div className="flex flex-wrap justify-center gap-3 animate-slide-up">
-              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">🎮 2000+ Games</span>
-              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">⚡ Instant Play</span>
-              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">📱 Mobile Friendly</span>
+              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">🎮 มากกว่า 2000 เกมส์</span>
+              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">⚡ เล่นได้ทันที</span>
+              <span className="glass px-4 py-2 rounded-full text-mint-300 text-sm border-mint-500/30">📱 รองรับมือถือ</span>
             </div>
           </div>
         </section>
