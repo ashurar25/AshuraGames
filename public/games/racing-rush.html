@@ -208,24 +208,25 @@
 
         // ตรวจสอบการชน
         function checkCollisions() {
-            const carLeft = car.x;
-            const carRight = car.x + car.width;
-            const carTop = car.y;
-            const carBottom = car.y + car.height;
+            const carLeft = car.x + 5;
+            const carRight = car.x + car.width - 5;
+            const carTop = car.y + 5;
+            const carBottom = car.y + car.height - 5;
 
             for (let i = 0; i < otherCars.length; i++) {
                 const other = otherCars[i];
-                const otherLeft = other.x;
-                const otherRight = other.x + other.width;
-                const otherTop = other.y;
-                const otherBottom = other.y + other.height;
+                const otherLeft = other.x + 5;
+                const otherRight = other.x + other.width - 5;
+                const otherTop = other.y + 5;
+                const otherBottom = other.y + other.height - 5;
 
                 if (carLeft < otherRight && carRight > otherLeft &&
                     carTop < otherBottom && carBottom > otherTop) {
-                    // ชน!
+                    // ชน! - ใช้ confirm แทน alert
                     gameSpeed = 0;
-                    alert('อุบัติเหตุ! คะแนน: ' + score);
-                    resetGame();
+                    if (confirm('อุบัติเหตุ! คะแนน: ' + score + '\nคลิก OK เพื่อเล่นใหม่')) {
+                        resetGame();
+                    }
                     return true;
                 }
             }
@@ -310,8 +311,19 @@
             document.getElementById('score').textContent = score;
         }
 
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
         // ลูปเกม
-        function gameLoop() {
+        function gameLoop(currentTime) {
+            // Frame rate control
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
             update();
             draw();
             requestAnimationFrame(gameLoop);
@@ -378,7 +390,7 @@
         });
 
         // เริ่มเกม
-        gameLoop();
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>

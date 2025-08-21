@@ -179,7 +179,18 @@
             }
         }
 
-        function drawGame() {
+        let lastTime = 0;
+        
+        function drawGame(currentTime) {
+            // Frame rate control
+            if (currentTime - lastTime < gameSpeed) {
+                if (gameRunning) {
+                    requestAnimationFrame(drawGame);
+                }
+                return;
+            }
+            lastTime = currentTime;
+
             clearCanvas();
             updateParticles();
             drawTrail();
@@ -188,11 +199,9 @@
             if (specialFood) drawSpecialFood();
 
             if (gameRunning) {
-                setTimeout(() => {
-                    moveSnake();
-                    checkCollision();
-                    requestAnimationFrame(drawGame);
-                }, gameSpeed);
+                moveSnake();
+                checkCollision();
+                requestAnimationFrame(drawGame);
             }
         }
 

@@ -910,7 +910,7 @@
             document.getElementById('multiplier').textContent = '✨ คูณ: x' + multiplier;
         }
 
-        function gameLoop() {
+        function gameLoop(time) {
             drawBackground();
             drawPlayer();
             update();
@@ -950,7 +950,7 @@
             updateUI();
             document.getElementById('gameOver').style.display = 'none';
 
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame((time) => gameLoop(time));
         }
 
         // Input handling - improved for iframe compatibility
