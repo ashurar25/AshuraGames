@@ -278,7 +278,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                   {/* Enhanced Credit with Logo */}
                   <div className="flex items-center justify-center space-x-2">
                     <img 
-                      src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                      src="/ashura-logo.png" 
                       alt="ASHURA Logo" 
                       className="w-4 h-4 object-contain opacity-70"
                     />
@@ -294,7 +294,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 <div className="glass-dark px-3 md:px-4 py-2 rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-400/20 backdrop-blur-lg">
                   <div className="flex items-center space-x-2">
                     <img 
-                      src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                      src="/ashura-logo.png" 
                       alt="ASHURA Logo" 
                       className="w-4 h-4 md:w-5 md:h-5 object-contain opacity-80"
                     />

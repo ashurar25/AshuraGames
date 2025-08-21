@@ -26,7 +26,7 @@ export default function Header({ onSearch }: HeaderProps) {
               {/* ASHURA Logo Image */}
               <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                 <img 
-                  src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                  src="/ashura-logo.png" 
                   alt="ASHURA Games Logo" 
                   className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300"
                 />
