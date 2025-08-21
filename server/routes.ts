@@ -8,11 +8,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { Request, Response } from 'express';
-import { gameStorage } from './storage';
+import { storage as gameStorage } from './storage';
 import { Game } from '../shared/schema';
 import { GameImageGenerator } from './gameImageGenerator';
-import fs from 'fs';
-import path from 'path';
+
 
 // สร้างโฟลเดอร์สำหรับเก็บไฟล์เกม
 const gamesUploadDir = path.join(process.cwd(), 'public', 'games');
