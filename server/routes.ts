@@ -1,10 +1,40 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameSchema } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// สร้างโฟลเดอร์สำหรับเก็บไฟล์เกม
+const gamesUploadDir = path.join(process.cwd(), 'public', 'games');
+if (!fs.existsSync(gamesUploadDir)) {
+  fs.mkdirSync(gamesUploadDir, { recursive: true });
+}
+
+// ตั้งค่า multer สำหรับอัพโหลดไฟล์
+const upload = multer({
+  dest: gamesUploadDir,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.zip', '.html', '.js'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('ประเภทไฟล์ไม่ถูกต้อง'), false);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // เสิร์ฟไฟล์สแตติกสำหรับเกม
+  app.use('/games', express.static(path.join(process.cwd(), 'public', 'games')));
   
   // Get all games
   app.get("/api/games", async (_req, res) => {
@@ -97,6 +127,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid game data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create game" });
+    }
+  });
+
+  // Upload game file (admin)
+  app.post("/api/games/upload", upload.single('gameFile'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "ไม่มีไฟล์ที่อัพโหลด" });
+      }
+
+      const originalName = req.file.originalname;
+      const fileExtension = path.extname(originalName);
+      const newFileName = `${req.file.filename}${fileExtension}`;
+      const newFilePath = path.join(gamesUploadDir, newFileName);
+      
+      // เปลี่ยนชื่อไฟล์ให้มี extension
+      fs.renameSync(req.file.path, newFilePath);
+
+      const gameData = {
+        title: req.body.title,
+        description: req.body.description,
+        thumbnail: req.body.thumbnail,
+        gameUrl: `/games/${newFileName}`, // URL สำหรับเข้าถึงไฟล์
+        gameFile: newFileName,
+        isEmbedded: false,
+        category: req.body.category,
+        rating: parseInt(req.body.rating) || 40,
+        isNew: req.body.isNew === 'true',
+        isTrending: req.body.isTrending === 'true',
+      };
+
+      const validatedData = insertGameSchema.parse(gameData);
+      const game = await storage.createGame(validatedData);
+      
+      res.status(201).json(game);
+    } catch (error) {
+      // ลบไฟล์ที่อัพโหลดถ้าเกิดข้อผิดพลาด
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('ไม่สามารถลบไฟล์ได้:', unlinkError);
+        }
+      }
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "ข้อมูลเกมไม่ถูกต้อง", errors: error.errors });
+      }
+      res.status(500).json({ message: "ไม่สามารถอัพโหลดเกมได้" });
     }
   });
 
