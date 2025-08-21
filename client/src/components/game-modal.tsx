@@ -76,16 +76,50 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
       setIsFullscreen(isCurrentlyFullscreen);
     };
 
+    // Handle keyboard events for better game control
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent default behavior for game control keys when modal is open
+      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+        e.preventDefault();
+        // Forward the event to the iframe
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'keydown',
+            code: e.code,
+            key: e.key
+          }, '*');
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // Forward key up events to iframe
+      if (isOpen && iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'keyup',
+          code: e.code,
+          key: e.key
+        }, '*');
+      }
+    };
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keyup', handleKeyUp);
+    }
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isOpen]);
 
   if (!game) return null;
 
@@ -100,6 +134,9 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
             <DialogTitle className="text-sm md:text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent truncate" data-testid="text-game-title">
               🎮 {game.title}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              เล่นเกม {game.title} - ใช้ปุ่มเต็มจอเพื่อขยายหน้าจอ หรือปุ่ม X เพื่อปิด
+            </DialogDescription>
             <Badge className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-600/50 to-cyan-600/50 text-cyan-300 border border-cyan-500/30 hidden sm:inline-flex">
               ASHURA
             </Badge>
@@ -137,6 +174,12 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
             className={`bg-gray-900 rounded-lg md:rounded-xl overflow-hidden flex-1 relative ${
               isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-black p-0 m-0' : 'min-h-[500px]'
             }`}
+            onClick={() => {
+              // Focus iframe when container is clicked for better game control
+              if (iframeRef.current) {
+                iframeRef.current.focus();
+              }
+            }}
           >
             <iframe
               ref={iframeRef}
@@ -150,6 +193,10 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               onLoad={(e) => {
                 console.log('Game loaded successfully:', game.title);
                 setIsLoading(false);
+                // Force focus to iframe for better game control
+                if (iframeRef.current) {
+                  iframeRef.current.focus();
+                }
               }}
               onError={(e) => {
                 console.error('Game loading error:', e);
@@ -160,7 +207,9 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 minHeight: isFullscreen ? '100vh' : '500px',
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#111827'
+                backgroundColor: '#111827',
+                border: 'none',
+                outline: 'none'
               }}
             />
 
