@@ -49,7 +49,7 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
 
   return (
     <div 
-      className={`game-card glass-dark rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-mint-500/20 transform hover:-translate-y-2 hover:scale-[1.02] ${cardClass}`}
+      className={`game-card glass-dark rounded-xl overflow-hidden group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-mint-500/30 transform hover:-translate-y-3 hover:scale-[1.03] border border-white/10 hover:border-mint-500/50 relative ${cardClass}`}
       onClick={handlePlayClick}
       data-testid={`card-game-${game.id}`}
     >
@@ -97,8 +97,16 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
           </Button>
         </div>
 
-        {/* Hover glow effect */}
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-mint-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+        {/* Particle effects on hover */}
+        <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="particle-float absolute top-4 left-4 w-2 h-2 bg-mint-400 rounded-full" style={{ animationDelay: '0ms' }}></div>
+          <div className="particle-float absolute top-8 right-6 w-1 h-1 bg-cyan-400 rounded-full" style={{ animationDelay: '300ms' }}></div>
+          <div className="particle-float absolute bottom-8 left-8 w-1.5 h-1.5 bg-blue-400 rounded-full" style={{ animationDelay: '600ms' }}></div>
+          <div className="particle-float absolute top-12 left-1/2 w-1 h-1 bg-mint-300 rounded-full" style={{ animationDelay: '900ms' }}></div>
+        </div>
+
+        {/* Enhanced hover glow effect */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-mint-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-all duration-500 blur-sm animate-pulse-glow"></div>
       </div>
       
       <div className="p-4 md:p-5 bg-gradient-to-b from-gray-900/50 to-gray-900/80 backdrop-blur-sm">

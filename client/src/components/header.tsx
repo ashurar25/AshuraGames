@@ -20,20 +20,26 @@ export default function Header({ onSearch }: HeaderProps) {
     <header className="glass-dark fixed top-0 w-full z-50 border-b border-mint-500/20 backdrop-blur-xl" data-testid="header-main">
       <div className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          {/* Enhanced Logo Section */}
+          {/* Enhanced Logo Section with New ASHURA Logo */}
           <div className="flex items-center space-x-3 group cursor-pointer" data-testid="logo-section">
             <div className="relative">
-              <div className="w-10 h-10 md:w-12 md:h-12 mint-gradient rounded-xl flex items-center justify-center shadow-lg shadow-mint-500/30 group-hover:shadow-mint-500/50 transition-all duration-300 group-hover:scale-110">
-                <Gamepad2 className="text-white text-lg md:text-xl group-hover:animate-bounce-subtle" />
+              {/* ASHURA Logo Image */}
+              <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <img 
+                  src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                  alt="ASHURA Games Logo" 
+                  className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300"
+                />
               </div>
               {/* Floating particles effect */}
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity"></div>
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-mint-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity" style={{ animationDelay: '200ms' }}></div>
             </div>
             <div className="transition-all duration-300 group-hover:transform group-hover:translate-x-1">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-mint-300 to-cyan-300 bg-clip-text text-transparent">
+              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-mint-300 bg-clip-text text-transparent">
                 ASHURA
               </h1>
-              <p className="text-mint-300 text-xs md:text-sm -mt-1 font-medium">Games Platform</p>
+              <p className="text-cyan-300 text-xs md:text-sm -mt-1 font-medium">Games Platform</p>
             </div>
           </div>
           

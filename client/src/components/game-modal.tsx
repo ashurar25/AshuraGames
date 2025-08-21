@@ -275,17 +275,34 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                     <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
                   
-                  {/* Credit */}
-                  <p className="text-gray-500 text-sm">Powered by ASHURA Games</p>
+                  {/* Enhanced Credit with Logo */}
+                  <div className="flex items-center justify-center space-x-2">
+                    <img 
+                      src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                      alt="ASHURA Logo" 
+                      className="w-4 h-4 object-contain opacity-70"
+                    />
+                    <p className="text-gray-400 text-sm font-medium">Powered by ASHURA Games</p>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* ASHURA Games Credit Overlay - hidden in fullscreen */}
+            {/* Enhanced ASHURA Games Credit Overlay - hidden in fullscreen */}
             {!isFullscreen && (
-              <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 glass px-2 md:px-3 py-1 rounded-full text-xs text-mint-300 z-10">
-                <Copyright className="inline w-3 h-3 mr-1" />
-                ASHURA Games
+              <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 z-10">
+                <div className="glass-dark px-3 md:px-4 py-2 rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-400/20 backdrop-blur-lg">
+                  <div className="flex items-center space-x-2">
+                    <img 
+                      src="/attached_assets/ด้านหน้า2_1755803569054.png" 
+                      alt="ASHURA Logo" 
+                      className="w-4 h-4 md:w-5 md:h-5 object-contain opacity-80"
+                    />
+                    <span className="text-xs md:text-sm font-medium bg-gradient-to-r from-cyan-300 to-mint-300 bg-clip-text text-transparent">
+                      ASHURA Games
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
