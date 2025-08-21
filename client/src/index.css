@@ -130,11 +130,34 @@
   }
 
   .game-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
   }
 
   .game-card:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-12px) scale(1.03);
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 255, 127, 0.25),
+      0 0 0 1px rgba(0, 255, 127, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 255, 127, 0.1) 0%, transparent 50%, rgba(0, 255, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .game-card:hover::before {
+    opacity: 1;
   }
 
   .scroll-container {
@@ -164,6 +187,18 @@
     animation: glow 2s ease-in-out infinite alternate;
   }
 
+  .animate-bounce-subtle {
+    animation: bounceSubtle 2s infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  .animate-gradient {
+    animation: gradient 3s ease infinite;
+  }
+
   .animate-slide-up {
     animation: slideUp 0.5s ease-out;
   }
@@ -179,8 +214,30 @@
 }
 
 @keyframes glow {
-  from { box-shadow: 0 0 20px var(--mint-500); }
-  to { box-shadow: 0 0 30px var(--mint-500), 0 0 40px var(--mint-500); }
+  from { 
+    box-shadow: 0 0 20px var(--mint-500);
+    filter: brightness(1);
+  }
+  to { 
+    box-shadow: 0 0 30px var(--mint-500), 0 0 40px var(--mint-500);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes bounceSubtle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes slideUp {

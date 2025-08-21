@@ -121,7 +121,7 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
     setIsLoading(false);
     setError(null);
     setRetryCount(0);
-    console.log('Game loaded successfully:', game.title);
+    console.log('Game loaded successfully:', game?.title);
   };
 
   const handleIframeError = () => {
@@ -244,15 +244,39 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               }}
             />
 
-            {/* Loading Overlay */}
+            {/* Enhanced Loading Overlay */}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm z-10">
-                <div className="text-center">
-                  <div className="w-12 h-12 md:w-16 md:h-16 mint-gradient rounded-full flex items-center justify-center mb-3 md:mb-4 mx-auto animate-spin">
-                    <Gamepad2 className="text-white text-lg md:text-2xl" />
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-md z-10">
+                <div className="text-center animate-slide-up">
+                  {/* Animated Loading Ring */}
+                  <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-6">
+                    <div className="absolute inset-0 rounded-full border-4 border-mint-500/20"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-mint-500 animate-spin"></div>
+                    <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Gamepad2 className="text-mint-400 w-8 h-8 md:w-10 md:h-10 animate-bounce-subtle" />
+                    </div>
                   </div>
-                  <p className="text-white text-base md:text-lg font-semibold mb-2">กำลังโหลดเกม...</p>
-                  <p className="text-gray-400 text-sm">Powered by ASHURA Games</p>
+                  
+                  {/* Loading Text with Gradient */}
+                  <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-mint-400 via-cyan-400 to-mint-400 bg-clip-text text-transparent mb-2 animate-shimmer bg-[length:200%_100%]">
+                    กำลังโหลดเกม...
+                  </h3>
+                  
+                  {/* Game Title */}
+                  <p className="text-gray-300 text-lg md:text-xl font-medium mb-3">
+                    {game?.title}
+                  </p>
+                  
+                  {/* Loading Progress Dots */}
+                  <div className="flex justify-center space-x-1 mb-4">
+                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  
+                  {/* Credit */}
+                  <p className="text-gray-500 text-sm">Powered by ASHURA Games</p>
                 </div>
               </div>
             )}
@@ -290,21 +314,38 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               </div>
             )}
 
-            {/* Error Overlay */}
+            {/* Enhanced Error Overlay */}
             {error && !isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80">
-                <div className="text-center text-white">
-                  <p className="text-lg mb-4">{error}</p>
-                  <p className="text-sm text-gray-400 mb-4">
-                    ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-900/20 via-gray-900/90 to-red-900/20 backdrop-blur-md z-10">
+                <div className="text-center text-white animate-slide-up max-w-md px-6">
+                  {/* Error Icon */}
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/30">
+                    <X className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  {/* Error Message */}
+                  <h3 className="text-xl font-bold text-red-400 mb-2">ไม่สามารถโหลดเกมได้</h3>
+                  <p className="text-lg mb-3 text-gray-200">{error}</p>
+                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                    ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่ หรือเลือกเกมอื่น
                   </p>
-                  <Button
-                    onClick={handleRetry}
-                    variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
-                  >
-                    ลองใหม่
-                  </Button>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={handleRetry}
+                      className="mint-gradient text-white px-6 py-3 rounded-lg font-semibold shadow-lg shadow-mint-500/30 hover:shadow-xl hover:shadow-mint-500/50 transition-all"
+                    >
+                      ลองใหม่อีกครั้ง
+                    </Button>
+                    <Button
+                      onClick={onClose}
+                      variant="outline"
+                      className="border-gray-500/30 text-gray-300 hover:bg-gray-700/50 px-6 py-3 rounded-lg font-semibold"
+                    >
+                      เลือกเกมอื่น
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
