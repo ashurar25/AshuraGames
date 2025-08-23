@@ -1,5 +1,7 @@
 
-/* Enhanced Global Game Optimization CSS */
+/* ASHURA Universal Game Enhancement CSS */
+
+/* Global reset and optimization */
 * {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -17,12 +19,13 @@ html, body {
     padding: 0;
     height: 100%;
     overflow: hidden;
-    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
+    touch-action: none;
 }
 
-/* Enhanced canvas styling */
+/* Enhanced canvas optimization */
 canvas {
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
@@ -34,19 +37,22 @@ canvas {
     outline: none;
     border: none;
     max-width: calc(100vw - 20px);
-    max-height: calc(100vh - 160px);
-    width: auto;
-    height: auto;
+    max-height: calc(100vh - 150px);
+    width: auto !important;
+    height: auto !important;
     border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 255, 200, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 255, 200, 0.3);
     background: #000;
     object-fit: contain;
     transform: translateZ(0);
     backface-visibility: hidden;
+    position: relative;
+    z-index: 1;
 }
 
-/* Performance optimizations */
-.game-container {
+/* Game container optimization */
+.game-container, 
+body:has(canvas) {
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -57,63 +63,97 @@ canvas {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    overflow: hidden;
 }
 
-/* Enhanced mobile controls */
-.mobile-controls {
+/* Universal Mobile Controls */
+.universal-mobile-controls {
     position: fixed;
-    bottom: 20px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
+    display: none;
     gap: 15px;
     z-index: 1000;
-    transition: opacity 0.3s ease;
     align-items: flex-end;
+    justify-content: center;
+    width: calc(100vw - 20px);
+    max-width: 800px;
+    pointer-events: none;
 }
 
-.direction-pad {
+.universal-mobile-controls > div {
+    pointer-events: auto;
+}
+
+/* Direction Controls */
+.direction-controls {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
 }
 
-.horizontal-controls {
+.horizontal-dirs {
     display: flex;
-    gap: 5px;
+    gap: 3px;
     align-items: center;
 }
 
-.action-buttons {
+/* WASD Controls */
+.wasd-controls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 3px;
+}
+
+.wasd-row {
+    display: flex;
+    gap: 3px;
     align-items: center;
 }
 
-.mobile-btn {
-    width: 60px;
-    height: 60px;
+/* Action Controls */
+.action-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Game Controls */
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Universal Control Button Styling */
+.control-btn {
+    width: 55px;
+    height: 55px;
     border-radius: 50%;
-    background: rgba(0, 255, 200, 0.15);
-    border: 2px solid rgba(0, 255, 200, 0.4);
+    background: rgba(0, 20, 40, 0.9);
+    border: 2px solid rgba(0, 255, 200, 0.6);
     color: #00ffc8;
-    font-size: 20px;
+    font-size: 16px;
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
     user-select: none;
-    backdrop-filter: blur(15px);
-    transition: all 0.2s ease;
-    font-weight: bold;
+    backdrop-filter: blur(20px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.2);
 }
 
-.mobile-btn::before {
+.control-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -125,230 +165,178 @@ canvas {
     transition: opacity 0.3s ease;
 }
 
-.mobile-btn:hover::before,
-.mobile-btn:focus::before {
+.control-btn:hover::before,
+.control-btn:focus::before {
     opacity: 1;
 }
 
-.mobile-btn.pressed,
-.mobile-btn:active {
-    background: rgba(0, 255, 200, 0.3);
+/* Button press states */
+.control-btn.pressed,
+.control-btn:active {
+    background: rgba(0, 255, 200, 0.4);
     border-color: #00ffc8;
-    transform: scale(0.9);
-    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+    transform: scale(0.92);
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.6), inset 0 0 15px rgba(0, 255, 200, 0.2);
 }
 
-.dir-btn {
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.4);
+/* Direction button colors */
+.dir-up, .dir-down, .dir-left, .dir-right {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.6);
     color: #10b981;
 }
 
-.action-btn {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #ef4444;
+.dir-up.pressed, .dir-down.pressed, .dir-left.pressed, .dir-right.pressed {
+    background: rgba(16, 185, 129, 0.5);
+    border-color: #10b981;
 }
 
-.utility-btn {
+/* WASD button colors */
+.wasd-w, .wasd-a, .wasd-s, .wasd-d {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.6);
+    color: #3b82f6;
+    font-size: 14px;
     width: 50px;
     height: 50px;
-    font-size: 16px;
-    background: rgba(156, 163, 175, 0.15);
-    border-color: rgba(156, 163, 175, 0.4);
+}
+
+.wasd-w.pressed, .wasd-a.pressed, .wasd-s.pressed, .wasd-d.pressed {
+    background: rgba(59, 130, 246, 0.5);
+    border-color: #3b82f6;
+}
+
+/* Action button colors */
+.action-space, .action-enter {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #ef4444;
+    width: 60px;
+    height: 60px;
+}
+
+.action-space.pressed, .action-enter.pressed {
+    background: rgba(239, 68, 68, 0.5);
+    border-color: #ef4444;
+}
+
+/* Game control colors */
+.action-restart, .game-pause, .game-fullscreen {
+    background: rgba(156, 163, 175, 0.2);
+    border-color: rgba(156, 163, 175, 0.6);
     color: #9ca3af;
+    width: 50px;
+    height: 50px;
+    font-size: 14px;
 }
 
-/* Fullscreen button */
-.fullscreen-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    z-index: 100;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
+.action-restart.pressed, .game-pause.pressed, .game-fullscreen.pressed {
+    background: rgba(156, 163, 175, 0.5);
+    border-color: #9ca3af;
 }
 
-.fullscreen-btn:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
-}
-
-/* Game UI overlay */
-.game-ui-overlay {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 100;
-    pointer-events: none;
-}
-
-.game-info {
-    display: flex;
-    gap: 15px;
-    flex-direction: column;
-}
-
-.game-info span {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 8px 12px;
-    border-radius: 20px;
-    color: #00ffc8;
-    font-weight: bold;
-    font-size: 12px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 255, 200, 0.3);
-}
-
-/* Enhanced responsive design */
+/* Responsive design for mobile controls */
 @media (max-width: 768px) {
-    canvas {
-        max-width: calc(100vw - 10px);
-        max-height: calc(100vh - 140px);
-        border-radius: 4px;
-    }
-    
-    .mobile-controls {
+    .universal-mobile-controls {
         display: flex;
-        bottom: 10px;
     }
     
-    .game-container {
-        padding: 5px;
-        min-height: 100vh;
-        justify-content: flex-start;
-        padding-top: 10px;
-    }
-    
-    .mobile-btn {
-        width: 55px;
-        height: 55px;
-        font-size: 18px;
-    }
-    
-    .utility-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 480px) and (orientation: portrait) {
     canvas {
-        max-width: calc(100vw - 10px);
         max-height: calc(100vh - 130px);
     }
+}
+
+@media (max-width: 480px) {
+    .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+    }
     
-    .game-container {
-        padding: 5px;
-        padding-top: 5px;
+    .wasd-w, .wasd-a, .wasd-s, .wasd-d {
+        width: 45px;
+        height: 45px;
+        font-size: 12px;
+    }
+    
+    .action-restart, .game-pause, .game-fullscreen {
+        width: 45px;
+        height: 45px;
+        font-size: 12px;
+    }
+    
+    .universal-mobile-controls {
+        gap: 10px;
+        bottom: 5px;
+    }
+    
+    canvas {
+        max-height: calc(100vh - 120px);
     }
 }
 
+/* Landscape orientation for mobile */
 @media (max-width: 768px) and (orientation: landscape) {
-    canvas {
-        max-width: calc(100vw - 140px);
-        max-height: calc(100vh - 20px);
-    }
-    
-    .mobile-controls {
+    .universal-mobile-controls {
         right: 10px;
         bottom: 50%;
         left: auto;
         transform: translateY(50%);
         flex-direction: column;
         align-items: center;
+        width: auto;
     }
     
-    .direction-pad {
-        margin-bottom: 10px;
+    .direction-controls,
+    .wasd-controls {
+        order: 1;
+    }
+    
+    .action-controls {
+        order: 2;
+    }
+    
+    .game-controls {
+        order: 3;
+    }
+    
+    canvas {
+        max-width: calc(100vw - 120px);
+        max-height: calc(100vh - 20px);
     }
 }
 
-@media (max-width: 480px) {
-    .mobile-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 16px;
-    }
-    
-    .utility-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 12px;
-    }
-    
-    .mobile-controls {
-        gap: 10px;
-        bottom: 15px;
-    }
-}
-
+/* Hide mobile controls on desktop */
 @media (min-width: 769px) {
-    .mobile-controls {
-        display: none;
+    .universal-mobile-controls {
+        display: none !important;
     }
 }
 
-/* Loading animation */
-.loading-spinner {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    border: 4px solid rgba(0, 255, 200, 0.2);
-    border-top: 4px solid #00ffc8;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 1000;
+/* Performance modes */
+.performance-low * {
+    animation-duration: 0.1s !important;
+    transition-duration: 0.1s !important;
 }
 
-@keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+.performance-low .control-btn {
+    backdrop-filter: none;
+    background: rgba(0, 20, 40, 0.95);
 }
 
-/* Game UI improvements */
-.game-ui {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
-    pointer-events: none;
+.performance-medium .control-btn {
+    backdrop-filter: blur(5px);
 }
 
-.game-ui > div {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px 16px;
-    border-radius: 25px;
-    color: #00ffc8;
-    font-weight: bold;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 255, 200, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.1);
+.performance-high .control-btn {
+    backdrop-filter: blur(20px);
 }
 
-/* Enhanced fullscreen optimizations */
-.game-fullscreen {
-    background: #000;
-    overflow: hidden;
-}
-
-.fullscreen canvas {
+/* Fullscreen optimizations */
+.fullscreen canvas,
+:fullscreen canvas,
+:-webkit-full-screen canvas,
+:-moz-full-screen canvas {
     width: 100vw !important;
     height: 100vh !important;
     max-width: 100vw !important;
@@ -361,61 +349,64 @@ canvas {
     z-index: 9999;
 }
 
-.fullscreen .mobile-controls {
+.fullscreen .universal-mobile-controls,
+:fullscreen .universal-mobile-controls,
+:-webkit-full-screen .universal-mobile-controls,
+:-moz-full-screen .universal-mobile-controls {
     z-index: 10000;
     position: fixed;
 }
 
-/* Game container improvements */
-.game-container {
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-/* Prevent scrolling on game pages */
-body:has(canvas) {
-    overflow: hidden;
+/* Game UI improvements */
+.game-ui {
     position: fixed;
-    width: 100%;
-    height: 100%;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    pointer-events: none;
 }
 
-/* Auto-hide UI elements during gameplay */
-.game-playing .game-ui-overlay {
-    opacity: 0.3;
-    transition: opacity 0.3s ease;
+.game-info {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 16px;
+    border-radius: 25px;
+    color: #00ffc8;
+    font-weight: bold;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.1);
+    font-size: 14px;
 }
 
-.game-playing .game-ui-overlay:hover {
-    opacity: 1;
+/* Loading states */
+.game-loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00ffc8;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 1000;
+    text-align: center;
 }
 
-/* Performance mode styles */
-.low-performance * {
-    animation-duration: 0.1s !important;
-    transition-duration: 0.1s !important;
+.game-loading::after {
+    content: '...';
+    animation: loading-dots 1.5s infinite;
 }
 
-.low-performance .mobile-btn {
-    backdrop-filter: none;
-    background: rgba(0, 255, 200, 0.3);
+@keyframes loading-dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
 }
 
-.medium-performance .mobile-btn {
-    backdrop-filter: blur(5px);
-}
-
-/* Enhanced game styles */
+/* Enhanced game container styles */
 .game-container h1,
 .game-container h2,
 .game-container h3 {
@@ -423,9 +414,10 @@ body:has(canvas) {
     text-align: center;
     margin-bottom: 20px;
     text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+    font-weight: bold;
 }
 
-.game-container button {
+.game-container button:not(.control-btn) {
     background: linear-gradient(135deg, #00ffc8, #10b981);
     border: none;
     padding: 12px 24px;
@@ -435,18 +427,19 @@ body:has(canvas) {
     cursor: pointer;
     transition: all 0.3s ease;
     margin: 5px;
+    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.2);
 }
 
-.game-container button:hover {
+.game-container button:not(.control-btn):hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 200, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 255, 200, 0.4);
 }
 
-.game-container button:active {
+.game-container button:not(.control-btn):active {
     transform: translateY(0);
 }
 
-/* Score and info displays */
+/* Score displays */
 .score, .lives, .level, .time {
     background: rgba(0, 0, 0, 0.8);
     color: #00ffc8;
@@ -456,6 +449,7 @@ body:has(canvas) {
     font-weight: bold;
     border: 1px solid rgba(0, 255, 200, 0.3);
     backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.1);
 }
 
 /* Game over and pause screens */
@@ -465,7 +459,7 @@ body:has(canvas) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -479,9 +473,34 @@ body:has(canvas) {
     font-size: 3em;
     margin-bottom: 20px;
     text-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
+    animation: pulse 2s infinite;
 }
 
-/* Prevent context menu */
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Prevent scrolling and zooming */
+body, html {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    user-scalable: no;
+    -webkit-user-scalable: no;
+    -moz-user-scalable: no;
+    -ms-user-scalable: no;
+}
+
+/* Context menu prevention */
 canvas, .game-container {
     -webkit-context-menu: none;
     -moz-context-menu: none;
@@ -489,70 +508,58 @@ canvas, .game-container {
     context-menu: none;
 }
 
-/* Smooth animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.game-container {
-    animation: fadeIn 0.5s ease-out;
-}
-
-/* High contrast mode */
+/* High contrast support */
 .high-contrast canvas {
     filter: contrast(1.5) brightness(1.2);
 }
 
-.high-contrast .mobile-btn {
+.high-contrast .control-btn {
     border-width: 3px;
     font-weight: 900;
+    background: rgba(0, 0, 0, 0.95);
 }
 
-/* Reduced motion mode */
-.reduced-motion * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
-/* WebGL specific optimizations */
-canvas[data-engine="webgl"] {
-    image-rendering: auto;
+/* Auto-hide controls */
+.universal-mobile-controls.auto-hide {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
 }
 
-/* Particle effects container */
-.particle-container {
-    position: fixed;
-    top: 0;
-    left: 0;
+.universal-mobile-controls.auto-hide:hover,
+.universal-mobile-controls.auto-hide:focus-within {
+    opacity: 1;
+}
+
+/* Enhanced focus indicators */
+.control-btn:focus {
+    outline: 2px solid #00ffc8;
+    outline-offset: 2px;
+}
+
+/* Touch ripple effect */
+.control-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.control-btn:active::after {
     width: 100%;
     height: 100%;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.particle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #00ffc8;
-    border-radius: 50%;
-    animation: float 3s ease-out forwards;
-}
-
-@keyframes float {
-    0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-100vh) rotate(360deg);
-        opacity: 0;
-    }
 }
