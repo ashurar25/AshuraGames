@@ -50,21 +50,6 @@
                     } else {
                         ctx.imageSmoothingEnabled = false;
                     }
-                    
-                    // Fix canvas scaling issues
-                    const rect = canvas.getBoundingClientRect();
-                    const ratio = Math.min(window.devicePixelRatio || 1, performanceLevel === 'high' ? 2 : 1.5);
-                    
-                    if (rect.width && rect.height) {
-                        // Ensure canvas has proper dimensions
-                        if (!canvas.width || !canvas.height) {
-                            canvas.width = rect.width * ratio;
-                            canvas.height = rect.height * ratio;
-                        }
-                        ctx.scale(ratio, ratio);
-                        canvas.style.width = rect.width + 'px';
-                        canvas.style.height = rect.height + 'px';
-                    }
                 } else if (ctx instanceof WebGLRenderingContext || ctx instanceof WebGL2RenderingContext) {
                     // WebGL optimizations
                     const ext = ctx.getExtension('OES_texture_float') || 
@@ -93,21 +78,86 @@
                 }, { passive: event === 'touchstart' });
             });
             
-            // Responsive canvas sizing with proper aspect ratio
+            // Enhanced responsive canvas sizing with better fit
             const resizeCanvas = () => {
                 const container = canvas.closest('.game-container') || canvas.parentElement;
-                const maxWidth = Math.min(window.innerWidth - 20, 900);
-                const maxHeight = Math.min(window.innerHeight - 100, 700);
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
                 
-                canvas.style.maxWidth = maxWidth + 'px';
-                canvas.style.maxHeight = maxHeight + 'px';
-                canvas.style.width = 'auto';
-                canvas.style.height = 'auto';
+                // Calculate optimal size considering mobile controls
+                const controlsHeight = isMobile ? 120 : 0;
+                const headerHeight = 60;
+                const padding = isMobile ? 20 : 40;
+                
+                const availableWidth = viewportWidth - padding;
+                const availableHeight = viewportHeight - headerHeight - controlsHeight - padding;
+                
+                // Get original canvas dimensions or set defaults
+                const originalWidth = canvas.getAttribute('data-original-width') || canvas.width || 800;
+                const originalHeight = canvas.getAttribute('data-original-height') || canvas.height || 600;
+                
+                // Store original dimensions if not stored
+                if (!canvas.getAttribute('data-original-width')) {
+                    canvas.setAttribute('data-original-width', originalWidth);
+                    canvas.setAttribute('data-original-height', originalHeight);
+                }
+                
+                // Calculate scale to fit while maintaining aspect ratio
+                const scaleX = availableWidth / originalWidth;
+                const scaleY = availableHeight / originalHeight;
+                const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond original size
+                
+                const newWidth = originalWidth * scale;
+                const newHeight = originalHeight * scale;
+                
+                // Apply new dimensions
+                canvas.style.width = Math.floor(newWidth) + 'px';
+                canvas.style.height = Math.floor(newHeight) + 'px';
+                canvas.style.maxWidth = '100%';
+                canvas.style.maxHeight = '100%';
                 canvas.style.display = 'block';
                 canvas.style.margin = '0 auto';
+                
+                // Update canvas resolution for crisp rendering
+                const devicePixelRatio = window.devicePixelRatio || 1;
+                const backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
+                                        ctx.mozBackingStorePixelRatio ||
+                                        ctx.msBackingStorePixelRatio ||
+                                        ctx.oBackingStorePixelRatio ||
+                                        ctx.backingStorePixelRatio || 1;
+                
+                const ratio = devicePixelRatio / backingStoreRatio;
+                
+                // Only update canvas dimensions if they've changed significantly
+                const targetCanvasWidth = Math.floor(newWidth * ratio);
+                const targetCanvasHeight = Math.floor(newHeight * ratio);
+                
+                if (Math.abs(canvas.width - targetCanvasWidth) > 1 || 
+                    Math.abs(canvas.height - targetCanvasHeight) > 1) {
+                    canvas.width = targetCanvasWidth;
+                    canvas.height = targetCanvasHeight;
+                    
+                    if (ctx instanceof CanvasRenderingContext2D) {
+                        ctx.scale(ratio, ratio);
+                    }
+                }
+                
+                console.log(`Canvas resized: ${newWidth}x${newHeight} (scale: ${scale.toFixed(2)})`);
             };
             
-            window.addEventListener('resize', resizeCanvas);
+            // Debounced resize handler
+            let resizeTimeout;
+            const debouncedResize = () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(resizeCanvas, 100);
+            };
+            
+            window.addEventListener('resize', debouncedResize);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 200); // Delay for orientation change
+            });
+            
+            // Initial resize
             resizeCanvas();
             
             canvas.dataset.optimized = 'true';
@@ -433,13 +483,16 @@
         }
     }
     
-    // Enhanced game detection and initialization
+    // Enhanced game detection and initialization with validation
     function detectAndInitializeGame() {
         const canvas = document.querySelector('canvas');
         const gameContainer = document.querySelector('.game-container') || document.getElementById('gameContainer');
         
         if (canvas || gameContainer) {
             currentGame = document.title || 'unknown';
+            
+            // Validate game elements
+            validateGameElements();
             
             // Apply game-specific optimizations
             optimizeCanvas();
@@ -448,8 +501,73 @@
             setupFullscreen();
             addGameUI();
             
+            // Fix common game issues
+            fixCommonGameIssues();
+            
             console.log(`🎮 Game detected and optimized: ${currentGame}`);
         }
+    }
+    
+    function validateGameElements() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            // Ensure canvas has proper context
+            const ctx = canvas.getContext('2d') || canvas.getContext('webgl');
+            if (!ctx) {
+                console.warn('Canvas context not available, attempting recovery...');
+                setTimeout(() => {
+                    optimizeCanvas();
+                }, 500);
+            }
+            
+            // Check for proper dimensions
+            if (!canvas.width || !canvas.height) {
+                canvas.width = 800;
+                canvas.height = 600;
+                console.log('Canvas dimensions set to default 800x600');
+            }
+            
+            // Ensure proper styling
+            if (!canvas.style.display || canvas.style.display === 'none') {
+                canvas.style.display = 'block';
+            }
+        }
+    }
+    
+    function fixCommonGameIssues() {
+        // Fix overlapping elements
+        const gameElements = document.querySelectorAll('canvas, .game-container, #gameContainer');
+        gameElements.forEach(element => {
+            element.style.zIndex = 'auto';
+            element.style.position = element.tagName === 'CANVAS' ? 'relative' : element.style.position;
+        });
+        
+        // Fix scroll issues
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        
+        // Prevent zoom on double tap
+        const metaViewport = document.querySelector('meta[name="viewport"]');
+        if (metaViewport) {
+            metaViewport.setAttribute('content', 
+                'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no');
+        }
+        
+        // Fix canvas focus issues
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.setAttribute('tabindex', '0');
+            canvas.focus();
+        }
+        
+        // Remove conflicting styles
+        const style = document.createElement('style');
+        style.textContent = `
+            body { margin: 0; padding: 0; }
+            canvas { touch-action: none; }
+            .game-container { overflow: visible; }
+        `;
+        document.head.appendChild(style);
     }
     
     function addGameUI() {
