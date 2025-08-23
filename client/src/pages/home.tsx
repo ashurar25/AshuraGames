@@ -65,7 +65,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" data-testid="page-home">
-      <Header onSearch={handleSearch} />
+      <Header onSearch={handleSearch} searchQuery={searchQuery} />
       
       <main className="pt-20">
         {/* Hero Section */}

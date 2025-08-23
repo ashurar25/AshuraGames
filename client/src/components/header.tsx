@@ -19,7 +19,7 @@ interface UserData {
   isAdmin: boolean;
 }
 
-export function Header({ onSearch, searchQuery }: HeaderProps) {
+export default function Header({ onSearch, searchQuery }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const { theme, toggleTheme } = useTheme();

@@ -4,6 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-25_05"
+packages = ["libuuid", "cairo", "pango", "libjpeg", "giflib", "librsvg", "pixman"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -18,7 +19,7 @@ externalPort = 80
 PORT = "5000"
 
 [workflows]
-runButton = "Start Server"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
