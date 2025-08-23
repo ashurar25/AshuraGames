@@ -153,12 +153,16 @@
 
         // คลาส Enemy
         class Enemy {
-            constructor(x, y) {
+            constructor(x, y, width, height, speed, color, health = 1, points = 10) {
                 this.x = x;
                 this.y = y;
-                this.width = 35;
-                this.height = 35;
-                this.speed = 1 + Math.random() * 2;
+                this.width = width;
+                this.height = height;
+                this.speed = speed;
+                this.color = color;
+                this.health = health;
+                this.maxHealth = health;
+                this.points = points;
                 this.bullets = [];
                 this.lastShot = Date.now() + Math.random() * 2000;
             }
@@ -166,8 +170,8 @@
             update() {
                 this.y += this.speed;
 
-                if (Math.random() < 0.002 && Date.now() - this.lastShot > 1000) {
-                    this.bullets.push(new Bullet(this.x + this.width/2, this.y + this.height, 4));
+                if (Math.random() < 0.005 && Date.now() - this.lastShot > 1000) { // Increased chance to shoot
+                    this.shoot();
                     this.lastShot = Date.now();
                 }
 
@@ -177,16 +181,48 @@
                 });
             }
 
+            shoot() {
+                this.bullets.push(new Bullet(this.x + this.width/2, this.y + this.height, 4));
+                playSound('enemy_shoot');
+            }
+
             draw() {
-                // วาดศัตรู
-                ctx.fillStyle = '#ff4444';
-                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
 
-                ctx.fillStyle = '#880000';
-                ctx.fillRect(this.x + 5, this.y + 5, 25, 25);
+                // Draw enemy shape based on type
+                const centerX = this.x + this.width/2;
+                const centerY = this.y + this.height/2;
+                const radius = this.width/2;
 
+                ctx.fillStyle = this.color;
+                if (this.maxHealth > 1) { // Tank enemy has different shape
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width/2, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height/2);
+                    ctx.lineTo(this.x + this.width/2, this.y + this.height);
+                    ctx.lineTo(this.x, this.y + this.height/2);
+                    ctx.closePath();
+                    ctx.fill();
+                } else { // Regular and fast enemy shape
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+
+
+                // Core of the enemy
                 ctx.fillStyle = '#ffaa00';
-                ctx.fillRect(this.x + 10, this.y + 10, 15, 15);
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw health bar for enemies with health > 1
+                if (this.health < this.maxHealth) {
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(this.x, this.y - 5, this.width * (this.health / this.maxHealth), 3);
+                }
+
+                ctx.restore();
 
                 this.bullets.forEach(bullet => bullet.draw());
             }
@@ -233,6 +269,62 @@
             stars.push(new Star());
         }
 
+        function createEnemy() {
+            let enemyType = Math.random();
+            let enemy;
+
+            if (enemyType < 0.7) {
+                // Regular enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 30),
+                    -30,
+                    30,
+                    30,
+                    2 + Math.random() * 3,
+                    '#ff4444'
+                );
+            } else if (enemyType < 0.9) {
+                // Fast enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 30),
+                    -30,
+                    30,
+                    30,
+                    (2 + Math.random() * 3) * 1.5,
+                    '#ff8844'
+                );
+                enemy.points = 20;
+            } else {
+                // Tank enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 40),
+                    -40,
+                    40,
+                    40,
+                    (2 + Math.random() * 3) * 0.7,
+                    '#8844ff'
+                );
+                enemy.health = 3;
+                enemy.maxHealth = 3;
+                enemy.points = 50;
+            }
+            enemies.push(enemy);
+        }
+
+        function createPowerUp() {
+            if (Math.random() < 0.1) {
+                powerUps.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2,
+                    type: Math.random() < 0.5 ? 'rapidFire' : 'multiShot'
+                });
+            }
+        }
+
+
         // ตรวจสอบการชน
         function checkCollisions() {
             // กระสุนผู้เล่นชนศัตรู
@@ -240,11 +332,30 @@
                 enemies.forEach((enemy, enemyIndex) => {
                     if (bullet.x > enemy.x && bullet.x < enemy.x + enemy.width &&
                         bullet.y > enemy.y && bullet.y < enemy.y + enemy.height) {
-                        player.bullets.splice(bulletIndex, 1);
-                        enemies.splice(enemyIndex, 1);
-                        score += 100;
-                        enemiesKilled++;
-                        playSound('explosion');
+                        
+                        enemy.health--;
+                        if (enemy.health <= 0) {
+                            player.bullets.splice(bulletIndex, 1);
+                            score += enemy.points;
+                            enemiesKilled++;
+                            playSound('explosion');
+                            // Add particles for explosion
+                            for(let i=0; i < 10; i++) {
+                                particles.push({
+                                    x: enemy.x + enemy.width/2,
+                                    y: enemy.y + enemy.height/2,
+                                    vx: (Math.random() - 0.5) * 4,
+                                    vy: (Math.random() - 0.5) * 4,
+                                    life: 20,
+                                    size: Math.random() * 5 + 2,
+                                    color: enemy.color
+                                });
+                            }
+                            enemies.splice(enemyIndex, 1);
+                        } else {
+                            // Remove bullet on hit but enemy survives
+                             player.bullets.splice(bulletIndex, 1);
+                        }
                     }
                 });
             });
@@ -268,12 +379,44 @@
             enemies.forEach((enemy, index) => {
                 if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
                     enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
-                    enemies.splice(index, 1);
-                    lives--;
-                    playSound('hit');
+                    
+                    lives -= enemy.points / 50; // Damage based on enemy points
                     if (lives <= 0) {
                         gameState = 'gameOver';
                     }
+                    playSound('hit');
+                    
+                    // Add particles for player explosion
+                     for(let i=0; i < 10; i++) {
+                        particles.push({
+                            x: player.x + player.width/2,
+                            y: player.y + player.height/2,
+                            vx: (Math.random() - 0.5) * 4,
+                            vy: (Math.random() - 0.5) * 4,
+                            life: 20,
+                            size: Math.random() * 5 + 2,
+                            color: '#00ff88'
+                        });
+                    }
+                    
+                    enemies.splice(index, 1);
+                }
+            });
+
+            // Player collects power-ups
+            powerUps.forEach((pu, puIndex) => {
+                if (pu.x < player.x + player.width && pu.x + pu.width > player.x &&
+                    pu.y < player.y + player.height && pu.y + pu.height > player.y) {
+                    
+                    if (pu.type === 'rapidFire') {
+                        player.fireRate = 5; // Faster firing
+                        setTimeout(() => player.fireRate = 10, 5000); // Reset after 5 seconds
+                    } else if (pu.type === 'multiShot') {
+                        player.weaponType = 'spread';
+                        setTimeout(() => player.weaponType = 'single', 5000); // Reset after 5 seconds
+                    }
+                    powerUps.splice(puIndex, 1);
+                    playSound('powerup');
                 }
             });
         }
@@ -286,13 +429,13 @@
             });
 
             // สร้างศัตรูใหม่
-            if (Date.now() - lastEnemySpawn > 2000) {
-                // Adjust enemy spawning based on wave and enemiesKilled
-                if (enemies.length < wave * 2) { // Spawn more enemies in later waves
-                    enemies.push(new Enemy(Math.random() * (canvas.width - 35), -35));
-                    lastEnemySpawn = Date.now();
-                }
+            if (Date.now() - lastEnemySpawn > 2000 / wave) { // Increase spawn rate with wave
+                createEnemy();
+                lastEnemySpawn = Date.now();
             }
+
+            // สร้าง power-up
+            createPowerUp();
 
             // อัปเดตผู้เล่น
             player.update();
@@ -302,11 +445,23 @@
                 enemy.update();
                 return enemy.y < canvas.height + 50;
             });
+            
+            // Update powerUps
+            powerUps = powerUps.filter(pu => {
+                pu.y += pu.speed;
+                return pu.y < canvas.height;
+            });
 
-            // Update powerUps, particles, enemyBullets if they exist
-            powerUps.forEach(pu => pu.update());
-            particles.forEach(p => p.update());
-            enemyBullets.forEach(eb => eb.update());
+            // Update particles
+            particles = particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                // Add gravity effect
+                p.vy += 0.1; 
+                return p.life > 0;
+            });
+
 
             // ตรวจสอบการชน
             checkCollisions();
@@ -333,10 +488,21 @@
                 enemy.draw();
             });
 
-            // Draw powerUps, particles, enemyBullets
-            powerUps.forEach(pu => pu.draw());
-            particles.forEach(p => p.draw());
-            enemyBullets.forEach(eb => eb.draw());
+            // Draw powerUps
+            powerUps.forEach(pu => {
+                ctx.fillStyle = pu.type === 'rapidFire' ? '#00ffff' : '#ffff00';
+                ctx.fillRect(pu.x, pu.y, pu.width, pu.height);
+            });
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 20;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
 
             if (gameState === 'gameOver') {
                 document.getElementById('gameOver').style.display = 'block';
@@ -419,7 +585,7 @@
         function drawEnhancedEnemy(enemy) {
             ctx.save();
             ctx.shadowBlur = 10;
-            ctx.shadowColor = '#ff4444';
+            ctx.shadowColor = enemy.color;
 
             // ร่างศัตรู
             const gradient = ctx.createRadialGradient(
@@ -431,7 +597,7 @@
                 enemy.width
             );
             gradient.addColorStop(0, '#ff6666');
-            gradient.addColorStop(0.7, '#ff4444');
+            gradient.addColorStop(0.7, enemy.color);
             gradient.addColorStop(1, '#cc0000');
             ctx.fillStyle = gradient;
 

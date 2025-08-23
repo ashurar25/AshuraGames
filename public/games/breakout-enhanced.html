@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakout Enhanced - ASHURA Games</title>
+    <link rel="stylesheet" href="game-optimization.css">
     <style>
         body {
             margin: 0;
@@ -13,281 +15,214 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
-            touch-action: manipulation;
+            font-family: Arial, sans-serif;
         }
 
-        .game-container {
-            position: relative;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+        #gameContainer {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
             padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         canvas {
-            border-radius: 15px;
-            background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 100%);
-            display: block;
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            background: #000;
         }
 
-        .game-ui {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
+        .game-info {
             color: white;
+            margin: 10px 0;
             font-size: 18px;
             font-weight: bold;
         }
 
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #10b981;
-            display: none;
-            z-index: 20;
+        .controls {
             color: white;
+            margin-top: 15px;
+            font-size: 14px;
         }
 
-        .restart-btn {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
             color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             margin: 10px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
-        .restart-btn:hover {
+        button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        .controls {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        .credit {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
-            color: #10b981;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-ui">
-            <div>🏆 คะแนน: <span id="score">0</span></div>
-            <div>❤️ ชีวิต: <span id="lives">3</span></div>
-            <div>📊 เลเวล: <span id="level">1</span></div>
+    <div id="gameContainer">
+        <h1 style="color: white; margin-bottom: 20px;">🧱 Breakout Enhanced</h1>
+        
+        <div class="game-info">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+            <div>Level: <span id="level">1</span></div>
         </div>
 
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-        <div class="game-over" id="gameOver">
-            <h2 style="color: #ef4444; margin-top: 0;">🎮 เกมจบแล้ว!</h2>
-            <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
-            <p>เลเวลสูงสุด: <span id="finalLevel">1</span></p>
-            <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
-        </div>
-
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        
         <div class="controls">
-            เลื่อนเมาส์ หรือ ลูกศรซ้าย-ขวา เพื่อควบคุมแพดเดิล<br>
-            ทำลายอิฐทั้งหมดเพื่อผ่านด่าน!
+            <p><strong>Controls:</strong> Use mouse or arrow keys to move paddle</p>
+            <button onclick="startGame()">Start Game</button>
+            <button onclick="pauseGame()">Pause</button>
         </div>
     </div>
-
-    <div class="credit">© ASHURA Games</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-
+        
+        // Game state
         let gameRunning = false;
+        let gamePaused = false;
         let score = 0;
         let lives = 3;
         let level = 1;
-        let bricks = [];
-        let particles = [];
-
-        // เกมออบเจกต์
-        const paddle = {
-            x: canvas.width / 2 - 75,
+        
+        // Paddle
+        let paddle = {
+            x: canvas.width / 2 - 50,
             y: canvas.height - 30,
-            width: 150,
+            width: 100,
             height: 15,
             speed: 8
         };
-
-        const ball = {
+        
+        // Ball
+        let ball = {
             x: canvas.width / 2,
             y: canvas.height / 2,
             radius: 8,
-            vx: 5, // Changed from speedX to vx for consistency with provided change
-            vy: -5, // Changed from speedY to vy for consistency with provided change
-            maxSpeed: 12
+            speedX: 4,
+            speedY: -4,
+            trail: []
         };
-
-        // คลาส Particle
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 8;
-                this.vy = (Math.random() - 0.5) * 8;
-                this.color = color;
-                this.life = 30;
-                this.size = Math.random() * 4 + 2;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life--;
-                this.vx *= 0.98;
-                this.vy *= 0.98;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.life / 30;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        // สร้างอิฐ
-        function createBricks() {
+        
+        // Bricks
+        let bricks = [];
+        let brickRows = 6;
+        let brickCols = 10;
+        let brickWidth = 55;
+        let brickHeight = 20;
+        let brickPadding = 3;
+        let brickOffsetTop = 60;
+        let brickOffsetLeft = 30;
+        
+        // Power-ups
+        let powerUps = [];
+        let activePowerUps = [];
+        
+        // Particles
+        let particles = [];
+        
+        // Controls
+        let keys = {};
+        let mouseX = paddle.x;
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left - paddle.width / 2;
+        });
+        
+        function initBricks() {
             bricks = [];
-            const rows = 6 + level;
-            const cols = 10;
-            const brickWidth = 70;
-            const brickHeight = 25;
-            const padding = 5;
-            const offsetX = (canvas.width - (cols * (brickWidth + padding))) / 2;
-            const offsetY = 50;
-
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
-                    bricks.push({
-                        x: col * (brickWidth + padding) + offsetX,
-                        y: row * (brickHeight + padding) + offsetY,
+            for (let r = 0; r < brickRows; r++) {
+                for (let c = 0; c < brickCols; c++) {
+                    let brick = {
+                        x: c * (brickWidth + brickPadding) + brickOffsetLeft,
+                        y: r * (brickHeight + brickPadding) + brickOffsetTop,
                         width: brickWidth,
                         height: brickHeight,
-                        color: colors[row % colors.length],
-                        visible: true,
-                        points: (rows - row) * 10
-                    });
+                        hits: 1,
+                        color: `hsl(${r * 60}, 70%, 60%)`,
+                        points: (brickRows - r) * 10
+                    };
+                    
+                    // Special bricks
+                    if (Math.random() < 0.1) {
+                        brick.hits = 2;
+                        brick.points *= 2;
+                        brick.special = 'tough';
+                    } else if (Math.random() < 0.05) {
+                        brick.powerUp = Math.random() < 0.5 ? 'multiball' : 'bigpaddle';
+                        brick.special = 'powerup';
+                    }
+                    
+                    bricks.push(brick);
                 }
             }
         }
-
-        // วาดแพดเดิล
-        function drawPaddle() {
-            const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
-            gradient.addColorStop(0, '#10b981');
-            gradient.addColorStop(1, '#059669');
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        
+        function updatePaddle() {
+            if (keys['ArrowLeft'] && paddle.x > 0) {
+                paddle.x -= paddle.speed;
+            }
+            if (keys['ArrowRight'] && paddle.x < canvas.width - paddle.width) {
+                paddle.x += paddle.speed;
+            }
+            
+            // Mouse control
+            paddle.x = Math.max(0, Math.min(mouseX, canvas.width - paddle.width));
         }
-
-        // วาดบอล
-        function drawBall() {
-            const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#10b981');
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // เอฟเฟกต์เงา
-            ctx.shadowColor = '#10b981';
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        // วาดอิฐ
-        function drawBricks() {
-            bricks.forEach(brick => {
-                if (brick.visible) {
-                    const gradient = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
-                    gradient.addColorStop(0, brick.color);
-                    gradient.addColorStop(1, '#000000');
-
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
-
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
-                }
-            });
-        }
-
-        // อัปเดตบอล
+        
         function updateBall() {
-            ball.x += ball.vx;
-            ball.y += ball.vy;
-
-            // ชนผนังซ้าย-ขวา
+            // Add to trail
+            ball.trail.push({x: ball.x, y: ball.y});
+            if (ball.trail.length > 10) ball.trail.shift();
+            
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+            
+            // Wall collisions
             if (ball.x <= ball.radius || ball.x >= canvas.width - ball.radius) {
-                ball.vx = -ball.vx;
-                ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
-
-                // เพิ่มเอฟเฟกต์เสียง
-                if (window.GameEnhancement && window.GameEnhancement.audio) {
-                    const bounceSound = window.GameEnhancement.audio.createSound(330, 0.1);
-                    bounceSound();
-                }
+                ball.speedX = -ball.speedX;
+                createParticles(ball.x, ball.y, '#fff');
             }
-
-            // ชนผนังบน
+            
             if (ball.y <= ball.radius) {
-                ball.y = ball.radius;
-                ball.vy = -ball.vy;
-
-                if (window.GameEnhancement && window.GameEnhancement.audio) {
-                    const bounceSound = window.GameEnhancement.audio.createSound(330, 0.1);
-                    bounceSound();
-                }
+                ball.speedY = -ball.speedY;
+                createParticles(ball.x, ball.y, '#fff');
             }
-
-            // ตรวจสอบการตกลงล่าง
-            if (ball.y > canvas.height + ball.radius) {
+            
+            // Paddle collision
+            if (ball.y + ball.radius >= paddle.y && 
+                ball.x >= paddle.x && 
+                ball.x <= paddle.x + paddle.width &&
+                ball.speedY > 0) {
+                
+                let hitPos = (ball.x - paddle.x) / paddle.width;
+                ball.speedX = (hitPos - 0.5) * 8;
+                ball.speedY = -Math.abs(ball.speedY);
+                createParticles(ball.x, ball.y, '#00ff00');
+            }
+            
+            // Bottom boundary
+            if (ball.y > canvas.height) {
                 lives--;
                 if (lives <= 0) {
                     gameOver();
@@ -295,157 +230,231 @@
                     resetBall();
                 }
             }
-
-            // ชนอิฐ
-            bricks.forEach(brick => {
-                if (brick.visible &&
-                    ball.x >= brick.x &&
+        }
+        
+        function checkBrickCollisions() {
+            for (let i = bricks.length - 1; i >= 0; i--) {
+                let brick = bricks[i];
+                
+                if (ball.x >= brick.x && 
                     ball.x <= brick.x + brick.width &&
-                    ball.y >= brick.y &&
+                    ball.y >= brick.y && 
                     ball.y <= brick.y + brick.height) {
-
-                    brick.visible = false;
-                    ball.vy = -ball.vy;
-                    score += brick.points;
-
-                    // สร้างอนุภาค
-                    for (let i = 0; i < 8; i++) {
-                        particles.push(new Particle(brick.x + brick.width/2, brick.y + brick.height/2, brick.color));
+                    
+                    ball.speedY = -ball.speedY;
+                    brick.hits--;
+                    
+                    if (brick.hits <= 0) {
+                        score += brick.points;
+                        createParticles(brick.x + brick.width/2, brick.y + brick.height/2, brick.color);
+                        
+                        if (brick.powerUp) {
+                            createPowerUp(brick.x + brick.width/2, brick.y + brick.height/2, brick.powerUp);
+                        }
+                        
+                        bricks.splice(i, 1);
+                        
+                        if (bricks.length === 0) {
+                            nextLevel();
+                        }
                     }
-
-                    // เช็คชนะ
-                    if (bricks.every(b => !b.visible)) {
-                        nextLevel();
+                    break;
+                }
+            }
+        }
+        
+        function createPowerUp(x, y, type) {
+            powerUps.push({
+                x: x,
+                y: y,
+                width: 20,
+                height: 20,
+                speed: 2,
+                type: type
+            });
+        }
+        
+        function updatePowerUps() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                let powerUp = powerUps[i];
+                powerUp.y += powerUp.speed;
+                
+                // Check collision with paddle
+                if (powerUp.y + powerUp.height >= paddle.y &&
+                    powerUp.x + powerUp.width >= paddle.x &&
+                    powerUp.x <= paddle.x + paddle.width) {
+                    
+                    activatePowerUp(powerUp.type);
+                    powerUps.splice(i, 1);
+                } else if (powerUp.y > canvas.height) {
+                    powerUps.splice(i, 1);
+                }
+            }
+        }
+        
+        function activatePowerUp(type) {
+            switch(type) {
+                case 'multiball':
+                    // Create additional balls
+                    for (let i = 0; i < 2; i++) {
+                        let newBall = {...ball};
+                        newBall.speedX = (Math.random() - 0.5) * 8;
+                        newBall.speedY = -Math.abs(newBall.speedY);
+                        // This would need multi-ball system implementation
                     }
+                    break;
+                case 'bigpaddle':
+                    paddle.width = Math.min(150, paddle.width * 1.5);
+                    setTimeout(() => {
+                        paddle.width = 100;
+                    }, 10000);
+                    break;
+            }
+        }
+        
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    speedX: (Math.random() - 0.5) * 6,
+                    speedY: (Math.random() - 0.5) * 6,
+                    life: 30,
+                    color: color
+                });
+            }
+        }
+        
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let particle = particles[i];
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw ball trail
+            for (let i = 0; i < ball.trail.length; i++) {
+                let alpha = i / ball.trail.length;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(ball.trail[i].x, ball.trail[i].y, ball.radius * alpha, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw ball
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw paddle with gradient
+            let gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
+            gradient.addColorStop(0, '#00ff00');
+            gradient.addColorStop(1, '#008800');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            
+            // Draw bricks
+            bricks.forEach(brick => {
+                ctx.fillStyle = brick.color;
+                ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                
+                if (brick.special === 'tough') {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+                } else if (brick.special === 'powerup') {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.fillRect(brick.x + brick.width/2 - 5, brick.y + brick.height/2 - 5, 10, 10);
                 }
             });
-        }
-
-        // รีเซ็ตบอล
-        function resetBall() {
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.vx = (Math.random() > 0.5 ? 1 : -1) * 5;
-            ball.vy = -5;
-        }
-
-        // ด่านถัดไป
-        function nextLevel() {
-            level++;
-            ball.maxSpeed += 0.5;
-            createBricks();
-            resetBall();
-        }
-
-        // อัปเดตอนุภาค
-        function updateParticles() {
-            particles = particles.filter(particle => {
-                particle.update();
-                return particle.life > 0;
+            
+            // Draw power-ups
+            powerUps.forEach(powerUp => {
+                ctx.fillStyle = powerUp.type === 'multiball' ? '#ff6b6b' : '#4ecdc4';
+                ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+            });
+            
+            // Draw particles
+            particles.forEach(particle => {
+                let alpha = particle.life / 30;
+                ctx.fillStyle = particle.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+                ctx.fillRect(particle.x, particle.y, 3, 3);
             });
         }
-
-        // วาดอนุภาค
-        function drawParticles() {
-            particles.forEach(particle => particle.draw());
+        
+        function gameLoop() {
+            if (!gameRunning || gamePaused) return;
+            
+            updatePaddle();
+            updateBall();
+            checkBrickCollisions();
+            updatePowerUps();
+            updateParticles();
+            draw();
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
         }
-
-        // อัปเดต UI
+        
         function updateUI() {
             document.getElementById('score').textContent = score;
             document.getElementById('lives').textContent = lives;
             document.getElementById('level').textContent = level;
         }
-
-        // จบเกม
-        function gameOver() {
-            gameRunning = false;
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('finalLevel').textContent = level;
-            document.getElementById('gameOver').style.display = 'block';
-        }
-
-        // เริ่มเกม
+        
         function startGame() {
             gameRunning = true;
+            gamePaused = false;
             score = 0;
             lives = 3;
             level = 1;
-            particles = [];
-
-            createBricks();
+            initBricks();
             resetBall();
-
-            document.getElementById('gameOver').style.display = 'none';
-            updateUI();
+            gameLoop();
         }
-
-        // วาดเกม
-        function draw() {
-            // ล้างหน้าจอ
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // วาดพื้นหลัง
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#0f0f23');
-            gradient.addColorStop(1, '#1a1a2e');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            drawBricks();
-            drawPaddle();
-            drawBall();
-            drawParticles();
+        
+        function pauseGame() {
+            gamePaused = !gamePaused;
+            if (!gamePaused) gameLoop();
         }
-
-        // อัปเดตเกม
-        function update() {
-            if (!gameRunning) return;
-
-            updateBall();
-            updateParticles();
-            updateUI();
+        
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speedX = (Math.random() - 0.5) * 6;
+            ball.speedY = -4;
+            ball.trail = [];
         }
-
-        // ลูปเกม
-        let lastTime = 0;
-        const targetFPS = 144;
-        const frameTime = 1000 / targetFPS;
-
-        function gameLoop(currentTime) {
-            if (currentTime - lastTime < frameTime) {
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-            lastTime = currentTime;
-
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
+        
+        function nextLevel() {
+            level++;
+            brickRows = Math.min(8, brickRows + 1);
+            ball.speedX *= 1.1;
+            ball.speedY *= 1.1;
+            initBricks();
+            resetBall();
         }
-
-        // ควบคุม
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && paddle.x > 0) {
-                paddle.x -= paddle.speed;
-            }
-            if (e.key === 'ArrowRight' && paddle.x < canvas.width - paddle.width) {
-                paddle.x += paddle.speed;
-            }
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            paddle.x = mouseX - paddle.width / 2;
-
-            if (paddle.x < 0) paddle.x = 0;
-            if (paddle.x > canvas.width - paddle.width) paddle.x = canvas.width - paddle.width;
-        });
-
-        // เริ่มเกม
-        startGame();
-        gameLoop(0);
+        
+        function gameOver() {
+            gameRunning = false;
+            alert(`Game Over! Final Score: ${score}`);
+        }
+        
+        // Initialize
+        draw();
+        updateUI();
     </script>
 </body>
 </html>

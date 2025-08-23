@@ -173,16 +173,15 @@
         let gameSpeed = 2; // ความเร็วเกมเริ่มต้น
 
         // Bird variables
-        const bird = {
+        let bird = {
             x: 50,
             y: canvas.height / 2,
-            width: 25,
-            height: 25,
+            width: 20,
+            height: 20,
             velocity: 0,
             gravity: 0.5,
-            jump: -9,
-            color: '#FFD700',
-            trail: []
+            jump: -8,
+            rotation: 0
         };
 
         // Power-ups
@@ -191,8 +190,8 @@
 
         // Pipes array
         let pipes = [];
-        const pipeWidth = 60;
-        const pipeGap = 150;
+        const pipeWidth = 50; // Adjusted pipe width
+        const pipeGap = 130; // Adjusted pipe gap
         let pipeTimer = 0;
 
         // Background variables
@@ -224,11 +223,11 @@
             canvas.style.width = newWidth + 'px';
             canvas.style.height = newHeight + 'px';
 
-            // Scale bird position
+            // Scale bird position and dimensions
             bird.x = canvas.width * 0.125;
             bird.y = canvas.height * 0.5;
-            bird.width = canvas.width * 0.075;
-            bird.height = canvas.width * 0.075;
+            bird.width = canvas.width * 0.06; // Adjusted bird width
+            bird.height = canvas.width * 0.06; // Adjusted bird height
         }
 
         // Draw functions
@@ -269,13 +268,19 @@
         }
 
         function drawBird() {
+            ctx.save(); // Save context state
+
+            // Move origin to bird's center and rotate
+            ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+            ctx.rotate(bird.rotation * Math.PI / 180);
+
             // Draw bird trail
             ctx.globalAlpha = 0.3;
             for (let i = 0; i < bird.trail.length; i++) {
                 const alpha = (i + 1) / bird.trail.length * 0.3;
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = bird.color;
-                ctx.fillRect(bird.trail[i].x, bird.trail[i].y, bird.width * 0.8, bird.height * 0.8);
+                ctx.fillRect(-bird.width * 0.8 / 2, -bird.height * 0.8 / 2, bird.width * 0.8, bird.height * 0.8);
             }
             ctx.globalAlpha = 1;
 
@@ -283,21 +288,23 @@
             ctx.shadowColor = bird.color;
             ctx.shadowBlur = 10;
             ctx.fillStyle = bird.color;
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+            ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
             ctx.shadowBlur = 0;
 
             // Draw bird eye
             ctx.fillStyle = '#000';
-            ctx.fillRect(bird.x + 15, bird.y + 5, 4, 4);
+            ctx.fillRect(-bird.width / 4 + 2, -bird.height / 4, 4, 4);
             ctx.fillStyle = '#FFF';
-            ctx.fillRect(bird.x + 16, bird.y + 6, 2, 2);
+            ctx.fillRect(-bird.width / 4 + 3, -bird.height / 4 + 1, 2, 2);
+
+            ctx.restore(); // Restore context state
         }
 
         function drawPipe(pipe) {
             // Pipe shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.fillRect(pipe.x + 5, 0, pipeWidth, pipe.topHeight);
-            ctx.fillRect(pipe.x + 5, pipe.topHeight + pipeGap, pipeWidth, canvas.height - pipe.topHeight - pipeGap);
+            ctx.fillRect(pipe.x + 5, pipe.bottomY, pipeWidth, pipe.bottomHeight);
 
             // Top pipe
             ctx.fillStyle = '#228B22';
@@ -309,16 +316,16 @@
 
             // Bottom pipe
             ctx.fillStyle = '#228B22';
-            ctx.fillRect(pipe.x, pipe.topHeight + pipeGap, pipeWidth, canvas.height - pipe.topHeight - pipeGap);
+            ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, pipe.bottomHeight);
 
             // Bottom pipe cap
             ctx.fillStyle = '#32CD32';
-            ctx.fillRect(pipe.x - 5, pipe.topHeight + pipeGap, pipeWidth + 10, 30);
+            ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 30);
 
             // Pipe highlights
             ctx.fillStyle = '#90EE90';
             ctx.fillRect(pipe.x + 5, 0, 5, pipe.topHeight);
-            ctx.fillRect(pipe.x + 5, pipe.topHeight + pipeGap, 5, canvas.height - pipe.topHeight - pipeGap);
+            ctx.fillRect(pipe.x + 5, pipe.bottomY, 5, pipe.bottomHeight);
         }
 
         // Game logic
@@ -326,8 +333,15 @@
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
+            // Update rotation based on velocity
+            if (bird.velocity < 0) {
+                bird.rotation = Math.max(-45, bird.velocity * 4);
+            } else {
+                bird.rotation = Math.min(90, bird.velocity * 4);
+            }
+
             // Update trail
-            bird.trail.push({x: bird.x - 5, y: bird.y});
+            bird.trail.push({x: bird.x, y: bird.y});
             if (bird.trail.length > 8) {
                 bird.trail.shift();
             }
@@ -348,29 +362,26 @@
 
             // Generate new pipe
             if (pipeTimer > 90) {
-                const minHeight = 50;
-                const maxHeight = canvas.height - pipeGap - 100;
-                const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-
-                pipes.push({
-                    x: canvas.width,
-                    topHeight: topHeight,
-                    passed: false
-                });
-
+                createPipe();
                 pipeTimer = 0;
             }
 
             // Update pipe positions
             for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].x -= 3;
+                pipes[i].x -= 3; // Game speed adjusted here for overall game speed
 
                 // Check if bird passed pipe
-                if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
-                    pipes[i].passed = true;
+                if (!pipes[i].scored && pipes[i].x + pipeWidth < bird.x) {
+                    pipes[i].scored = true;
                     score++;
                     pipesPassedCount++;
                     updateScore();
+
+                    // Play score sound
+                    if (window.GameEnhancement && window.GameEnhancement.audio) {
+                        const scoreSound = window.GameEnhancement.audio.createSound(880, 0.05, 'sine');
+                        scoreSound();
+                    }
                 }
 
                 // Remove pipes that are off screen
@@ -379,7 +390,7 @@
                 }
 
                 // Collision detection
-                if (pipes[i] && checkCollision(bird, pipes[i])) {
+                if (checkCollision(bird, pipes[i])) {
                     gameOver();
                     return;
                 }
@@ -387,13 +398,10 @@
         }
 
         function checkCollision(bird, pipe) {
-            // ถ้ามี shield ไม่ชน
-            if (bird.shield) return false;
-
             // Check if bird is within pipe x range
             if (bird.x < pipe.x + pipeWidth && bird.x + bird.width > pipe.x) {
                 // Check if bird hits top or bottom pipe
-                if (bird.y < pipe.topHeight || bird.y + bird.height > pipe.topHeight + pipeGap) {
+                if (bird.y < pipe.topHeight || bird.y + bird.height > pipe.bottomY) {
                     return true;
                 }
             }
@@ -496,8 +504,11 @@
                     // ชะลอเวลาชั่วคราว
                     setTimeout(() => {
                         const originalGravity = bird.gravity;
+                        const originalGameSpeed = 3; // Assuming original game speed is 3
+                        gameSpeed *= 0.5; // Slow down the game
                         bird.gravity *= 0.5;
                         setTimeout(() => {
+                            gameSpeed = 3; // Restore original game speed
                             bird.gravity = originalGravity;
                         }, 3000);
                     }, 100);

@@ -186,6 +186,8 @@
         let maxShots = 10;
         let gameRunning = true;
         let difficulty = 'normal';
+        let level = 1; // Placeholder for level, can be used for difficulty scaling
+
         let goalkeeperAI = {
             reflexSpeed: 0.7,
             reactionTime: 150,
@@ -201,22 +203,20 @@
         let powerInterval;
 
         // Ball variables
-        const ball = {
-            x: canvas.width / 2 - 10,
-            y: canvas.height - 100,
-            radius: 12,
-            vx: 0,
-            vy: 0,
+        let ball = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            radius: 15,
+            speedX: 0,
+            speedY: 0,
             isMoving: false,
-            trail: [],
-            spin: 0,
-            color: '#FFFFFF'
+            trail: []
         };
         let ballAnimating = false;
 
         // Goal variables
         let goal = { x: 200, y: 50, width: 400, height: 200 };
-        let goalkeeper = { x: 350, y: 200, width: 100, height: 80 };
+        let goalkeeper = { x: 350, y: 200, width: 100, height: 80, speed: 5 }; // Added speed property
 
         // Responsive canvas sizing
         function resizeCanvas() {
@@ -257,6 +257,7 @@
             goalkeeper.y = 200 * scaleY;
             goalkeeper.width = 100 * scaleX;
             goalkeeper.height = 80 * scaleY;
+            goalkeeper.speed = 5 * Math.min(scaleX, scaleY); // Scale speed too
         }
 
         // Draw functions
@@ -442,10 +443,11 @@
                     });
                 }
             }
+            ball.isMoving = true;
         }
 
         function checkGoalkeeperSave(ball, targetX, targetY, shotPower) {
-            const distance = Math.sqrt((targetX - (goalkeeper.x + goalkeeper.width / 2)) ** 2 + 
+            const distance = Math.sqrt((targetX - (goalkeeper.x + goalkeeper.width / 2)) ** 2 +
                                      (targetY - (goalkeeper.y + goalkeeper.height / 2)) ** 2);
 
             // AI difficulty adjustment
@@ -529,6 +531,7 @@
             ballAnimating = false;
             isAiming = false; // Reset aiming state
             power = 0;
+            ball.trail = []; // Clear trail for the next shot
             updatePowerMeter();
 
             // Smart goalkeeper positioning
@@ -574,6 +577,7 @@
             ballAnimating = false;
             isAiming = false;
             power = 0;
+            ball.trail = [];
 
             ball.x = canvas.width / 2;
             ball.y = canvas.height * 0.9;
@@ -595,6 +599,64 @@
             drawGoalkeeper();
             drawBall();
             drawAimLine();
+
+            // Update ball position and check for goal/miss
+            if (ball.isMoving) {
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                ball.trail.push({x: ball.x, y: ball.y});
+                if (ball.trail.length > 10) {
+                    ball.trail.shift();
+                }
+
+                // Apply gravity and drag (simple physics)
+                ball.vy += 0.1; // Gravity
+                ball.vx *= 0.99; // Drag
+
+                // Check if ball is out of bounds or hit something
+                if (ball.y > canvas.height + ball.radius || ball.x < -ball.radius || ball.x > canvas.width + ball.radius) {
+                    ball.isMoving = false;
+                    ballAnimating = false;
+                    if (ball.y > canvas.height - 50) { // Hit ground before goal line
+                        misses++;
+                        score -= 5; // Penalty for missing
+                    }
+                    nextShot();
+                } else {
+                    // Check for goal
+                    if (ball.x >= goal.x && ball.x <= goal.x + goal.width &&
+                        ball.y >= goal.y && ball.y <= goal.y + goal.height) {
+                        if (checkGoalkeeperSave(ball, ball.targetX, ball.targetY, power)) {
+                            // Goalkeeper saves
+                            animateGoalkeeperSave(ball.targetX);
+                            misses++;
+                            score -= 10; // Penalty for save
+                            ball.vx = -ball.vx * 0.5;
+                            ball.vy = ball.vy * 0.5;
+                            ball.color = '#ff0000'; // Indicate a save
+                            setTimeout(() => { ball.color = '#FFFFFF'; }, 300);
+                            ball.isMoving = false;
+                            ballAnimating = false;
+                            nextShot();
+                        } else {
+                            // Goal!
+                            goals++;
+                            score += 10;
+                            ball.isMoving = false;
+                            ballAnimating = false;
+                            // Goal effect
+                            if (window.GameEnhancement && window.GameEnhancement.createParticleSystem) {
+                                const particles = window.GameEnhancement.createParticleSystem({ count: 50, spread: 15 });
+                                particles.add(ball.x, ball.y, { color: '#FFFF00', life: 1 });
+                            }
+                            nextShot();
+                        }
+                    }
+                }
+            }
+
+            // Update goalkeeper's position based on AI
+            updateGoalkeeper();
         }
 
         // Event handlers
@@ -634,7 +696,9 @@
 
         canvas.addEventListener('mouseup', () => {
             if (isAiming) {
+                clearInterval(powerInterval);
                 shootBall(aimX, aimY);
+                isAiming = false;
             }
         });
 
@@ -678,6 +742,40 @@
 
         // Focus canvas
         canvas.focus();
+
+        // Updated Goalkeeper function
+        function updateGoalkeeper() {
+            if (ball.isMoving) {
+                // Smarter goalkeeper AI
+                let reactionTime = 0.7 - (level - 1) * 0.1; // Adjust reaction time based on level
+                if (Math.random() < reactionTime) {
+                    // Predict ball's trajectory for better anticipation
+                    let predictedX = ball.x + ball.vx * 20; // Predict where the ball will be in ~20 frames
+                    let targetX = Math.max(100, Math.min(canvas.width - 100, predictedX)); // Keep within bounds
+
+                    if (Math.abs(goalkeeper.x - targetX) > 5) {
+                        if (goalkeeper.x < targetX) {
+                            goalkeeper.x += goalkeeper.speed;
+                        } else {
+                            goalkeeper.x -= goalkeeper.speed;
+                        }
+                    }
+                }
+
+                // Ensure goalkeeper stays within the goal area
+                goalkeeper.x = Math.max(goal.x, Math.min(goal.x + goal.width - goalkeeper.width, goalkeeper.x));
+            }
+        }
+
+        // New function to update ball trail
+        function updateBallTrail() {
+            if (ball.isMoving) {
+                ball.trail.push({x: ball.x, y: ball.y});
+                if (ball.trail.length > 10) {
+                    ball.trail.shift();
+                }
+            }
+        }
     </script>
 </body>
 </html>

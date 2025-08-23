@@ -253,34 +253,13 @@
 
         // Tetris pieces
         const PIECES = [
-            { // I
-                shape: [[1,1,1,1]],
-                color: '#00ffff'
-            },
-            { // O
-                shape: [[1,1],[1,1]],
-                color: '#ffff00'
-            },
-            { // T
-                shape: [[0,1,0],[1,1,1]],
-                color: '#800080'
-            },
-            { // S
-                shape: [[0,1,1],[1,1,0]],
-                color: '#00ff00'
-            },
-            { // Z
-                shape: [[1,1,0],[0,1,1]],
-                color: '#ff0000'
-            },
-            { // J
-                shape: [[1,0,0],[1,1,1]],
-                color: '#0000ff'
-            },
-            { // L
-                shape: [[0,0,1],[1,1,1]],
-                color: '#ffa500'
-            }
+            { shape: [[1, 1, 1, 1]], color: '#00ffff' }, // I-piece
+            { shape: [[1, 1], [1, 1]], color: '#ffff00' }, // O-piece
+            { shape: [[0, 1, 0], [1, 1, 1]], color: '#800080' }, // T-piece
+            { shape: [[1, 0, 0], [1, 1, 1]], color: '#ffa500' }, // L-piece
+            { shape: [[0, 0, 1], [1, 1, 1]], color: '#0000ff' }, // J-piece
+            { shape: [[0, 1, 1], [1, 1, 0]], color: '#00ff00' }, // S-piece
+            { shape: [[1, 1, 0], [0, 1, 1]], color: '#ff0000' }  // Z-piece
         ];
 
         class Particle {
@@ -761,7 +740,7 @@
                             // Should not happen if nextPiece is always generated
                             currentPiece = createPiece();
                         }
-                        
+
                         canHold = false;
                         ghostPiece = getGhostPiece(currentPiece);
                         drawHold();

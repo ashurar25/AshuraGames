@@ -107,6 +107,16 @@
         .difficulty button.active {
             background: linear-gradient(45deg, #4ade80, #22c55e);
         }
+        @keyframes particle-float {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(0.5);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -142,20 +152,21 @@
         // ตัวแปรเกม
         let cards = [];
         let flippedCards = [];
-        let matchedPairs = 0;
+        let matchedPairsCount = 0; // Renamed to matchedPairsCount for clarity
         let moves = 0;
         let gameStarted = false;
         let timer = 0;
-        let gameMode = 'easy'; // easy: 4x4, medium: 6x4, hard: 6x6
+        let gameMode = 'easy'; // easy: 4x4, medium: 4x5, hard: 6x6
         let streak = 0;
         let bestTime = localStorage.getItem('memoryBestTime') || Infinity;
         let hint = null;
         let hintTimer = 0;
+        let timerInterval = null; // Added to clear interval
 
         const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦋', '🐛', '🐝', '🐞', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🐙', '🦑', '🦐', '🦀', '🐡', '🐠'];
 
         function setDifficulty(level) {
-            gameMode = level; // Renamed from currentDifficulty to gameMode for clarity
+            gameMode = level;
             document.querySelectorAll('.difficulty button').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -171,13 +182,41 @@
             }
         }
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+        function shuffleCards() {
+            // Fisher-Yates shuffle algorithm
+            for (let i = cards.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [cards[i], cards[j]] = [cards[j], cards[i]];
             }
-            return array;
+
+            // Add flip animation delay
+            cards.forEach((card, index) => {
+                card.flipDelay = index * 50;
+            });
         }
+
+        function addParticleEffect(x, y) {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'absolute';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.width = '4px';
+                    particle.style.height = '4px';
+                    particle.style.background = '#ffd700';
+                    particle.style.borderRadius = '50%';
+                    particle.style.pointerEvents = 'none';
+                    particle.style.animation = 'particle-float 1s ease-out forwards';
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }, i * 20);
+            }
+        }
+
 
         function createGameBoard() {
             const board = document.getElementById('gameBoard');
@@ -192,10 +231,10 @@
                 gridSize = 36; // 6x6
             }
 
-            matchedPairs = gridSize / 2; // Renamed totalPairs to matchedPairs to align with variable names
-            const selectedEmojis = emojis.slice(0, matchedPairs);
+            const totalPairs = gridSize / 2;
+            const selectedEmojis = emojis.slice(0, totalPairs);
             const cardValues = [...selectedEmojis, ...selectedEmojis];
-            cards = shuffle(cardValues); // Renamed gameBoard to cards to align with variable names
+            cards = shuffleCards(cardValues); // Renamed gameBoard to cards to align with variable names
 
             cards.forEach((emoji, index) => {
                 const card = document.createElement('div');
@@ -208,15 +247,21 @@
         }
 
         function flipCard(e) {
-            if (!gameStarted) startTimer();
+            if (!gameStarted) {
+                startGameTimer(); // Renamed startTimer to startGameTimer
+            }
 
             const card = e.target;
             if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) {
                 return;
             }
 
-            card.classList.add('flipped');
-            card.textContent = card.dataset.value;
+            // Apply flip animation delay
+            setTimeout(() => {
+                card.classList.add('flipped');
+                card.textContent = card.dataset.value;
+            }, card.flipDelay || 0);
+
             flippedCards.push(card);
 
             if (flippedCards.length === 2) {
@@ -233,10 +278,15 @@
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
                     card2.classList.add('matched');
-                    matchedPairs--; // Decrement matchedPairs
-                    document.getElementById('matches').textContent = (cards.length / 2) - matchedPairs; // Update displayed matches
+                    matchedPairsCount++; // Increment matchedPairsCount
+                    document.getElementById('matches').textContent = matchedPairsCount; // Update displayed matches
 
-                    if (matchedPairs === 0) { // Check if all pairs are matched
+                    // Add particle effect on match
+                    const rect1 = card1.getBoundingClientRect();
+                    const rect2 = card2.getBoundingClientRect();
+                    addParticleEffect((rect1.left + rect1.width / 2 + rect2.left + rect2.width / 2) / 2, (rect1.top + rect1.height / 2 + rect2.top + rect2.height / 2) / 2);
+
+                    if (matchedPairsCount === (cards.length / 2)) { // Check if all pairs are matched
                         winGame();
                     }
                 } else {
@@ -249,18 +299,17 @@
             }, 1000);
         }
 
-        function startTimer() {
+        function startGameTimer() { // Renamed from startTimer
+            if (gameStarted) return; // Prevent multiple timers
             gameStarted = true;
-            startTime = Date.now();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function updateTimer() {
-            const elapsed = Date.now() - startTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            document.getElementById('timer').textContent = timeString;
+            let startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timer').textContent = timeString;
+            }, 1000);
         }
 
         function winGame() {
@@ -269,7 +318,7 @@
             document.getElementById('finalTime').textContent = finalTime;
             document.getElementById('finalMoves').textContent = moves;
             document.getElementById('winMessage').style.display = 'block';
-            
+
             // Update best time if current time is better
             const currentTimeInSeconds = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
             if (currentTimeInSeconds < bestTime) {
@@ -281,7 +330,7 @@
         function startGame() {
             gameStarted = false;
             moves = 0;
-            matchedPairs = 0; // Reset matchedPairs
+            matchedPairsCount = 0; // Reset matchedPairsCount
             flippedCards = [];
             clearInterval(timerInterval);
 
