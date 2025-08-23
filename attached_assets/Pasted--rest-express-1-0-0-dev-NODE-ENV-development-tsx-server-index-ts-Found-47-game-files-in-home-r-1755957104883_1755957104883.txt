@@ -1,0 +1,125 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Found 47 game files in /home/runner/workspace/public/games
+Loaded game 1: 2048 (2048.html)
+Loaded game 2: 3D Cube Runner (3d-cube-runner.html)
+Loaded game 3: 3D Racing WebGL (3d-racing-webgl.html)
+Loaded game 4: ASHURA Volleyball Advanced (ashura-volleyball-advanced.html)
+Loaded game 5: Asteroid Shooter (asteroid-shooter.html)
+Loaded game 6: Basketball Shots 3D (basketball-shots-3d.html)
+Loaded game 7: Breakout Enhanced (breakout-enhanced.html)
+Loaded game 8: Bubble Shooter (bubble-shooter.html)
+Loaded game 9: Chess Master 3D (chess-master-3d.html)
+Loaded game 10: Cooking Master 3D (cooking-master-3d.html)
+Loaded game 11: Cosmic Defender WebGL (cosmic-defender-webgl.html)
+Loaded game 12: Crystal Caverns 3D (crystal-caverns-3d.html)
+Loaded game 13: Cyber Runner 3D (cyber-runner-3d.html)
+Loaded game 14: Dancing Beat Challenge (dancing-beat-challenge.html)
+Loaded game 15: Dragon Flight 3D (dragon-flight-3d.html)
+Loaded game 16: Endless Runner 3D (endless-runner-3d.html)
+Loaded game 17: Fashion Designer Studio (fashion-designer-studio.html)
+Loaded game 18: Flappy Bird (flappy-bird.html)
+Loaded game 19: Galactic Defender 3D (galactic-defender-3d.html)
+Loaded game 20: Gulper Snake (gulper-snake.html)
+Loaded game 21: Medieval Kingdom (medieval-kingdom.html)
+Loaded game 22: Memory Cards (memory-cards.html)
+Loaded game 23: Neon Maze 3D (neon-maze-3d.html)
+Loaded game 24: Neon Platformer WebGL (neon-platformer-webgl.html)
+Loaded game 25: Neon Pong (neon-pong.html)
+Loaded game 26: Neural Network 3D (neural-network-3d.html)
+Loaded game 27: Ninja Runner 3D (ninja-runner-3d.html)
+Loaded game 28: Pacman Adventure (pacman-adventure.html)
+Loaded game 29: Particle Explosion (particle-explosion.html)
+Loaded game 30: Pixel Art Creator (pixel-art-creator.html)
+Loaded game 31: Portal Escape 3D (portal-escape-3d.html)
+Loaded game 32: Puzzle Blocks (puzzle-blocks.html)
+Loaded game 33: Quantum Shooter WebGL (quantum-shooter-webgl.html)
+Loaded game 34: Racing Rush (racing-rush.html)
+Loaded game 35: Snake Classic (snake-classic.html)
+Loaded game 36: Snake Enhanced (snake-enhanced.html)
+Loaded game 37: Snake (snake.html)
+Loaded game 38: Soccer Penalty (soccer-penalty.html)
+Loaded game 39: 3D Space Invaders (space-invaders-3d.html)
+Loaded game 40: Space Mining 3D (space-mining-3d.html)
+Loaded game 41: Space Shooter (space-shooter.html)
+Loaded game 42: Tetris Enhanced (tetris-enhanced.html)
+Loaded game 43: Tetris Rush (tetris-rush.html)
+Loaded game 44: Tetris (tetris.html)
+Loaded game 45: Tower Defense 3D (tower-defense-3d.html)
+Loaded game 46: Volleyball Championship (volleyball-championship.html)
+Loaded game 47: หนอนน้อย (หนอนน้อย.html)
+Successfully loaded 47 games from public/games directory
+1:48:52 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+1:51:34 PM [vite] hmr update /src/components/games-grid.tsx, /src/index.css?v=xvfrhrjW9mM2Pa1ApLVVx
+1:51:34 PM [vite] Internal server error: /home/runner/workspace/client/src/components/games-grid.tsx: Unexpected token (173:12)
+
+  171 |             </div>
+  172 |             
+> 173 |             <h3 className="text-gray-300 text-xl md:text-2xl font-bold mb-4">
+      |             ^
+  174 |               {searchQuery ? 'ไม่พบเกมที่ค้นหา' : 'ไม่มีเกมในหมวดหมู่นี้'}
+  175 |             </h3>
+  176 |             
+  Plugin: vite:react-babel
+  File: /home/runner/workspace/client/src/components/games-grid.tsx:173:12
+  171|              </div>
+  172|              
+  173|              <h3 className="text-gray-300 text-xl md:text-2xl font-bold mb-4">
+     |              ^
+  174|                {searchQuery ? 'ไม่พบเกมที่ค้นหา' : 'ไม่มีเกมในหมวดหมู่นี้'}
+  175|              </h3>
+      at toParseError (/home/runner/workspace/node_modules/@babel/parser/src/parse-error.ts:95:45)
+      at raise (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1497:19)
+      at unexpected (/home/runner/workspace/node_modules/@babel/parser/src/tokenizer/index.ts:1537:16)
+      at checkExpressionErrors (/home/runner/workspace/node_modules/@babel/parser/src/parser/util.ts:258:12)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:341:12)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3607:22)
+      at parseExpressionBase (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:221:23)
+      at callback (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:39)
+      at allowInAnd (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:3117:12)
+      at parseExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:17)
+      at jsxParseExpressionContainer (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:376:33)
+      at jsxParseElementAt (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:500:24)
+      at jsxParseElementAt (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:483:34)
+      at jsxParseElement (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:559:19)
+      at parseExprAtom (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:573:21)
+      at parseExprSubscripts (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:714:23)
+      at parseUpdate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:693:21)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:655:23)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3735:20)
+      at parseMaybeUnaryOrPrivate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:389:14)
+      at parseExprOps (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:401:23)
+      at parseMaybeConditional (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:356:23)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:298:21)
+      at fn (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3588:23)
+      at tryParse (/home/runner/workspace/node_modules/@babel/parser/src/parser/util.ts:174:20)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3587:20)
+      at callback (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:252:12)
+      at allowInAnd (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:3117:12)
+      at parseMaybeAssignAllowIn (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:251:17)
+      at parseParenAndDistinguishExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:1771:16)
+      at parseExprAtom (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:1131:21)
+      at parseExprAtom (/home/runner/workspace/node_modules/@babel/parser/src/plugins/jsx/index.ts:583:22)
+      at parseExprSubscripts (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:714:23)
+      at parseUpdate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:693:21)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:655:23)
+      at parseMaybeUnary (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3735:20)
+      at parseMaybeUnaryOrPrivate (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:389:14)
+      at parseExprOps (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:401:23)
+      at parseMaybeConditional (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:356:23)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:298:21)
+      at parseMaybeAssign (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3607:22)
+      at parseExpressionBase (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:221:23)
+      at callback (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:39)
+      at allowInAnd (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:3112:16)
+      at parseExpression (/home/runner/workspace/node_modules/@babel/parser/src/parser/expression.ts:212:17)
+      at parseReturnStatement (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:1091:28)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:498:21)
+      at parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/src/plugins/typescript/index.ts:3056:20)
+      at parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:437:17)
+      at parseStatementListItem (/home/runner/workspace/node_modules/@babel/parser/src/parser/statement.ts:386:17)
