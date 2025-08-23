@@ -169,16 +169,21 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
         className="glass-dark w-[95vw] h-[95vh] max-w-none max-h-none overflow-hidden border border-mint-500/20 p-0"
         data-testid="modal-game"
       >
-        <DialogHeader className="flex flex-row items-center justify-between p-2 border-b border-purple-500/30 bg-gradient-to-r from-purple-900/80 via-blue-900/80 to-cyan-900/80 backdrop-blur-sm">
-          <div className="flex items-center space-x-2">
-            <DialogTitle className="text-sm md:text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent truncate" data-testid="text-game-title">
-              🎮 {game.title}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              เล่นเกม {game.title} - ใช้ปุ่มเต็มจอเพื่อขยายหน้าจอ หรือปุ่ม X เพื่อปิด
-            </DialogDescription>
-            <Badge className="px-2 py-0.5 text-xs bg-gradient-to-r from-purple-600/50 to-cyan-600/50 text-cyan-300 border border-cyan-500/30 hidden sm:inline-flex">
-              ASHURA
+        <DialogHeader className="flex flex-row items-center justify-between p-3 border-b border-gradient-to-r from-mint-500/30 via-purple-500/30 to-cyan-500/30 bg-gradient-to-r from-purple-900/90 via-blue-900/90 to-cyan-900/90 backdrop-blur-xl shadow-xl">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-r from-mint-400 to-cyan-400 shadow-lg shadow-mint-500/30">
+              <span className="text-lg">🎮</span>
+            </div>
+            <div className="flex flex-col">
+              <DialogTitle className="text-sm md:text-lg font-bold bg-gradient-to-r from-mint-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent truncate" data-testid="text-game-title">
+                {game.title}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-400 hidden md:block">
+                เล่นเกม {game.title} - ใช้ปุ่มเต็มจอเพื่อขยายหน้าจอ หรือปุ่ม X เพื่อปิด
+              </DialogDescription>
+            </div>
+            <Badge className="px-3 py-1 text-xs bg-gradient-to-r from-mint-500/80 to-cyan-500/80 text-white border border-mint-400/50 shadow-lg shadow-mint-500/30 hidden sm:inline-flex rounded-full">
+              ✨ ASHURA
             </Badge>
           </div>
           <div className="flex items-center space-x-2">
@@ -265,43 +270,50 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
 
             {/* Enhanced Loading Overlay */}
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-md z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900/95 via-blue-900/95 to-cyan-900/95 backdrop-blur-xl z-10">
                 <div className="text-center animate-slide-up">
                   {/* Animated Loading Ring */}
-                  <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-6">
-                    <div className="absolute inset-0 rounded-full border-4 border-mint-500/20"></div>
-                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-mint-500 animate-spin"></div>
-                    <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Gamepad2 className="text-mint-400 w-8 h-8 md:w-10 md:h-10 animate-bounce-subtle" />
+                  <div className="relative w-24 h-24 md:w-28 md:h-28 mx-auto mb-8">
+                    <div className="absolute inset-0 rounded-full border-4 border-mint-500/30 shadow-xl"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-mint-400 border-r-cyan-400 animate-spin shadow-lg shadow-mint-500/50"></div>
+                    <div className="absolute inset-2 rounded-full border-3 border-transparent border-t-purple-400 border-l-pink-400 animate-spin shadow-md shadow-purple-500/30" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                    <div className="absolute inset-4 rounded-full border-2 border-transparent border-b-cyan-300 animate-spin" style={{ animationDuration: '2s' }}></div>
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-mint-500/20 to-cyan-500/20 rounded-full backdrop-blur-sm">
+                      <Gamepad2 className="text-mint-300 w-10 h-10 md:w-12 md:h-12 animate-bounce-subtle filter drop-shadow-lg" />
                     </div>
                   </div>
                   
-                  {/* Loading Text with Gradient */}
-                  <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-mint-400 via-cyan-400 to-mint-400 bg-clip-text text-transparent mb-2 animate-shimmer bg-[length:200%_100%]">
-                    กำลังโหลดเกม...
+                  {/* Enhanced Loading Text with Multiple Gradients */}
+                  <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-mint-300 via-cyan-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-3 animate-shimmer bg-[length:300%_100%] filter drop-shadow-sm">
+                    ✨ กำลังโหลดเกม...
                   </h3>
                   
-                  {/* Game Title */}
-                  <p className="text-gray-300 text-lg md:text-xl font-medium mb-3">
-                    {game?.title}
-                  </p>
-                  
-                  {/* Loading Progress Dots */}
-                  <div className="flex justify-center space-x-1 mb-4">
-                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-mint-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  {/* Game Title with Enhanced Styling */}
+                  <div className="glass-dark px-6 py-3 rounded-xl mb-4 border border-mint-500/30 shadow-lg shadow-mint-500/20">
+                    <p className="text-mint-200 text-lg md:text-xl font-semibold">
+                      🎮 {game?.title}
+                    </p>
                   </div>
                   
-                  {/* Enhanced Credit with Logo */}
-                  <div className="flex items-center justify-center space-x-2">
-                    <img 
-                      src="/ashura-logo.png" 
-                      alt="ASHURA Logo" 
-                      className="w-4 h-4 object-contain opacity-70"
-                    />
-                    <p className="text-gray-400 text-sm font-medium">Powered by ASHURA Games</p>
+                  {/* Enhanced Loading Progress Dots */}
+                  <div className="flex justify-center space-x-2 mb-6">
+                    <div className="w-3 h-3 bg-gradient-to-r from-mint-400 to-cyan-400 rounded-full animate-bounce shadow-lg shadow-mint-500/50" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-3 h-3 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-bounce shadow-lg shadow-cyan-500/50" style={{ animationDelay: '200ms' }}></div>
+                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-bounce shadow-lg shadow-purple-500/50" style={{ animationDelay: '400ms' }}></div>
+                  </div>
+                  
+                  {/* Enhanced Credit with Logo and Better Styling */}
+                  <div className="glass-dark px-4 py-2 rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-400/20 backdrop-blur-lg">
+                    <div className="flex items-center justify-center space-x-2">
+                      <img 
+                        src="/ashura-logo.png" 
+                        alt="ASHURA Logo" 
+                        className="w-5 h-5 object-contain opacity-90 filter drop-shadow-sm"
+                      />
+                      <p className="text-cyan-300 text-sm font-semibold bg-gradient-to-r from-cyan-300 to-mint-300 bg-clip-text text-transparent">
+                        Powered by ASHURA Games
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -309,17 +321,25 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
 
             {/* Enhanced ASHURA Games Credit Overlay - hidden in fullscreen */}
             {!isFullscreen && (
-              <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 z-10">
-                <div className="glass-dark px-3 md:px-4 py-2 rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-400/20 backdrop-blur-lg">
-                  <div className="flex items-center space-x-2">
-                    <img 
-                      src="/ashura-logo.png" 
-                      alt="ASHURA Logo" 
-                      className="w-4 h-4 md:w-5 md:h-5 object-contain opacity-80"
-                    />
-                    <span className="text-xs md:text-sm font-medium bg-gradient-to-r from-cyan-300 to-mint-300 bg-clip-text text-transparent">
-                      ASHURA Games
-                    </span>
+              <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10">
+                <div className="glass-dark px-4 md:px-5 py-2.5 rounded-xl border border-gradient-to-r from-mint-400/40 to-cyan-400/40 shadow-xl shadow-mint-400/30 backdrop-blur-xl hover:shadow-2xl hover:shadow-mint-400/50 transition-all duration-300 transform hover:scale-105">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-mint-400 to-cyan-400 rounded-full blur-sm opacity-50 animate-pulse"></div>
+                      <img 
+                        src="/ashura-logo.png" 
+                        alt="ASHURA Logo" 
+                        className="relative w-5 h-5 md:w-6 md:h-6 object-contain filter drop-shadow-sm"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs md:text-sm font-bold bg-gradient-to-r from-mint-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent leading-none">
+                        ASHURA
+                      </span>
+                      <span className="text-[10px] md:text-xs text-gray-400 font-medium leading-none">
+                        Games
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -352,34 +372,42 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
 
             {/* Enhanced Error Overlay */}
             {error && !isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-900/20 via-gray-900/90 to-red-900/20 backdrop-blur-md z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-900/30 via-purple-900/90 to-orange-900/30 backdrop-blur-xl z-10">
                 <div className="text-center text-white animate-slide-up max-w-md px-6">
-                  {/* Error Icon */}
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/30">
-                    <X className="w-8 h-8 text-white" />
+                  {/* Enhanced Error Icon */}
+                  <div className="relative w-20 h-20 mx-auto mb-6">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500 via-pink-500 to-orange-500 animate-pulse shadow-2xl shadow-red-500/40"></div>
+                    <div className="absolute inset-1 rounded-full bg-gradient-to-r from-red-600 to-pink-600 flex items-center justify-center">
+                      <X className="w-10 h-10 text-white filter drop-shadow-lg" />
+                    </div>
                   </div>
                   
-                  {/* Error Message */}
-                  <h3 className="text-xl font-bold text-red-400 mb-2">ไม่สามารถโหลดเกมได้</h3>
-                  <p className="text-lg mb-3 text-gray-200">{error}</p>
-                  <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-                    ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่ หรือเลือกเกมอื่น
-                  </p>
+                  {/* Enhanced Error Message */}
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-red-400 via-pink-400 to-orange-400 bg-clip-text text-transparent mb-3">
+                    ⚠️ ไม่สามารถโหลดเกมได้
+                  </h3>
                   
-                  {/* Action Buttons */}
+                  <div className="glass-dark px-6 py-4 rounded-xl mb-4 border border-red-500/30 shadow-lg shadow-red-500/20">
+                    <p className="text-lg mb-2 text-red-200 font-medium">{error}</p>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      💡 ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่ หรือเลือกเกมอื่น
+                    </p>
+                  </div>
+                  
+                  {/* Enhanced Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button
                       onClick={handleRetry}
-                      className="mint-gradient text-white px-6 py-3 rounded-lg font-semibold shadow-lg shadow-mint-500/30 hover:shadow-xl hover:shadow-mint-500/50 transition-all"
+                      className="bg-gradient-to-r from-mint-500 to-cyan-500 hover:from-mint-600 hover:to-cyan-600 text-white px-8 py-3 rounded-xl font-semibold shadow-xl shadow-mint-500/40 hover:shadow-2xl hover:shadow-mint-500/60 transition-all transform hover:scale-105 border border-mint-400/50"
                     >
-                      ลองใหม่อีกครั้ง
+                      🔄 ลองใหม่อีกครั้ง
                     </Button>
                     <Button
                       onClick={onClose}
                       variant="outline"
-                      className="border-gray-500/30 text-gray-300 hover:bg-gray-700/50 px-6 py-3 rounded-lg font-semibold"
+                      className="border-2 border-gray-400/50 text-gray-200 hover:bg-gray-700/70 hover:border-gray-300 px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                     >
-                      เลือกเกมอื่น
+                      🎮 เลือกเกมอื่น
                     </Button>
                   </div>
                 </div>
