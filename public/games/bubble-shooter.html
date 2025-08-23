@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bubble Shooter - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+    <link rel="stylesheet" href="./game-enhancement.css">
+    <link rel="stylesheet" href="./game-optimization.css">
+    <link rel="stylesheet" href="./_assets/game-frame.css">
+
     <style>
         body { margin: 0; padding: 0; background: linear-gradient(135deg, #ff9a56 0%, #ff6b95 100%); font-family: Arial, sans-serif; overflow: hidden; }
         canvas { display: block; margin: 20px auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -424,5 +429,8 @@
         createNewBall();
         gameLoop(0); // Start the game loop
     </script>
+    <!-- ASHURA:shared-js -->
+    <script src="./game-optimization.js"></script>
+    <script src="./_assets/game-frame.js"></script>
 </body>
 </html>

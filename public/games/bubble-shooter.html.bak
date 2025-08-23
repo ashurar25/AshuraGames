@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubble Shooter - ASHURA Games</title>
+    <style>
+        body { margin: 0; padding: 0; background: linear-gradient(135deg, #ff9a56 0%, #ff6b95 100%); font-family: Arial, sans-serif; overflow: hidden; }
+        canvas { display: block; margin: 20px auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .ui { position: absolute; top: 20px; left: 20px; color: #fff; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>คะแนน: <span id="score">0</span></div>
+        <div>ลูกเหลือ: <span id="balls">20</span></div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let score = 0;
+        let ballsLeft = 20;
+        let currentBall = null;
+        let nextBall = null;
+        let isAiming = false;
+        let mouseX = 0;
+        let mouseY = 0;
+        let gameRunning = true; // Added to control game loop
+
+        const BUBBLE_RADIUS = 20;
+        const COLORS = ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#ff44ff', '#44ffff'];
+
+        // กริดของบับเบิล
+        const bubbles = [];
+        const ROWS = 10;
+        const COLS = 12;
+
+        // ปืนยิงบับเบิล
+        const shooter = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            angle: 0
+        };
+
+        // คลาสบับเบิล
+        class Bubble {
+            constructor(x, y, color, moving = false) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.moving = moving;
+                this.speedX = 0;
+                this.speedY = 0;
+                this.radius = BUBBLE_RADIUS;
+            }
+
+            update() {
+                if (this.moving) {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    // ชนกำแพงข้าง
+                    if (this.x <= this.radius || this.x >= canvas.width - this.radius) {
+                        this.speedX *= -1;
+                    }
+
+                    // ชนด้านบน
+                    if (this.y <= this.radius) {
+                        this.attachToGrid();
+                    }
+                }
+            }
+
+            draw() {
+                // เงา
+                ctx.beginPath();
+                ctx.arc(this.x + 3, this.y + 3, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fill();
+
+                // บับเบิลหลัก
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+
+                // แสงสะท้อน
+                ctx.beginPath();
+                ctx.arc(this.x - 5, this.y - 5, this.radius / 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fill();
+
+                // ขอบ
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            attachToGrid() {
+                this.moving = false;
+
+                // หาตำแหน่งที่ใกล้ที่สุดในกริด
+                const gridX = Math.round((this.x - BUBBLE_RADIUS) / (BUBBLE_RADIUS * 2));
+                const gridY = Math.round(this.y / (BUBBLE_RADIUS * 1.8));
+
+                // จัดตำแหน่งใหม่
+                this.x = gridX * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS;
+                this.y = gridY * BUBBLE_RADIUS * 1.8 + BUBBLE_RADIUS;
+
+                // เพิ่มในกริด
+                if (!bubbles[gridY]) bubbles[gridY] = [];
+                bubbles[gridY][gridX] = this;
+
+                // ตรวจสอบการจับกลุ่ม
+                checkMatches(gridX, gridY);
+
+                // สร้างลูกใหม่
+                createNewBall();
+            }
+        }
+
+        // สร้างกริดเริ่มต้น
+        function initializeBubbles() {
+            for (let row = 0; row < 5; row++) {
+                bubbles[row] = [];
+                for (let col = 0; col < COLS; col++) {
+                    if (Math.random() < 0.8) {
+                        const x = col * BUBBLE_RADIUS * 2 + BUBBLE_RADIUS;
+                        const y = row * BUBBLE_RADIUS * 1.8 + BUBBLE_RADIUS;
+                        const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+                        bubbles[row][col] = new Bubble(x, y, color);
+                    }
+                }
+            }
+        }
+
+        // สร้างลูกใหม่
+        function createNewBall() {
+            if (nextBall) {
+                currentBall = nextBall;
+            } else {
+                currentBall = new Bubble(shooter.x, shooter.y, 
+                    COLORS[Math.floor(Math.random() * COLORS.length)], false);
+            }
+
+            nextBall = new Bubble(shooter.x + 50, shooter.y, 
+                COLORS[Math.floor(Math.random() * COLORS.length)], false);
+
+            ballsLeft--;
+            if (ballsLeft <= 0) {
+                alert('หมดลูก! คะแนน: ' + score);
+                resetGame();
+            }
+        }
+
+        // ยิงลูก
+        function shootBall() {
+            if (currentBall && !currentBall.moving) {
+                currentBall.moving = true;
+                const speed = 10;
+                currentBall.speedX = Math.cos(shooter.angle) * speed;
+                currentBall.speedY = Math.sin(shooter.angle) * speed;
+            }
+        }
+
+        // ตรวจสอบการจับกลุ่ม
+        function checkMatches(startX, startY) {
+            const targetColor = bubbles[startY][startX].color;
+            const visited = new Set();
+            const matches = [];
+
+            function floodFill(x, y) {
+                const key = `${x},${y}`;
+                if (visited.has(key)) return;
+                if (!bubbles[y] || !bubbles[y][x]) return;
+                if (bubbles[y][x].color !== targetColor) return;
+
+                visited.add(key);
+                matches.push({x, y});
+
+                // ตรวจสอบเพื่อนบ้าน
+                const neighbors = [
+                    [x-1, y], [x+1, y], [x, y-1], [x, y+1],
+                    [x-1, y-1], [x+1, y-1], [x-1, y+1], [x+1, y+1]
+                ];
+
+                neighbors.forEach(([nx, ny]) => {
+                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                        floodFill(nx, ny);
+                    }
+                });
+            }
+
+            floodFill(startX, startY);
+
+            // ลบถ้ามี 3 ลูกขึ้นไป
+            if (matches.length >= 3) {
+                matches.forEach(({x, y}) => {
+                    delete bubbles[y][x];
+                });
+                score += matches.length * 10;
+
+                // ตรวจสอบลูกที่แขวนอยู่
+                removeHangingBubbles();
+            }
+        }
+
+        // ลบบับเบิลที่แขวนอยู่
+        function removeHangingBubbles() {
+            const connected = new Set();
+
+            // หาบับเบิลที่เชื่อมกับด้านบน
+            function markConnected(x, y) {
+                const key = `${x},${y}`;
+                if (connected.has(key)) return;
+                if (!bubbles[y] || !bubbles[y][x]) return;
+
+                connected.add(key);
+
+                const neighbors = [
+                    [x-1, y], [x+1, y], [x, y-1], [x, y+1],
+                    [x-1, y-1], [x+1, y-1], [x-1, y+1], [x+1, y+1]
+                ];
+
+                neighbors.forEach(([nx, ny]) => {
+                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                        markConnected(nx, ny);
+                    }
+                });
+            }
+
+            // เริ่มจากแถวบนสุด
+            for (let x = 0; x < COLS; x++) {
+                if (bubbles[0] && bubbles[0][x]) {
+                    markConnected(x, 0);
+                }
+            }
+
+            // ลบบับเบิลที่ไม่เชื่อมต่อ
+            for (let y = 0; y < ROWS; y++) {
+                if (bubbles[y]) {
+                    for (let x = 0; x < COLS; x++) {
+                        if (bubbles[y][x] && !connected.has(`${x},${y}`)) {
+                            delete bubbles[y][x];
+                            score += 5;
+                        }
+                    }
+                }
+            }
+        }
+
+        // วาดปืนยิง
+        function drawShooter() {
+            ctx.save();
+            ctx.translate(shooter.x, shooter.y);
+            ctx.rotate(shooter.angle);
+
+            // ปืน
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(-5, -30, 10, 30);
+
+            // ฐาน
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(-15, -5, 30, 10);
+
+            ctx.restore();
+
+            // เส้นเล็ง
+            if (isAiming) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(shooter.x, shooter.y);
+                ctx.lineTo(
+                    shooter.x + Math.cos(shooter.angle) * 100,
+                    shooter.y + Math.sin(shooter.angle) * 100
+                );
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        // วาดลูกต่อไป
+        function drawNextBall() {
+            if (nextBall) {
+                nextBall.x = shooter.x + 50;
+                nextBall.y = shooter.y;
+                nextBall.draw();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('ต่อไป', shooter.x + 50, shooter.y + 40);
+            }
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            score = 0;
+            ballsLeft = 20;
+            bubbles.length = 0;
+            initializeBubbles();
+            createNewBall();
+            gameRunning = true; // Ensure game continues after reset
+        }
+
+        // วาดเกม
+        function draw() {
+            // พื้นหลัง
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#ff9a56');
+            gradient.addColorStop(1, '#ff6b95');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // วาดบับเบิล
+            for (let row = 0; row < ROWS; row++) {
+                if (bubbles[row]) {
+                    for (let col = 0; col < COLS; col++) {
+                        if (bubbles[row][col]) {
+                            bubbles[row][col].draw();
+                        }
+                    }
+                }
+            }
+
+            // วาดลูกปัจจุบัน
+            if (currentBall) {
+                currentBall.draw();
+            }
+
+            drawShooter();
+            drawNextBall();
+
+            // อัปเดต UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('balls').textContent = ballsLeft;
+        }
+
+        // อัปเดตเกม
+        function update() {
+            // อัปเดตลูกที่เคลื่อนที่
+            if (currentBall && currentBall.moving) {
+                currentBall.update();
+
+                // ตรวจสอบการชนกับบับเบิลอื่น
+                for (let row = 0; row < ROWS; row++) {
+                    if (bubbles[row]) {
+                        for (let col = 0; col < COLS; col++) {
+                            if (bubbles[row][col]) {
+                                const bubble = bubbles[row][col];
+                                const dx = currentBall.x - bubble.x;
+                                const dy = currentBall.y - bubble.y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                                if (distance < BUBBLE_RADIUS * 2) {
+                                    currentBall.attachToGrid();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // คำนวณมุมของปืนยิง
+            if (isAiming) {
+                const dx = mouseX - shooter.x;
+                const dy = mouseY - shooter.y;
+                shooter.angle = Math.atan2(dy, dx);
+
+                // จำกัดมุม
+                if (shooter.angle > Math.PI / 6) shooter.angle = Math.PI / 6;
+                if (shooter.angle < -Math.PI / 6) shooter.angle = -Math.PI / 6;
+            }
+        }
+
+        // ลูปเกม
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            // Frame rate control
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            isAiming = true;
+        });
+
+        canvas.addEventListener('click', () => {
+            shootBall();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isAiming = false;
+        });
+
+        // เริ่มเกม
+        initializeBubbles();
+        createNewBall();
+        gameLoop(0); // Start the game loop
+    </script>
+</body>
+</html>

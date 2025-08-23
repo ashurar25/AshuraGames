@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Mining 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #0f0f2f 0%, #1a0033 50%, #000000 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        #gameContainer {
+            position: relative;
+            text-align: center;
+            background: rgba(15, 15, 47, 0.3);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 165, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 165, 0, 0.6);
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+        
+        canvas {
+            border: 3px solid #ffa500;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(255, 165, 0, 0.8);
+            background: radial-gradient(ellipse at center, #1a1a3a 0%, #000000 100%);
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #gameUI {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+            color: #ffa500;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(255, 165, 0, 1);
+            font-size: clamp(10px, 2.5vw, 14px);
+        }
+        
+        .ui-item {
+            background: rgba(255, 165, 0, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 165, 0, 0.4);
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #ffa500;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            border: 2px solid #ff6b8a;
+            z-index: 10;
+            max-width: 90vw;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ffa500, #ff8c00);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            font-size: clamp(10px, 2.5vw, 14px);
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 80px;
+        }
+        
+        button:hover, button:active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+        }
+        
+        #instructions {
+            color: #ffa500;
+            margin-top: 10px;
+            font-size: clamp(8px, 2vw, 12px);
+            text-shadow: 0 0 15px rgba(255, 165, 0, 1);
+            animation: spaceGlow 3s infinite alternate;
+        }
+        
+        @keyframes spaceGlow {
+            0% { text-shadow: 0 0 15px rgba(255, 165, 0, 1); }
+            100% { text-shadow: 0 0 25px rgba(255, 165, 0, 1), 0 0 35px rgba(255, 69, 0, 0.8); }
+        }
+        
+        @media (max-width: 768px) {
+            #gameContainer {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameUI">
+            <div class="ui-item">⛽ เชื้อเพลิง: <span id="fuel">100</span>%</div>
+            <div class="ui-item">💎 แร่ธาตุ: <span id="minerals">0</span></div>
+            <div class="ui-item">💰 เงิน: <span id="money">0</span></div>
+            <div class="ui-item">🔧 ความเสียหาย: <span id="damage">0</span>%</div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="gameOver">
+            <h2>🚀 ภารกิจจบ!</h2>
+            <p>แร่ธาตุที่ขุดได้: <span id="finalMinerals">0</span></p>
+            <p>เงินที่ได้: <span id="finalMoney">0</span></p>
+            <button onclick="restartGame()">🔄 ภารกิจใหม่</button>
+        </div>
+        <div id="instructions">
+            🎮 WASD: บิน | Space: เจาะ | เก็บแร่ธาตุ หลีกเลี่ยงอุกกาบาต!
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive canvas
+        function resizeCanvas() {
+            const containerWidth = Math.min(800, window.innerWidth * 0.9);
+            const containerHeight = Math.min(600, window.innerHeight * 0.6);
+            
+            canvas.width = containerWidth;
+            canvas.height = containerHeight;
+            canvas.style.width = containerWidth + 'px';
+            canvas.style.height = containerHeight + 'px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            z: 0,
+            vx: 0,
+            vy: 0,
+            vz: 0,
+            angle: 0,
+            fuel: 100,
+            damage: 0,
+            drilling: false,
+            drillPower: 0
+        };
+        
+        let camera = {
+            x: 0,
+            y: 0,
+            z: -200,
+            shake: 0
+        };
+        
+        let asteroids = [];
+        let minerals = [];
+        let particles = [];
+        let drillBeam = [];
+        let explosions = [];
+        
+        let score = 0;
+        let money = 0;
+        let gameRunning = false;
+        let keys = {};
+        let frameCount = 0;
+        
+        class Particle {
+            constructor(x, y, z, color, velocity = {x: 0, y: 0, z: 0}, life = 60, size = 2) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = velocity.x + (Math.random() - 0.5) * 4;
+                this.vy = velocity.y + (Math.random() - 0.5) * 4;
+                this.vz = velocity.z + (Math.random() - 0.5) * 4;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.vz *= 0.98;
+                this.rotation += this.rotationSpeed;
+                this.life--;
+                return this.life > 0;
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const alpha = this.life / this.maxLife;
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, this.color);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+        }
+        
+        class Asteroid {
+            constructor(x, y, z, size, type = 'rock') {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.size = size;
+                this.type = type;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.05;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.vz = (Math.random() - 0.5) * 2;
+                this.health = size;
+                this.maxHealth = size;
+                this.vertices = this.generateVertices();
+            }
+            
+            generateVertices() {
+                const vertices = [];
+                const numVertices = 8 + Math.floor(Math.random() * 4);
+                
+                for (let i = 0; i < numVertices; i++) {
+                    const angle = (i / numVertices) * Math.PI * 2;
+                    const radius = this.size * (0.8 + Math.random() * 0.4);
+                    vertices.push({
+                        x: Math.cos(angle) * radius,
+                        y: Math.sin(angle) * radius,
+                        z: (Math.random() - 0.5) * this.size
+                    });
+                }
+                return vertices;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz;
+                this.rotation += this.rotationSpeed;
+                
+                // Wrap around screen
+                if (this.x < -200) this.x = canvas.width + 200;
+                if (this.x > canvas.width + 200) this.x = -200;
+                if (this.y < -200) this.y = canvas.height + 200;
+                if (this.y > canvas.height + 200) this.y = -200;
+                
+                // Emit particles
+                if (Math.random() < 0.02) {
+                    particles.push(new Particle(
+                        this.x, this.y, this.z,
+                        this.type === 'mineral' ? '#ffd700' : '#888888',
+                        {x: 0, y: 0, z: 0},
+                        30,
+                        2
+                    ));
+                }
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.rotate(this.rotation);
+                    
+                    const color = this.type === 'mineral' ? '#ffd700' : '#888888';
+                    const brightness = this.health / this.maxHealth;
+                    
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = this.type === 'mineral' ? '#ffff00' : '#aaaaaa';
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = color;
+                    
+                    // Draw irregular asteroid shape
+                    ctx.beginPath();
+                    this.vertices.forEach((vertex, i) => {
+                        const x = vertex.x * brightness;
+                        const y = vertex.y * brightness;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Health bar for larger asteroids
+                    if (this.size > 30 && this.health < this.maxHealth) {
+                        const healthPercent = this.health / this.maxHealth;
+                        const barWidth = size * 1.5;
+                        
+                        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                        ctx.fillRect(-barWidth/2, -size - 15, barWidth, 5);
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(-barWidth/2, -size - 15, barWidth * healthPercent, 5);
+                    }
+                    
+                    ctx.restore();
+                }
+            }
+            
+            takeDamage(damage) {
+                this.health -= damage;
+                
+                // Damage particles
+                for (let i = 0; i < 10; i++) {
+                    particles.push(new Particle(
+                        this.x, this.y, this.z,
+                        this.type === 'mineral' ? '#ffd700' : '#ff4444',
+                        {x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8, z: (Math.random() - 0.5) * 8},
+                        40,
+                        3
+                    ));
+                }
+                
+                return this.health <= 0;
+            }
+        }
+        
+        class Mineral {
+            constructor(x, y, z, value) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.value = value;
+                this.collected = false;
+                this.pulse = 0;
+                this.bobOffset = Math.random() * Math.PI * 2;
+                this.size = 8 + value * 2;
+            }
+            
+            update() {
+                this.pulse += 0.1;
+                this.y += Math.sin(frameCount * 0.05 + this.bobOffset) * 0.5;
+                
+                // Sparkle particles
+                if (Math.random() < 0.3) {
+                    particles.push(new Particle(
+                        this.x + (Math.random() - 0.5) * 10,
+                        this.y + (Math.random() - 0.5) * 10,
+                        this.z + (Math.random() - 0.5) * 10,
+                        '#ffd700',
+                        {x: 0, y: -0.5, z: 0},
+                        40,
+                        2
+                    ));
+                }
+            }
+            
+            draw() {
+                const screenPos = project3D(this.x, this.y, this.z);
+                if (screenPos.depth > 0) {
+                    const size = this.size / Math.max(0.1, screenPos.depth);
+                    const pulseSize = 1 + Math.sin(this.pulse) * 0.3;
+                    
+                    ctx.save();
+                    ctx.translate(screenPos.x, screenPos.y);
+                    ctx.scale(pulseSize, pulseSize);
+                    
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(0.3, '#ffd700');
+                    gradient.addColorStop(1, '#ff8c00');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#ffd700';
+                    
+                    // Draw crystal shape
+                    ctx.beginPath();
+                    ctx.moveTo(0, -size);
+                    ctx.lineTo(size * 0.7, -size * 0.3);
+                    ctx.lineTo(size * 0.7, size * 0.3);
+                    ctx.lineTo(0, size);
+                    ctx.lineTo(-size * 0.7, size * 0.3);
+                    ctx.lineTo(-size * 0.7, -size * 0.3);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+            
+            checkCollection(playerX, playerY, playerZ) {
+                const dx = this.x - playerX;
+                const dy = this.y - playerY;
+                const dz = this.z - playerZ;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (distance < 30 && !this.collected) {
+                    this.collected = true;
+                    score += this.value;
+                    money += this.value * 10;
+                    
+                    // Collection effect
+                    for (let i = 0; i < 15; i++) {
+                        particles.push(new Particle(
+                            this.x, this.y, this.z,
+                            '#ffd700',
+                            {x: (Math.random() - 0.5) * 8, y: -Math.random() * 5, z: (Math.random() - 0.5) * 8},
+                            60,
+                            4
+                        ));
+                    }
+                    
+                    return true;
+                }
+                return false;
+            }
+        }
+        
+        function project3D(x, y, z) {
+            const fov = 400;
+            const dx = x - camera.x;
+            const dy = y - camera.y;
+            const dz = z - camera.z;
+            
+            if (dz <= 0) return {x: 0, y: 0, depth: 0};
+            
+            const screenX = canvas.width/2 + (dx * fov) / dz + camera.shake;
+            const screenY = canvas.height/2 + (dy * fov) / dz + camera.shake;
+            
+            return {x: screenX, y: screenY, depth: dz / 100};
+        }
+        
+        function generateField() {
+            asteroids = [];
+            minerals = [];
+            
+            // Generate asteroids
+            for (let i = 0; i < 15; i++) {
+                const size = 20 + Math.random() * 40;
+                const type = Math.random() > 0.7 ? 'mineral' : 'rock';
+                
+                asteroids.push(new Asteroid(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height,
+                    Math.random() * 400 - 200,
+                    size,
+                    type
+                ));
+            }
+            
+            // Generate floating minerals
+            for (let i = 0; i < 10; i++) {
+                minerals.push(new Mineral(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height,
+                    Math.random() * 400 - 200,
+                    Math.floor(Math.random() * 5) + 1
+                ));
+            }
+        }
+        
+        function drawBackground() {
+            // Space background
+            const gradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, '#0f0f2f');
+            gradient.addColorStop(0.5, '#1a0033');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stars
+            for (let i = 0; i < 100; i++) {
+                const x = (Math.sin(frameCount * 0.001 + i) * 300) + canvas.width/2;
+                const y = (Math.cos(frameCount * 0.0008 + i) * 200) + canvas.height/2;
+                const brightness = Math.sin(frameCount * 0.02 + i) * 0.5 + 0.5;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawPlayer() {
+            const screenPos = project3D(player.x, player.y, player.z);
+            if (screenPos.depth > 0) {
+                const size = 20;
+                
+                ctx.save();
+                ctx.translate(screenPos.x, screenPos.y);
+                ctx.rotate(player.angle);
+                
+                // Player ship
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.5, '#ffa500');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffa500';
+                
+                // Ship body
+                ctx.beginPath();
+                ctx.moveTo(0, -size);
+                ctx.lineTo(-size/2, size);
+                ctx.lineTo(-size/4, size/2);
+                ctx.lineTo(size/4, size/2);
+                ctx.lineTo(size/2, size);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Drill beam when active
+                if (player.drilling) {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00ffff';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, -size);
+                    ctx.lineTo(0, -size - player.drillPower);
+                    ctx.stroke();
+                    
+                    // Drill particles
+                    for (let i = 0; i < 5; i++) {
+                        particles.push(new Particle(
+                            player.x, player.y - 30, player.z,
+                            '#00ffff',
+                            {x: (Math.random() - 0.5) * 4, y: -Math.random() * 8, z: (Math.random() - 0.5) * 4},
+                            30,
+                            3
+                        ));
+                    }
+                }
+                
+                ctx.restore();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        function updateGame() {
+            if (!gameRunning) return;
+            
+            frameCount++;
+            
+            // Player controls
+            if (keys['w'] || keys['ArrowUp']) {
+                player.vy = Math.max(player.vy - 0.5, -8);
+                player.fuel = Math.max(0, player.fuel - 0.1);
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.vy = Math.min(player.vy + 0.5, 8);
+                player.fuel = Math.max(0, player.fuel - 0.1);
+            }
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.vx = Math.max(player.vx - 0.5, -8);
+                player.fuel = Math.max(0, player.fuel - 0.1);
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                player.vx = Math.min(player.vx + 0.5, 8);
+                player.fuel = Math.max(0, player.fuel - 0.1);
+            }
+            
+            // Drilling
+            if (keys[' ']) {
+                player.drilling = true;
+                player.drillPower = Math.min(player.drillPower + 2, 50);
+                player.fuel = Math.max(0, player.fuel - 0.2);
+            } else {
+                player.drilling = false;
+                player.drillPower = Math.max(player.drillPower - 3, 0);
+            }
+            
+            // Player physics
+            player.x += player.vx;
+            player.y += player.vy;
+            player.vx *= 0.98;
+            player.vy *= 0.98;
+            
+            // Screen wrapping
+            if (player.x < 0) player.x = canvas.width;
+            if (player.x > canvas.width) player.x = 0;
+            if (player.y < 0) player.y = canvas.height;
+            if (player.y > canvas.height) player.y = 0;
+            
+            // Update camera
+            camera.x = player.x;
+            camera.y = player.y;
+            camera.shake *= 0.9;
+            
+            // Update asteroids
+            asteroids = asteroids.filter(asteroid => {
+                asteroid.update();
+                
+                // Drilling damage
+                if (player.drilling) {
+                    const dx = asteroid.x - player.x;
+                    const dy = asteroid.y - player.y;
+                    const dz = asteroid.z - player.z;
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    if (distance < 60) {
+                        if (asteroid.takeDamage(2)) {
+                            // Asteroid destroyed
+                            if (asteroid.type === 'mineral') {
+                                // Drop minerals
+                                for (let i = 0; i < 3; i++) {
+                                    minerals.push(new Mineral(
+                                        asteroid.x + (Math.random() - 0.5) * 40,
+                                        asteroid.y + (Math.random() - 0.5) * 40,
+                                        asteroid.z,
+                                        Math.floor(Math.random() * 3) + 1
+                                    ));
+                                }
+                            }
+                            
+                            // Explosion
+                            for (let i = 0; i < 30; i++) {
+                                particles.push(new Particle(
+                                    asteroid.x, asteroid.y, asteroid.z,
+                                    asteroid.type === 'mineral' ? '#ffd700' : '#ff4444',
+                                    {x: (Math.random() - 0.5) * 15, y: (Math.random() - 0.5) * 15, z: (Math.random() - 0.5) * 15},
+                                    80,
+                                    5
+                                ));
+                            }
+                            
+                            camera.shake = 8;
+                            return false;
+                        }
+                    }
+                }
+                
+                // Collision with player
+                const dx2 = asteroid.x - player.x;
+                const dy2 = asteroid.y - player.y;
+                const dz2 = asteroid.z - player.z;
+                const distance2 = Math.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2);
+                
+                if (distance2 < 25) {
+                    player.damage += 5;
+                    camera.shake = 10;
+                    
+                    if (player.damage >= 100) {
+                        gameOver();
+                    }
+                }
+                
+                asteroid.draw();
+                return true;
+            });
+            
+            // Update minerals
+            minerals = minerals.filter(mineral => {
+                mineral.update();
+                
+                if (mineral.checkCollection(player.x, player.y, player.z)) {
+                    return false;
+                }
+                
+                mineral.draw();
+                return true;
+            });
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0;
+            });
+            
+            // Fuel depletion
+            if (player.fuel <= 0) {
+                gameOver();
+            }
+            
+            // Spawn new asteroids occasionally
+            if (frameCount % 300 === 0 && asteroids.length < 20) {
+                const size = 20 + Math.random() * 40;
+                const type = Math.random() > 0.6 ? 'mineral' : 'rock';
+                
+                asteroids.push(new Asteroid(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height,
+                    Math.random() * 400 - 200,
+                    size,
+                    type
+                ));
+            }
+            
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('fuel').textContent = Math.max(0, Math.floor(player.fuel));
+            document.getElementById('minerals').textContent = score;
+            document.getElementById('money').textContent = money;
+            document.getElementById('damage').textContent = Math.max(0, Math.floor(player.damage));
+        }
+        
+        function gameLoop() {
+            drawBackground();
+            drawPlayer();
+            updateGame();
+            
+            if (gameRunning) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalMinerals').textContent = score;
+            document.getElementById('finalMoney').textContent = money;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.z = 0;
+            player.vx = 0;
+            player.vy = 0;
+            player.vz = 0;
+            player.fuel = 100;
+            player.damage = 0;
+            player.drilling = false;
+            player.drillPower = 0;
+            
+            score = 0;
+            money = 0;
+            frameCount = 0;
+            gameRunning = true;
+            
+            particles = [];
+            generateField();
+            updateUI();
+            document.getElementById('gameOver').style.display = 'none';
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === ' ') e.preventDefault();
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Touch controls
+        let touchActive = false;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchActive = true;
+            keys[' '] = true; // Auto-drill on touch
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!gameRunning || !touchActive) return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Movement based on touch position
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            if (touchX < centerX - 50) {
+                keys['a'] = true;
+                keys['d'] = false;
+            } else if (touchX > centerX + 50) {
+                keys['d'] = true;
+                keys['a'] = false;
+            } else {
+                keys['a'] = keys['d'] = false;
+            }
+            
+            if (touchY < centerY - 50) {
+                keys['w'] = true;
+                keys['s'] = false;
+            } else if (touchY > centerY + 50) {
+                keys['s'] = true;
+                keys['w'] = false;
+            } else {
+                keys['w'] = keys['s'] = false;
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchActive = false;
+            keys['a'] = keys['d'] = keys['w'] = keys['s'] = keys[' '] = false;
+        });
+        
+        // Start game
+        restartGame();
+    </script>
+</body>
+</html>

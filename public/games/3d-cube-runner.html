@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Cube Runner - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+
+    <link rel="stylesheet" href="./game-enhancement.css">
+    <link rel="stylesheet" href="./game-optimization.css">
+    <link rel="stylesheet" href="./_assets/game-frame.css">
     <style>
         body {
             margin: 0;
@@ -95,15 +100,17 @@
             <div>ความเร็ว: <span id="speed">1</span></div>
         </div>
         <div id="gameOver">
-            <h2>🎮 เกมจบแล้ว!</h2>
+            <h2>เกมจบแล้ว!</h2>
             <p>คะแนนของคุณ: <span id="finalScore">0</span></p>
-            <button onclick="restartGame()">🔄 เล่นใหม่</button>
+            <button onclick="restartGame()">เล่นใหม่</button>
         </div>
         <div id="instructions">
-            <p>🎯 ใช้ A/D หรือ ←/→ เพื่อหลบสิ่งกีดขวาง | Space เพื่อกระโดด</p>
+            <p>ใช้ A/D หรือ ←/→ เพื่อหลบสิ่งกีดขวาง | Space เพื่อกระโดด</p>
         </div>
     </div>
 
+    <script src="./game-optimization.js"></script>
+    <script src="./_assets/game-frame.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const gl = canvas.getContext('webgl');
@@ -529,5 +536,6 @@
         gl.clearColor(0.5, 0.8, 1.0, 1.0); // Sky blue
         gameLoop();
     </script>
+    <!-- ASHURA:shared-js -->
 </body>
 </html>

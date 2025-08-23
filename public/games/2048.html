@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 Enhanced - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+
+    <link rel="stylesheet" href="./game-enhancement.css">
+    <link rel="stylesheet" href="./game-optimization.css">
+    <link rel="stylesheet" href="./_assets/game-frame.css">
     <style>
         * {
             margin: 0;
@@ -401,6 +406,8 @@
 
     <div class="credit">© ASHURA Games</div>
 
+    <script src="./game-optimization.js"></script>
+    <script src="./_assets/game-frame.js"></script>
     <script>
         const gridElement = document.getElementById('grid');
         const scoreElement = document.getElementById('score');
@@ -845,5 +852,6 @@
         // Initialize game
         startGame();
     </script>
+    <!-- ASHURA:shared-js -->
 </body>
 </html>

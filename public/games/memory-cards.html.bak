@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จับคู่การ์ด - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            min-height: 100vh;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .card.flipped {
+            background: white;
+            color: #333;
+            transform: rotateY(180deg);
+        }
+        .card.matched {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+            animation: matchedPulse 0.5s ease;
+        }
+        @keyframes matchedPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s ease;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .difficulty {
+            margin-bottom: 20px;
+        }
+        .difficulty button {
+            margin: 0 5px;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+        .difficulty button.active {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+        }
+        @keyframes particle-float {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🃏 จับคู่การ์ด</h1>
+
+        <div class="difficulty">
+            <button id="easy" class="active" onclick="setDifficulty('easy')">ง่าย (4x4)</button>
+            <button id="medium" onclick="setDifficulty('medium')">ปานกลาง (4x5)</button>
+            <button id="hard" onclick="setDifficulty('hard')">ยาก (6x6)</button>
+        </div>
+
+        <div class="game-info">
+            <div>เวลา: <span id="timer">00:00</span></div>
+            <div>การเลื่อน: <span id="moves">0</span></div>
+            <div>คู่ที่จับได้: <span id="matches">0</span></div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <button onclick="startGame()">เริ่มเกมใหม่</button>
+    </div>
+
+    <div class="win-message" id="winMessage">
+        <h2>🎉 ยินดีด้วย!</h2>
+        <p>คุณจับคู่ได้หมดแล้ว!</p>
+        <p>เวลาที่ใช้: <span id="finalTime"></span></p>
+        <p>จำนวนการเลื่อน: <span id="finalMoves"></span></p>
+        <button onclick="startGame()">เล่นใหม่</button>
+    </div>
+
+    <script>
+        // ตัวแปรเกม
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairsCount = 0; // Renamed to matchedPairsCount for clarity
+        let moves = 0;
+        let gameStarted = false;
+        let timer = 0;
+        let gameMode = 'easy'; // easy: 4x4, medium: 4x5, hard: 6x6
+        let streak = 0;
+        let bestTime = localStorage.getItem('memoryBestTime') || Infinity;
+        let hint = null;
+        let hintTimer = 0;
+        let timerInterval = null; // Added to clear interval
+
+        const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦋', '🐛', '🐝', '🐞', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🐙', '🦑', '🦐', '🦀', '🐡', '🐠'];
+
+        function setDifficulty(level) {
+            gameMode = level;
+            document.querySelectorAll('.difficulty button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(level).classList.add('active');
+
+            const board = document.getElementById('gameBoard');
+            if (level === 'easy') {
+                board.style.gridTemplateColumns = 'repeat(4, 1fr)';
+            } else if (level === 'medium') {
+                board.style.gridTemplateColumns = 'repeat(5, 1fr)'; // Adjusted for 4x5
+            } else {
+                board.style.gridTemplateColumns = 'repeat(6, 1fr)';
+            }
+        }
+
+        function shuffleCards() {
+            // Fisher-Yates shuffle algorithm
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+
+            // Add flip animation delay
+            cards.forEach((card, index) => {
+                card.flipDelay = index * 50;
+            });
+        }
+
+        function addParticleEffect(x, y) {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'absolute';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.width = '4px';
+                    particle.style.height = '4px';
+                    particle.style.background = '#ffd700';
+                    particle.style.borderRadius = '50%';
+                    particle.style.pointerEvents = 'none';
+                    particle.style.animation = 'particle-float 1s ease-out forwards';
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }, i * 20);
+            }
+        }
+
+
+        function createGameBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+
+            let gridSize;
+            if (gameMode === 'easy') {
+                gridSize = 16; // 4x4
+            } else if (gameMode === 'medium') {
+                gridSize = 20; // 4x5
+            } else {
+                gridSize = 36; // 6x6
+            }
+
+            const totalPairs = gridSize / 2;
+            const selectedEmojis = emojis.slice(0, totalPairs);
+            const cardValues = [...selectedEmojis, ...selectedEmojis];
+            cards = shuffleCards(cardValues); // Renamed gameBoard to cards to align with variable names
+
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.value = emoji;
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard(e) {
+            if (!gameStarted) {
+                startGameTimer(); // Renamed startTimer to startGameTimer
+            }
+
+            const card = e.target;
+            if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) {
+                return;
+            }
+
+            // Apply flip animation delay
+            setTimeout(() => {
+                card.classList.add('flipped');
+                card.textContent = card.dataset.value;
+            }, card.flipDelay || 0);
+
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            setTimeout(() => {
+                if (card1.dataset.value === card2.dataset.value) {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matchedPairsCount++; // Increment matchedPairsCount
+                    document.getElementById('matches').textContent = matchedPairsCount; // Update displayed matches
+
+                    // Add particle effect on match
+                    const rect1 = card1.getBoundingClientRect();
+                    const rect2 = card2.getBoundingClientRect();
+                    addParticleEffect((rect1.left + rect1.width / 2 + rect2.left + rect2.width / 2) / 2, (rect1.top + rect1.height / 2 + rect2.top + rect2.height / 2) / 2);
+
+                    if (matchedPairsCount === (cards.length / 2)) { // Check if all pairs are matched
+                        winGame();
+                    }
+                } else {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    card1.textContent = '';
+                    card2.textContent = '';
+                }
+                flippedCards = [];
+            }, 1000);
+        }
+
+        function startGameTimer() { // Renamed from startTimer
+            if (gameStarted) return; // Prevent multiple timers
+            gameStarted = true;
+            let startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timer').textContent = timeString;
+            }, 1000);
+        }
+
+        function winGame() {
+            clearInterval(timerInterval);
+            const finalTime = document.getElementById('timer').textContent;
+            document.getElementById('finalTime').textContent = finalTime;
+            document.getElementById('finalMoves').textContent = moves;
+            document.getElementById('winMessage').style.display = 'block';
+
+            // Update best time if current time is better
+            const currentTimeInSeconds = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
+            if (currentTimeInSeconds < bestTime) {
+                bestTime = currentTimeInSeconds;
+                localStorage.setItem('memoryBestTime', bestTime);
+            }
+        }
+
+        function startGame() {
+            gameStarted = false;
+            moves = 0;
+            matchedPairsCount = 0; // Reset matchedPairsCount
+            flippedCards = [];
+            clearInterval(timerInterval);
+
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('moves').textContent = '0';
+            document.getElementById('matches').textContent = '0';
+            document.getElementById('winMessage').style.display = 'none';
+
+            createGameBoard();
+        }
+
+        // Initialize the game with the default difficulty on load
+        setDifficulty(gameMode);
+        startGame();
+    </script>
+</body>
+</html>

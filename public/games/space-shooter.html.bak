@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter - ASHURA Games</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; overflow: hidden; font-family: Arial, sans-serif; }
+        canvas { display: block; margin: 0 auto; background: linear-gradient(to bottom, #001122, #003366); }
+        .ui { position: absolute; top: 10px; left: 10px; color: #00ff88; font-size: 18px; z-index: 10; }
+        .game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff0044; font-size: 32px; text-align: center; z-index: 20; }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>คะแนน: <span id="score">0</span></div>
+        <div>ชีวิต: <span id="lives">3</span></div>
+    </div>
+    <div id="gameOver" class="game-over" style="display: none;">
+        <div>เกมจบแล้ว!</div>
+        <div style="font-size: 18px; margin-top: 10px;">กด SPACE เพื่อเล่นใหม่</div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let gameState = 'playing';
+        let score = 0;
+        let lives = 3;
+        let keys = {};
+
+        // เสียงเกม (จำลอง)
+        const playSound = (type) => {
+            // สำหรับเสียงจริงสามารถเพิ่ม Web Audio API ได้
+            console.log(`เสียง: ${type}`);
+        };
+
+        // คลาส Player
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 60;
+                this.width = 40;
+                this.height = 40;
+                this.speed = 6;
+                this.bullets = [];
+                this.lastShot = 0;
+                this.trail = [];
+                // Player properties from changes
+                this.health = 100;
+                this.maxHealth = 100;
+                this.shield = 0;
+                this.maxShield = 50;
+                this.weaponType = 'single';
+                this.fireRate = 10; // Lower number means faster fire
+                this.lastShot = 0;
+            }
+
+            update() {
+                if (keys['ArrowLeft'] && this.x > 0) this.x -= this.speed;
+                if (keys['ArrowRight'] && this.x < canvas.width - this.width) this.x += this.speed;
+                if (keys['ArrowUp'] && this.y > 0) this.y -= this.speed;
+                if (keys['ArrowDown'] && this.y < canvas.height - this.height) this.y += this.speed;
+
+                if (keys[' '] && Date.now() - this.lastShot > 150) {
+                    this.shoot();
+                    this.lastShot = Date.now();
+                }
+
+                this.bullets = this.bullets.filter(bullet => {
+                    bullet.update();
+                    return bullet.y > 0;
+                });
+            }
+
+            shoot() {
+                // Based on weaponType and fireRate, adjust bullet creation
+                if (this.weaponType === 'single') {
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8));
+                } else if (this.weaponType === 'spread') {
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8, 0)); // Center
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -7, -1)); // Left
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -7, 1)); // Right
+                }
+                playSound('shoot');
+            }
+
+            draw() {
+                // วาดหางยาน
+                this.trail.push({x: this.x + this.width/2, y: this.y + this.height, life: 20});
+                this.trail = this.trail.filter(t => t.life > 0);
+
+                this.trail.forEach((t, i) => {
+                    t.life--;
+                    ctx.save();
+                    ctx.globalAlpha = t.life / 20;
+                    ctx.fillStyle = '#00ff88';
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y + i * 2, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                // วาดยานอวกาศ
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height);
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(1, '#00cc66');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // วาดรายละเอียด
+                ctx.fillStyle = '#0088ff';
+                ctx.fillRect(this.x + 5, this.y + 10, 10, 20);
+                ctx.fillRect(this.x + 25, this.y + 10, 10, 20);
+
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(this.x + 15, this.y + 5, 10, 15);
+
+                // วาดเอฟเฟกต์เกราะ
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - 2, this.y - 2, this.width + 4, this.height + 4);
+
+                this.bullets.forEach(bullet => bullet.draw());
+            }
+        }
+
+        // คลาส Bullet
+        class Bullet {
+            constructor(x, y, speedY, speedX = 0) { // Added speedX for spread
+                this.x = x;
+                this.y = y;
+                this.speedY = speedY;
+                this.speedX = speedX;
+                this.width = 4;
+                this.height = 10;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX; // Update x position
+            }
+
+            draw() {
+                ctx.fillStyle = this.speedY < 0 ? '#ffff00' : '#ff4444';
+                ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
+            }
+        }
+
+        // คลาส Enemy
+        class Enemy {
+            constructor(x, y, width, height, speed, color, health = 1, points = 10) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.speed = speed;
+                this.color = color;
+                this.health = health;
+                this.maxHealth = health;
+                this.points = points;
+                this.bullets = [];
+                this.lastShot = Date.now() + Math.random() * 2000;
+            }
+
+            update() {
+                this.y += this.speed;
+
+                if (Math.random() < 0.005 && Date.now() - this.lastShot > 1000) { // Increased chance to shoot
+                    this.shoot();
+                    this.lastShot = Date.now();
+                }
+
+                this.bullets = this.bullets.filter(bullet => {
+                    bullet.update();
+                    return bullet.y < canvas.height;
+                });
+            }
+
+            shoot() {
+                this.bullets.push(new Bullet(this.x + this.width/2, this.y + this.height, 4));
+                playSound('enemy_shoot');
+            }
+
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+
+                // Draw enemy shape based on type
+                const centerX = this.x + this.width/2;
+                const centerY = this.y + this.height/2;
+                const radius = this.width/2;
+
+                ctx.fillStyle = this.color;
+                if (this.maxHealth > 1) { // Tank enemy has different shape
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + this.width/2, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height/2);
+                    ctx.lineTo(this.x + this.width/2, this.y + this.height);
+                    ctx.lineTo(this.x, this.y + this.height/2);
+                    ctx.closePath();
+                    ctx.fill();
+                } else { // Regular and fast enemy shape
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+
+
+                // Core of the enemy
+                ctx.fillStyle = '#ffaa00';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw health bar for enemies with health > 1
+                if (this.health < this.maxHealth) {
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(this.x, this.y - 5, this.width * (this.health / this.maxHealth), 3);
+                }
+
+                ctx.restore();
+
+                this.bullets.forEach(bullet => bullet.draw());
+            }
+        }
+
+        // คลาส Star สำหรับพื้นหลัง
+        class Star {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = 1 + Math.random() * 3;
+                this.size = Math.random() * 2;
+            }
+
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = 0;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        // เริ่มต้นเกม
+        const player = new Player();
+        let enemies = [];
+        let stars = [];
+        let lastEnemySpawn = 0;
+
+        // เพิ่มตัวแปรจาก changes
+        let enemyBullets = []; // Assuming this is needed for enemy projectiles
+        let powerUps = []; // For future power-up implementation
+        let wave = 1;
+        let enemiesKilled = 0;
+        let particles = []; // For explosions and effects
+
+        // สร้างดาว
+        for (let i = 0; i < 50; i++) {
+            stars.push(new Star());
+        }
+
+        function createEnemy() {
+            let enemyType = Math.random();
+            let enemy;
+
+            if (enemyType < 0.7) {
+                // Regular enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 30),
+                    -30,
+                    30,
+                    30,
+                    2 + Math.random() * 3,
+                    '#ff4444'
+                );
+            } else if (enemyType < 0.9) {
+                // Fast enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 30),
+                    -30,
+                    30,
+                    30,
+                    (2 + Math.random() * 3) * 1.5,
+                    '#ff8844'
+                );
+                enemy.points = 20;
+            } else {
+                // Tank enemy
+                enemy = new Enemy(
+                    Math.random() * (canvas.width - 40),
+                    -40,
+                    40,
+                    40,
+                    (2 + Math.random() * 3) * 0.7,
+                    '#8844ff'
+                );
+                enemy.health = 3;
+                enemy.maxHealth = 3;
+                enemy.points = 50;
+            }
+            enemies.push(enemy);
+        }
+
+        function createPowerUp() {
+            if (Math.random() < 0.1) {
+                powerUps.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    speed: 2,
+                    type: Math.random() < 0.5 ? 'rapidFire' : 'multiShot'
+                });
+            }
+        }
+
+
+        // ตรวจสอบการชน
+        function checkCollisions() {
+            // กระสุนผู้เล่นชนศัตรู
+            player.bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (bullet.x > enemy.x && bullet.x < enemy.x + enemy.width &&
+                        bullet.y > enemy.y && bullet.y < enemy.y + enemy.height) {
+                        
+                        enemy.health--;
+                        if (enemy.health <= 0) {
+                            player.bullets.splice(bulletIndex, 1);
+                            score += enemy.points;
+                            enemiesKilled++;
+                            playSound('explosion');
+                            // Add particles for explosion
+                            for(let i=0; i < 10; i++) {
+                                particles.push({
+                                    x: enemy.x + enemy.width/2,
+                                    y: enemy.y + enemy.height/2,
+                                    vx: (Math.random() - 0.5) * 4,
+                                    vy: (Math.random() - 0.5) * 4,
+                                    life: 20,
+                                    size: Math.random() * 5 + 2,
+                                    color: enemy.color
+                                });
+                            }
+                            enemies.splice(enemyIndex, 1);
+                        } else {
+                            // Remove bullet on hit but enemy survives
+                             player.bullets.splice(bulletIndex, 1);
+                        }
+                    }
+                });
+            });
+
+            // กระสุนศัตรูชนผู้เล่น
+            enemies.forEach(enemy => {
+                enemy.bullets.forEach((bullet, bulletIndex) => {
+                    if (bullet.x > player.x && bullet.x < player.x + player.width &&
+                        bullet.y > player.y && bullet.y < player.y + player.height) {
+                        enemy.bullets.splice(bulletIndex, 1);
+                        lives--;
+                        playSound('hit');
+                        if (lives <= 0) {
+                            gameState = 'gameOver';
+                        }
+                    }
+                });
+            });
+
+            // ศัตรูชนผู้เล่น
+            enemies.forEach((enemy, index) => {
+                if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
+                    enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
+                    
+                    lives -= enemy.points / 50; // Damage based on enemy points
+                    if (lives <= 0) {
+                        gameState = 'gameOver';
+                    }
+                    playSound('hit');
+                    
+                    // Add particles for player explosion
+                     for(let i=0; i < 10; i++) {
+                        particles.push({
+                            x: player.x + player.width/2,
+                            y: player.y + player.height/2,
+                            vx: (Math.random() - 0.5) * 4,
+                            vy: (Math.random() - 0.5) * 4,
+                            life: 20,
+                            size: Math.random() * 5 + 2,
+                            color: '#00ff88'
+                        });
+                    }
+                    
+                    enemies.splice(index, 1);
+                }
+            });
+
+            // Player collects power-ups
+            powerUps.forEach((pu, puIndex) => {
+                if (pu.x < player.x + player.width && pu.x + pu.width > player.x &&
+                    pu.y < player.y + player.height && pu.y + pu.height > player.y) {
+                    
+                    if (pu.type === 'rapidFire') {
+                        player.fireRate = 5; // Faster firing
+                        setTimeout(() => player.fireRate = 10, 5000); // Reset after 5 seconds
+                    } else if (pu.type === 'multiShot') {
+                        player.weaponType = 'spread';
+                        setTimeout(() => player.weaponType = 'single', 5000); // Reset after 5 seconds
+                    }
+                    powerUps.splice(puIndex, 1);
+                    playSound('powerup');
+                }
+            });
+        }
+
+        // ฟังก์ชันอัปเดตทั้งหมด
+        function update() {
+            // อัปเดตดาว
+            stars.forEach(star => {
+                star.update();
+            });
+
+            // สร้างศัตรูใหม่
+            if (Date.now() - lastEnemySpawn > 2000 / wave) { // Increase spawn rate with wave
+                createEnemy();
+                lastEnemySpawn = Date.now();
+            }
+
+            // สร้าง power-up
+            createPowerUp();
+
+            // อัปเดตผู้เล่น
+            player.update();
+
+            // อัปเดตศัตรู
+            enemies = enemies.filter(enemy => {
+                enemy.update();
+                return enemy.y < canvas.height + 50;
+            });
+            
+            // Update powerUps
+            powerUps = powerUps.filter(pu => {
+                pu.y += pu.speed;
+                return pu.y < canvas.height;
+            });
+
+            // Update particles
+            particles = particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                // Add gravity effect
+                p.vy += 0.1; 
+                return p.life > 0;
+            });
+
+
+            // ตรวจสอบการชน
+            checkCollisions();
+
+            // อัปเดต UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+
+        // ฟังก์ชันวาดทั้งหมด
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // วาดดาว
+            stars.forEach(star => {
+                star.draw();
+            });
+
+            // วาดผู้เล่น
+            player.draw();
+
+            // วาดศัตรู
+            enemies.forEach(enemy => {
+                enemy.draw();
+            });
+
+            // Draw powerUps
+            powerUps.forEach(pu => {
+                ctx.fillStyle = pu.type === 'rapidFire' ? '#00ffff' : '#ffff00';
+                ctx.fillRect(pu.x, pu.y, pu.width, pu.height);
+            });
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 20;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+
+            if (gameState === 'gameOver') {
+                document.getElementById('gameOver').style.display = 'block';
+            } else {
+                document.getElementById('gameOver').style.display = 'none';
+            }
+        }
+
+        // เอฟเฟกต์พิเศษ
+        function drawStarfield() {
+            // วาดดาวที่เคลื่อนไหว
+            stars.forEach(star => {
+                ctx.save();
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.8 + 0.2})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+                ctx.restore();
+            });
+        }
+
+        // ปรับปรุงการวาดยานผู้เล่น
+        function drawEnhancedPlayer() {
+            // วาดหางยาน
+            player.trail.push({x: player.x + player.width/2, y: player.y + player.height, life: 20});
+            player.trail = player.trail.filter(t => t.life > 0);
+
+            player.trail.forEach((t, i) => {
+                t.life--;
+                ctx.save();
+                ctx.globalAlpha = t.life / 20;
+                const gradient = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 15);
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y + i * 3, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // วาดยานอวกาศด้วยเอฟเฟกต์
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ff88';
+
+            const gradient = ctx.createLinearGradient(player.x, player.y, player.x, player.y + player.height);
+            gradient.addColorStop(0, '#00ff88');
+            gradient.addColorStop(0.5, '#00cc66');
+            gradient.addColorStop(1, '#008844');
+            ctx.fillStyle = gradient;
+
+            // ร่างยาน
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width/2, player.y);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.lineTo(player.x + player.width/4, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width * 3/4, player.y + player.height * 0.8);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // เครื่องยนต์
+            ctx.fillStyle = '#0088ff';
+            ctx.fillRect(player.x + 5, player.y + player.height * 0.6, 8, 15);
+            ctx.fillRect(player.x + player.width - 13, player.y + player.height * 0.6, 8, 15);
+
+            // แกนกลาง
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(player.x + player.width/2 - 3, player.y + 5, 6, player.height * 0.7);
+
+            // เอฟเฟกต์เกราะ
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(player.x - 2, player.y - 2, player.width + 4, player.height + 4);
+            ctx.restore();
+        }
+
+        // ปรับปรุงการวาดศัตรู
+        function drawEnhancedEnemy(enemy) {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = enemy.color;
+
+            // ร่างศัตรู
+            const gradient = ctx.createRadialGradient(
+                enemy.x + enemy.width/2, 
+                enemy.y + enemy.height/2, 
+                0,
+                enemy.x + enemy.width/2, 
+                enemy.y + enemy.height/2, 
+                enemy.width
+            );
+            gradient.addColorStop(0, '#ff6666');
+            gradient.addColorStop(0.7, enemy.color);
+            gradient.addColorStop(1, '#cc0000');
+            ctx.fillStyle = gradient;
+
+            // วาดรูปทรงแปดเหลี่ยม
+            ctx.beginPath();
+            const centerX = enemy.x + enemy.width/2;
+            const centerY = enemy.y + enemy.height/2;
+            const radius = enemy.width/2;
+
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI * 2) / 8;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // แกนกลาง
+            ctx.fillStyle = '#ffaa00';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ลูปเกม
+        let lastTime = 0;
+        const targetFPS = 144;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            // Frame rate control
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
+            if (gameState === 'playing') {
+                update();
+            }
+            draw(); // วาดเสมอเพื่อให้ UI อัพเดท
+            requestAnimationFrame(gameLoop);
+        }
+
+        // รีเซ็ตเกม
+        function resetGame() {
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+            enemies = [];
+            lastEnemySpawn = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 60;
+            player.bullets = [];
+            // Reset player properties from changes
+            player.health = 100;
+            player.shield = 0;
+            player.weaponType = 'single';
+            player.fireRate = 10;
+            wave = 1;
+            enemiesKilled = 0;
+            particles = [];
+            powerUps = [];
+            enemyBullets = [];
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ' && gameState === 'gameOver') {
+                resetGame();
+            }
+            e.preventDefault();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // เริ่มเกม
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

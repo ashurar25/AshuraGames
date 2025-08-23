@@ -1,0 +1,724 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Flight 3D</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #2c1810, #8b4513, #ff6b35);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #gameCanvas {
+            background: linear-gradient(180deg, #87ceeb, #ffd700, #ff8c00);
+            border: 3px solid #ff6b35;
+            box-shadow: 0 0 30px #ff6b35;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        #gameInfo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(139, 69, 19, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff6b35;
+            backdrop-filter: blur(10px);
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(139, 69, 19, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff6b35;
+            backdrop-filter: blur(10px);
+        }
+        
+        #gameOver {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(139, 69, 19, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ff6b35;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(20px);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b35, #ff8c00);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff6b35;
+        }
+        
+        .fire-text {
+            text-shadow: 0 0 10px #ff6b35, 0 0 20px #ff8c00, 0 0 30px #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameInfo">
+        <h2 class="fire-text">🐲 Dragon Flight 3D</h2>
+        <div id="score">🔥 Score: 0</div>
+        <div id="gems">💎 Gems: 0</div>
+        <div id="altitude">🏔️ Altitude: 0m</div>
+    </div>
+    
+    <div id="controls">
+        <div>🎮 Controls:</div>
+        <div>Mouse - Fly Dragon</div>
+        <div>Click - Breathe Fire</div>
+        <div>SPACE - Boost</div>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div id="gameOver">
+        <h2 class="fire-text">🏆 Flight Complete!</h2>
+        <div id="finalScore">Final Score: 0</div>
+        <button onclick="restartGame()">Fly Again 🔄</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameRunning = true;
+        let score = 0;
+        let gems = 0;
+        let altitude = 0;
+        let dragon = { 
+            x: 100, 
+            y: canvas.height / 2, 
+            z: 0,
+            vx: 0, 
+            vy: 0, 
+            angle: 0,
+            wingFlap: 0,
+            fireBreath: 0
+        };
+        let obstacles = [];
+        let collectibles = [];
+        let fireBreaths = [];
+        let particles = [];
+        let clouds = [];
+        let mountains = [];
+        let scrollSpeed = 2;
+        let mouseX = 0;
+        let mouseY = 0;
+        let keys = {};
+        let lastTime = 0;
+        
+        // Initialize game
+        function initGame() {
+            generateTerrain();
+            generateClouds();
+            lastTime = Date.now();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function generateTerrain() {
+            mountains = [];
+            for (let i = 0; i < 20; i++) {
+                mountains.push({
+                    x: i * 100,
+                    height: Math.random() * 200 + 100,
+                    color: `hsl(${120 + Math.random() * 60}, 50%, ${30 + Math.random() * 20}%)`
+                });
+            }
+        }
+        
+        function generateClouds() {
+            clouds = [];
+            for (let i = 0; i < 15; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width * 2,
+                    y: Math.random() * canvas.height * 0.6,
+                    size: Math.random() * 60 + 40,
+                    speed: Math.random() * 0.5 + 0.2,
+                    opacity: Math.random() * 0.5 + 0.3
+                });
+            }
+        }
+        
+        function gameLoop(currentTime) {
+            const deltaTime = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+            
+            if (gameRunning) {
+                updateGame(deltaTime);
+                render3D();
+                updateUI();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function updateGame(deltaTime) {
+            // Update dragon movement
+            const targetY = mouseY;
+            const targetX = mouseX;
+            
+            dragon.vy += (targetY - dragon.y) * 0.005;
+            dragon.vx += (targetX - dragon.x) * 0.002;
+            
+            // Apply drag
+            dragon.vx *= 0.98;
+            dragon.vy *= 0.98;
+            
+            // Boost
+            if (keys[' ']) {
+                dragon.vx += 0.5;
+                createBoostParticles();
+            }
+            
+            // Update position
+            dragon.x += dragon.vx;
+            dragon.y += dragon.vy;
+            
+            // Keep dragon in bounds
+            if (dragon.x < 50) dragon.x = 50;
+            if (dragon.x > canvas.width - 50) dragon.x = canvas.width - 50;
+            if (dragon.y < 50) dragon.y = 50;
+            if (dragon.y > canvas.height - 50) dragon.y = canvas.height - 50;
+            
+            // Update dragon animation
+            dragon.wingFlap += deltaTime * 10;
+            dragon.angle = Math.atan2(dragon.vy, dragon.vx) * 0.1;
+            
+            // Update fire breath
+            if (dragon.fireBreath > 0) {
+                dragon.fireBreath -= deltaTime * 3;
+                createFireParticles();
+            }
+            
+            // Spawn obstacles
+            if (Math.random() < 0.02) {
+                obstacles.push({
+                    x: canvas.width + 50,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    width: Math.random() * 40 + 30,
+                    height: Math.random() * 40 + 30,
+                    type: Math.random() > 0.7 ? 'rock' : 'bird',
+                    rotation: 0,
+                    destroyed: false
+                });
+            }
+            
+            // Spawn collectibles
+            if (Math.random() < 0.015) {
+                collectibles.push({
+                    x: canvas.width + 50,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    size: 20,
+                    type: Math.random() > 0.5 ? 'gem' : 'coin',
+                    rotation: 0,
+                    collected: false,
+                    pulse: 0
+                });
+            }
+            
+            // Update obstacles
+            obstacles = obstacles.filter(obstacle => {
+                obstacle.x -= scrollSpeed * 60 * deltaTime;
+                obstacle.rotation += deltaTime * 2;
+                
+                // Check collision with dragon
+                if (!obstacle.destroyed && 
+                    dragon.x < obstacle.x + obstacle.width &&
+                    dragon.x + 40 > obstacle.x &&
+                    dragon.y < obstacle.y + obstacle.height &&
+                    dragon.y + 30 > obstacle.y) {
+                    
+                    if (dragon.fireBreath > 0) {
+                        obstacle.destroyed = true;
+                        score += 50;
+                        createExplosionParticles(obstacle.x, obstacle.y);
+                    } else {
+                        // Game over logic could go here
+                        score = Math.max(0, score - 20);
+                    }
+                }
+                
+                return obstacle.x > -100;
+            });
+            
+            // Update collectibles
+            collectibles = collectibles.filter(collectible => {
+                collectible.x -= scrollSpeed * 60 * deltaTime;
+                collectible.rotation += deltaTime * 3;
+                collectible.pulse += deltaTime * 5;
+                
+                // Check collection
+                if (!collectible.collected &&
+                    dragon.x < collectible.x + collectible.size &&
+                    dragon.x + 40 > collectible.x &&
+                    dragon.y < collectible.y + collectible.size &&
+                    dragon.y + 30 > collectible.y) {
+                    
+                    collectible.collected = true;
+                    if (collectible.type === 'gem') {
+                        gems++;
+                        score += 100;
+                    } else {
+                        score += 25;
+                    }
+                    createCollectParticles(collectible.x, collectible.y, collectible.type);
+                }
+                
+                return collectible.x > -50 && !collectible.collected;
+            });
+            
+            // Update fire breaths
+            fireBreaths = fireBreaths.filter(fire => {
+                fire.x += fire.vx * deltaTime;
+                fire.y += fire.vy * deltaTime;
+                fire.life -= deltaTime;
+                fire.size += deltaTime * 20;
+                fire.alpha = fire.life / fire.maxLife;
+                return fire.life > 0 && fire.x < canvas.width + 50;
+            });
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.x += particle.vx * deltaTime;
+                particle.y += particle.vy * deltaTime;
+                particle.life -= deltaTime;
+                particle.alpha = particle.life / particle.maxLife;
+                particle.size = Math.max(0, particle.size - deltaTime * 5);
+                return particle.life > 0;
+            });
+            
+            // Update clouds
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed * scrollSpeed * deltaTime * 30;
+                if (cloud.x < -cloud.size) {
+                    cloud.x = canvas.width + cloud.size;
+                    cloud.y = Math.random() * canvas.height * 0.6;
+                }
+            });
+            
+            // Update mountains
+            mountains.forEach(mountain => {
+                mountain.x -= scrollSpeed * deltaTime * 20;
+                if (mountain.x < -100) {
+                    mountain.x += 2000;
+                    mountain.height = Math.random() * 200 + 100;
+                }
+            });
+            
+            // Update game stats
+            altitude += scrollSpeed * deltaTime * 10;
+            score += Math.floor(scrollSpeed * deltaTime * 5);
+            scrollSpeed += deltaTime * 0.2; // Gradually increase difficulty
+        }
+        
+        function render3D() {
+            // Sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGradient.addColorStop(0, '#87ceeb');
+            skyGradient.addColorStop(0.7, '#ffd700');
+            skyGradient.addColorStop(1, '#ff8c00');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw mountains
+            mountains.forEach(mountain => {
+                ctx.fillStyle = mountain.color;
+                ctx.beginPath();
+                ctx.moveTo(mountain.x, canvas.height);
+                ctx.lineTo(mountain.x + 50, canvas.height - mountain.height);
+                ctx.lineTo(mountain.x + 100, canvas.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Mountain snow cap
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(mountain.x + 40, canvas.height - mountain.height + 20);
+                ctx.lineTo(mountain.x + 50, canvas.height - mountain.height);
+                ctx.lineTo(mountain.x + 60, canvas.height - mountain.height + 20);
+                ctx.closePath();
+                ctx.fill();
+            });
+            
+            // Draw clouds
+            clouds.forEach(cloud => {
+                ctx.save();
+                ctx.globalAlpha = cloud.opacity;
+                ctx.fillStyle = 'white';
+                
+                // Cloud puffs
+                for (let i = 0; i < 5; i++) {
+                    const puffX = cloud.x + (i - 2) * cloud.size * 0.15;
+                    const puffY = cloud.y + Math.sin(i) * cloud.size * 0.1;
+                    const puffSize = cloud.size * (0.8 + Math.sin(i) * 0.2);
+                    
+                    ctx.beginPath();
+                    ctx.arc(puffX, puffY, puffSize * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+            
+            // Draw dragon with 3D effect
+            ctx.save();
+            ctx.translate(dragon.x, dragon.y);
+            ctx.rotate(dragon.angle);
+            
+            // Dragon shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(5, 25, 25, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dragon body
+            const dragonGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 30);
+            dragonGradient.addColorStop(0, '#ff6b35');
+            dragonGradient.addColorStop(0.5, '#ff8c00');
+            dragonGradient.addColorStop(1, '#8b4513');
+            
+            ctx.fillStyle = dragonGradient;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 30, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dragon wings
+            const wingFlap = Math.sin(dragon.wingFlap) * 0.3;
+            ctx.fillStyle = 'rgba(255, 107, 53, 0.8)';
+            
+            // Left wing
+            ctx.save();
+            ctx.rotate(wingFlap);
+            ctx.beginPath();
+            ctx.ellipse(-15, -10, 20, 35, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Right wing
+            ctx.save();
+            ctx.rotate(-wingFlap);
+            ctx.beginPath();
+            ctx.ellipse(-15, 10, 20, 35, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // Dragon head
+            ctx.fillStyle = '#ff4500';
+            ctx.beginPath();
+            ctx.ellipse(20, 0, 15, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dragon eyes
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(25, -3, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(25, 3, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fire breath effect
+            if (dragon.fireBreath > 0) {
+                const fireGradient = ctx.createRadialGradient(35, 0, 0, 35, 0, 50);
+                fireGradient.addColorStop(0, 'rgba(255, 255, 0, 0.8)');
+                fireGradient.addColorStop(0.5, 'rgba(255, 100, 0, 0.6)');
+                fireGradient.addColorStop(1, 'rgba(255, 0, 0, 0.2)');
+                
+                ctx.fillStyle = fireGradient;
+                ctx.beginPath();
+                ctx.arc(35 + dragon.fireBreath * 20, 0, dragon.fireBreath * 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+            
+            // Draw obstacles
+            obstacles.forEach(obstacle => {
+                if (!obstacle.destroyed) {
+                    ctx.save();
+                    ctx.translate(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
+                    ctx.rotate(obstacle.rotation);
+                    
+                    if (obstacle.type === 'rock') {
+                        ctx.fillStyle = '#8b7355';
+                        ctx.fillRect(-obstacle.width/2, -obstacle.height/2, obstacle.width, obstacle.height);
+                        
+                        // Rock texture
+                        ctx.fillStyle = '#a0522d';
+                        ctx.fillRect(-obstacle.width/3, -obstacle.height/3, obstacle.width/3, obstacle.height/3);
+                    } else {
+                        // Bird
+                        ctx.strokeStyle = '#654321';
+                        ctx.lineWidth = 3;
+                        
+                        // Bird wings
+                        ctx.beginPath();
+                        ctx.arc(-10, 0, 8, 0, Math.PI);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(10, 0, 8, 0, Math.PI);
+                        ctx.stroke();
+                        
+                        // Bird body
+                        ctx.fillStyle = '#8b4513';
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                }
+            });
+            
+            // Draw collectibles
+            collectibles.forEach(collectible => {
+                const pulse = Math.sin(collectible.pulse) * 0.2 + 1;
+                
+                ctx.save();
+                ctx.translate(collectible.x, collectible.y);
+                ctx.rotate(collectible.rotation);
+                ctx.scale(pulse, pulse);
+                
+                if (collectible.type === 'gem') {
+                    // Diamond shape
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -10);
+                    ctx.lineTo(8, 0);
+                    ctx.lineTo(0, 10);
+                    ctx.lineTo(-8, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Gem shine
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(-3, -3, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Coin
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Coin inner circle
+                    ctx.strokeStyle = '#ffb347';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 7, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            });
+            
+            // Draw fire breaths
+            fireBreaths.forEach(fire => {
+                ctx.save();
+                ctx.globalAlpha = fire.alpha;
+                
+                const gradient = ctx.createRadialGradient(fire.x, fire.y, 0, fire.x, fire.y, fire.size);
+                gradient.addColorStop(0, '#ffff00');
+                gradient.addColorStop(0.5, '#ff6600');
+                gradient.addColorStop(1, '#ff0000');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(fire.x, fire.y, fire.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // Draw particles
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.alpha;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+        
+        function createFireParticles() {
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: dragon.x + 35,
+                    y: dragon.y + (Math.random() - 0.5) * 10,
+                    vx: Math.random() * 100 + 50,
+                    vy: (Math.random() - 0.5) * 50,
+                    size: Math.random() * 8 + 3,
+                    color: `hsl(${Math.random() * 60}, 100%, 70%)`,
+                    life: 0.5,
+                    maxLife: 0.5,
+                    alpha: 1
+                });
+            }
+        }
+        
+        function createBoostParticles() {
+            for (let i = 0; i < 3; i++) {
+                particles.push({
+                    x: dragon.x - 20,
+                    y: dragon.y + (Math.random() - 0.5) * 20,
+                    vx: Math.random() * -100 - 50,
+                    vy: (Math.random() - 0.5) * 50,
+                    size: Math.random() * 5 + 2,
+                    color: '#00ffff',
+                    life: 0.8,
+                    maxLife: 0.8,
+                    alpha: 1
+                });
+            }
+        }
+        
+        function createExplosionParticles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 200,
+                    vy: (Math.random() - 0.5) * 200,
+                    size: Math.random() * 6 + 2,
+                    color: `hsl(${Math.random() * 60}, 100%, 60%)`,
+                    life: 1.0,
+                    maxLife: 1.0,
+                    alpha: 1
+                });
+            }
+        }
+        
+        function createCollectParticles(x, y, type) {
+            const color = type === 'gem' ? '#ff00ff' : '#ffd700';
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 100,
+                    vy: (Math.random() - 0.5) * 100,
+                    size: Math.random() * 4 + 1,
+                    color: color,
+                    life: 1.2,
+                    maxLife: 1.2,
+                    alpha: 1
+                });
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = '🔥 Score: ' + score.toLocaleString();
+            document.getElementById('gems').textContent = '💎 Gems: ' + gems;
+            document.getElementById('altitude').textContent = '🏔️ Altitude: ' + Math.floor(altitude) + 'm';
+        }
+        
+        function restartGame() {
+            score = 0;
+            gems = 0;
+            altitude = 0;
+            scrollSpeed = 2;
+            dragon = { 
+                x: 100, 
+                y: canvas.height / 2, 
+                z: 0,
+                vx: 0, 
+                vy: 0, 
+                angle: 0,
+                wingFlap: 0,
+                fireBreath: 0
+            };
+            obstacles = [];
+            collectibles = [];
+            fireBreaths = [];
+            particles = [];
+            gameRunning = true;
+            document.getElementById('gameOver').style.display = 'none';
+            generateTerrain();
+            generateClouds();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('click', () => {
+            dragon.fireBreath = 1.0;
+            
+            fireBreaths.push({
+                x: dragon.x + 35,
+                y: dragon.y,
+                vx: 200,
+                vy: 0,
+                size: 10,
+                life: 2.0,
+                maxLife: 2.0,
+                alpha: 1
+            });
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Resize canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            if (containerWidth / containerHeight > canvas.width / canvas.height) {
+                canvas.style.height = containerHeight + 'px';
+                canvas.style.width = (containerHeight * canvas.width / canvas.height) + 'px';
+            } else {
+                canvas.style.width = containerWidth + 'px';
+                canvas.style.height = (containerWidth * canvas.height / canvas.width) + 'px';
+            }
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Start game
+        initGame();
+    </script>
+</body>
+</html>

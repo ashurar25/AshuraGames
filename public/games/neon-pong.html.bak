@@ -1,0 +1,527 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Pong - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .game-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid #ff006e;
+            box-shadow: 0 0 50px rgba(255, 0, 110, 0.3);
+        }
+
+        canvas {
+            border-radius: 15px;
+            background: radial-gradient(circle at center, #0f0f0f 0%, #000000 100%);
+            display: block;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
+            border: 2px solid rgba(255, 0, 110, 0.3);
+        }
+
+        .ui {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 1);
+            color: #ff006e;
+        }
+
+        .score {
+            margin: 0 50px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ff006e;
+            display: none;
+            z-index: 20;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #ff006e, #8338ec);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 25px rgba(255, 0, 110, 0.6);
+        }
+
+        .controls {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #ff006e;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 0, 110, 1); }
+            to { text-shadow: 0 0 30px rgba(131, 56, 236, 1), 0 0 40px rgba(255, 0, 110, 0.8); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui glow">
+            <div class="score">ผู้เล่น: <span id="playerScore">0</span></div>
+            <div class="score">AI: <span id="aiScore">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+        <div class="game-over" id="gameOver">
+            <h2 style="color: #ff006e; margin-top: 0;">🏓 เกมจบแล้ว!</h2>
+            <p id="winner" style="font-size: 24px; margin: 20px 0;"></p>
+            <button class="restart-btn" onclick="startGame()">เล่นใหม่</button>
+        </div>
+
+        <div class="controls">
+            เลื่อนเมาส์ขึ้น-ลง หรือ W/S เพื่อควบคุมแพดเดิล | เอาชนะ AI ให้ได้!
+        </div>
+    </div>
+
+    <div class="credit">© ASHURA Games</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameRunning = false;
+        let playerScore = 0;
+        let aiScore = 0;
+        let keys = {};
+
+        // เกมออบเจกต์
+        const player = {
+            x: 30,
+            y: canvas.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 8,
+            trail: []
+        };
+
+        const ai = {
+            x: canvas.width - 45,
+            y: canvas.height / 2 - 50,
+            width: 15,
+            height: 100,
+            speed: 6,
+            trail: []
+        };
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speedX: 6,
+            speedY: 4,
+            trail: [],
+            maxSpeed: 12
+        };
+
+        let particles = [];
+
+        // คลาส Particle
+        class Particle {
+            constructor(x, y, color, velocity = {x: 0, y: 0}) {
+                this.x = x;
+                this.y = y;
+                this.vx = velocity.x + (Math.random() - 0.5) * 8;
+                this.vy = velocity.y + (Math.random() - 0.5) * 8;
+                this.color = color;
+                this.life = 30;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / 30;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // วาดแพดเดิล
+        function drawPaddle(paddle, color) {
+            // เพิ่มหาง
+            paddle.trail.push({x: paddle.x + paddle.width/2, y: paddle.y + paddle.height/2});
+            if (paddle.trail.length > 10) paddle.trail.shift();
+
+            // วาดหาง
+            paddle.trail.forEach((pos, i) => {
+                ctx.save();
+                ctx.globalAlpha = i / paddle.trail.length * 0.5;
+                ctx.fillStyle = color;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = color;
+                ctx.fillRect(pos.x - paddle.width/2, pos.y - paddle.height/2, paddle.width, paddle.height);
+                ctx.restore();
+            });
+
+            // วาดแพดเดิล
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = color;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+            // เอฟเฟกต์เรืองแสง
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = color;
+            ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        }
+
+        // วาดบอล
+        function drawBall() {
+            // เพิ่มหาง
+            ball.trail.push({x: ball.x, y: ball.y});
+            if (ball.trail.length > 15) ball.trail.shift();
+
+            // วาดหาง
+            ball.trail.forEach((pos, i) => {
+                ctx.save();
+                ctx.globalAlpha = i / ball.trail.length * 0.8;
+                const size = ball.radius * (i / ball.trail.length);
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // วาดบอล
+            const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#00ffff');
+            
+            ctx.fillStyle = gradient;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // วาดพื้นหลัง
+        function drawBackground() {
+            // พื้นหลัง
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // เส้นแบ่งกลาง
+            ctx.strokeStyle = 'rgba(255, 0, 110, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // วงกลมกลาง
+            ctx.strokeStyle = 'rgba(255, 0, 110, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 80, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // อัปเดตผู้เล่น
+        function updatePlayer() {
+            if (keys['w'] || keys['W']) {
+                player.y = Math.max(0, player.y - player.speed);
+            }
+            if (keys['s'] || keys['S']) {
+                player.y = Math.min(canvas.height - player.height, player.y + player.speed);
+            }
+        }
+
+        // อัปเดต AI
+        function updateAI() {
+            const ballCenter = ball.y;
+            const paddleCenter = ai.y + ai.height / 2;
+            const diff = ballCenter - paddleCenter;
+
+            if (Math.abs(diff) > 10) {
+                if (diff > 0) {
+                    ai.y = Math.min(canvas.height - ai.height, ai.y + ai.speed);
+                } else {
+                    ai.y = Math.max(0, ai.y - ai.speed);
+                }
+            }
+        }
+
+        // อัปเดตบอล
+        function updateBall() {
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // ชนผนังบน-ล่าง
+            if (ball.y <= ball.radius || ball.y >= canvas.height - ball.radius) {
+                ball.speedY = -ball.speedY;
+                
+                // สร้างอนุภาค
+                for (let i = 0; i < 5; i++) {
+                    particles.push(new Particle(ball.x, ball.y, '#00ffff'));
+                }
+            }
+
+            // ชนแพดเดิลผู้เล่น
+            if (ball.x - ball.radius <= player.x + player.width &&
+                ball.y >= player.y &&
+                ball.y <= player.y + player.height &&
+                ball.speedX < 0) {
+                
+                ball.speedX = -ball.speedX;
+                
+                // เปลี่ยนมุม
+                const relativeIntersectY = (player.y + player.height/2) - ball.y;
+                const normalizedRelativeIntersectionY = (relativeIntersectY / (player.height/2));
+                ball.speedY = normalizedRelativeIntersectionY * -8;
+                
+                // เพิ่มความเร็ว
+                const speed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+                if (speed < ball.maxSpeed) {
+                    ball.speedX *= 1.05;
+                    ball.speedY *= 1.05;
+                }
+
+                // สร้างอนุภาค
+                for (let i = 0; i < 8; i++) {
+                    particles.push(new Particle(ball.x, ball.y, '#ff006e'));
+                }
+            }
+
+            // ชนแพดเดิล AI
+            if (ball.x + ball.radius >= ai.x &&
+                ball.y >= ai.y &&
+                ball.y <= ai.y + ai.height &&
+                ball.speedX > 0) {
+                
+                ball.speedX = -ball.speedX;
+                
+                // เปลี่ยนมุม
+                const relativeIntersectY = (ai.y + ai.height/2) - ball.y;
+                const normalizedRelativeIntersectionY = (relativeIntersectY / (ai.height/2));
+                ball.speedY = normalizedRelativeIntersectionY * -8;
+                
+                // เพิ่มความเร็ว
+                const speed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+                if (speed < ball.maxSpeed) {
+                    ball.speedX *= 1.05;
+                    ball.speedY *= 1.05;
+                }
+
+                // สร้างอนุภาค
+                for (let i = 0; i < 8; i++) {
+                    particles.push(new Particle(ball.x, ball.y, '#8338ec'));
+                }
+            }
+
+            // ออกจากขอบซ้าย (AI ได้คะแนน)
+            if (ball.x < -ball.radius) {
+                aiScore++;
+                resetBall();
+                checkWin();
+            }
+
+            // ออกจากขอบขวา (ผู้เล่นได้คะแนน)
+            if (ball.x > canvas.width + ball.radius) {
+                playerScore++;
+                resetBall();
+                checkWin();
+            }
+        }
+
+        // รีเซ็ตบอล
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 6;
+            ball.speedY = (Math.random() - 0.5) * 8;
+            ball.trail = [];
+        }
+
+        // ตรวจสอบผู้ชนะ
+        function checkWin() {
+            if (playerScore >= 5 || aiScore >= 5) {
+                const winner = playerScore >= 5 ? 'คุณชนะ! 🎉' : 'AI ชนะ! 🤖';
+                document.getElementById('winner').textContent = winner;
+                document.getElementById('winner').style.color = playerScore >= 5 ? '#00ff00' : '#ff4444';
+                gameOver();
+            }
+        }
+
+        // อัปเดตอนุภาค
+        function updateParticles() {
+            particles = particles.filter(particle => {
+                particle.update();
+                return particle.life > 0;
+            });
+        }
+
+        // วาดอนุภาค
+        function drawParticles() {
+            particles.forEach(particle => particle.draw());
+        }
+
+        // อัปเดต UI
+        function updateUI() {
+            document.getElementById('playerScore').textContent = playerScore;
+            document.getElementById('aiScore').textContent = aiScore;
+        }
+
+        // จบเกม
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        // เริ่มเกม
+        function startGame() {
+            gameRunning = true;
+            playerScore = 0;
+            aiScore = 0;
+            particles = [];
+
+            resetBall();
+            
+            player.y = canvas.height / 2 - 50;
+            ai.y = canvas.height / 2 - 50;
+            player.trail = [];
+            ai.trail = [];
+            
+            document.getElementById('gameOver').style.display = 'none';
+            updateUI();
+        }
+
+        // วาดเกม
+        function draw() {
+            drawBackground();
+            drawPaddle(player, '#ff006e');
+            drawPaddle(ai, '#8338ec');
+            drawBall();
+            drawParticles();
+        }
+
+        // อัปเดตเกม
+        function update() {
+            if (!gameRunning) return;
+            
+            updatePlayer();
+            updateAI();
+            updateBall();
+            updateParticles();
+            updateUI();
+        }
+
+        // ลูปเกม
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ควบคุมเมาส์
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseY = e.clientY - rect.top;
+            player.y = mouseY - player.height / 2;
+            
+            if (player.y < 0) player.y = 0;
+            if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
+        });
+
+        // ควบคุมคีย์บอร์ด
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // เริ่มเกม
+        startGame();
+        gameLoop(0);
+    </script>
+</body>
+</html>

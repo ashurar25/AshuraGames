@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Rush - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        .game-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        canvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: #000;
+        }
+        .info-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+        .score, .level, .lines {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .next-piece {
+            margin-top: 20px;
+        }
+        .controls {
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+        <div class="info-panel">
+            <div class="score">คะแนน: <span id="score">0</span></div>
+            <div class="level">เลเวล: <span id="level">1</span></div>
+            <div class="lines">แถว: <span id="lines">0</span></div>
+            <div class="next-piece">
+                <div>ชิ้นต่อไป:</div>
+                <canvas id="nextCanvas" width="100" height="100"></canvas>
+            </div>
+            <div class="controls">
+                <strong>การควบคุม:</strong><br>
+                ← → : เลื่อน<br>
+                ↓ : เร่ง<br>
+                ↑ : หมุน<br>
+                Space : วาง
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>เกมจบแล้ว!</h2>
+        <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+        <p>เลเวลสุดสุด: <span id="finalLevel">1</span></p>
+        <button onclick="restartGame()">เล่นใหม่</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('nextCanvas');
+        const nextCtx = nextCanvas.getContext('2d');
+
+        const BLOCK_SIZE = 30;
+        const BOARD_WIDTH = 10;
+        const BOARD_HEIGHT = 20;
+
+        let board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let dropTime = 0;
+        let lastTime = 0;
+
+        const pieces = [
+            [[[1,1,1,1]]], // I
+            [[[1,1],[1,1]]], // O
+            [[[0,1,0],[1,1,1]]], // T
+            [[[0,1,1],[1,1,0]]], // S
+            [[[1,1,0],[0,1,1]]], // Z
+            [[[1,0,0],[1,1,1]]], // J
+            [[[0,0,1],[1,1,1]]]  // L
+        ];
+
+        const colors = [
+            '#00f5ff', '#ffff00', '#a000ff', '#00ff00', 
+            '#ff0000', '#0000ff', '#ff8000'
+        ];
+
+        let currentPiece = null;
+        let nextPiece = null;
+        let gameRunning = true;
+
+        function createPiece() {
+            const typeId = Math.floor(Math.random() * pieces.length);
+            return {
+                matrix: pieces[typeId][0],
+                pos: {x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0},
+                color: colors[typeId]
+            };
+        }
+
+        function drawMatrix(matrix, offset, context = ctx, blockSize = BLOCK_SIZE) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        context.fillStyle = currentPiece?.color || '#fff';
+                        context.fillRect((x + offset.x) * blockSize, (y + offset.y) * blockSize, blockSize - 1, blockSize - 1);
+                    }
+                });
+            });
+        }
+
+        function drawBoard() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        ctx.fillStyle = value;
+                        ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                    }
+                });
+            });
+        }
+
+        function rotate(matrix) {
+            const N = matrix.length - 1;
+            return matrix.map((row, i) =>
+                row.map((val, j) => matrix[N - j][i])
+            );
+        }
+
+        function collide(matrix, offset) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < matrix[y].length; ++x) {
+                    if (matrix[y][x] !== 0 &&
+                       (board[y + offset.y] &&
+                        board[y + offset.y][x + offset.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function merge() {
+            currentPiece.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        board[y + currentPiece.pos.y][x + currentPiece.pos.x] = currentPiece.color;
+                    }
+                });
+            });
+        }
+
+        function sweep() {
+            let rowCount = 1;
+            outer: for (let y = board.length - 1; y > 0; --y) {
+                for (let x = 0; x < board[y].length; ++x) {
+                    if (board[y][x] === 0) {
+                        continue outer;
+                    }
+                }
+
+                const row = board.splice(y, 1)[0].fill(0);
+                board.unshift(row);
+                ++y;
+
+                lines += rowCount;
+                score += rowCount * 100 * level;
+                rowCount *= 2;
+            }
+
+            level = Math.floor(lines / 10) + 1;
+            updateDisplay();
+        }
+
+        function playerDrop() {
+            currentPiece.pos.y++;
+            if (collide(currentPiece.matrix, currentPiece.pos)) {
+                currentPiece.pos.y--;
+                merge();
+                sweep();
+                currentPiece = nextPiece;
+                nextPiece = createPiece();
+                drawNextPiece();
+
+                if (collide(currentPiece.matrix, currentPiece.pos)) {
+                    gameOver();
+                }
+            }
+            dropTime = 0;
+        }
+
+        function playerMove(dir) {
+            currentPiece.pos.x += dir;
+            if (collide(currentPiece.matrix, currentPiece.pos)) {
+                currentPiece.pos.x -= dir;
+            }
+        }
+
+        function playerRotate() {
+            const rotated = rotate(currentPiece.matrix);
+            const pos = currentPiece.pos.x;
+            let offset = 1;
+            
+            currentPiece.matrix = rotated;
+            while (collide(currentPiece.matrix, currentPiece.pos)) {
+                currentPiece.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > currentPiece.matrix[0].length) {
+                    currentPiece.matrix = rotate(rotate(rotate(rotated)));
+                    currentPiece.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        function drawNextPiece() {
+            nextCtx.fillStyle = '#000';
+            nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+            
+            if (nextPiece) {
+                nextCtx.fillStyle = nextPiece.color;
+                drawMatrix(nextPiece.matrix, {x: 1, y: 1}, nextCtx, 20);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = lines;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalLevel').textContent = level;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function restartGame() {
+            board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+            score = 0;
+            level = 1;
+            lines = 0;
+            gameRunning = true;
+            currentPiece = createPiece();
+            nextPiece = createPiece();
+            document.getElementById('gameOver').style.display = 'none';
+            updateDisplay();
+            drawNextPiece();
+        }
+
+        function update(time = 0) {
+            if (!gameRunning) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropTime += deltaTime;
+
+            if (dropTime > 1000 / level) {
+                playerDrop();
+            }
+
+            drawBoard();
+            if (currentPiece) {
+                drawMatrix(currentPiece.matrix, currentPiece.pos);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            switch(e.code) {
+                case 'ArrowLeft':
+                    playerMove(-1);
+                    break;
+                case 'ArrowRight':
+                    playerMove(1);
+                    break;
+                case 'ArrowDown':
+                    playerDrop();
+                    break;
+                case 'ArrowUp':
+                    playerRotate();
+                    break;
+                case 'Space':
+                    while (!collide(currentPiece.matrix, {x: currentPiece.pos.x, y: currentPiece.pos.y + 1})) {
+                        currentPiece.pos.y++;
+                    }
+                    playerDrop();
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // เริ่มเกม
+        currentPiece = createPiece();
+        nextPiece = createPiece();
+        updateDisplay();
+        drawNextPiece();
+        update();
+    </script>
+</body>
+</html>

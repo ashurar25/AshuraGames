@@ -1,0 +1,543 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Runner 3D - ASHURA Games</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .game-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid #10b981;
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.3);
+        }
+
+        canvas {
+            border-radius: 15px;
+            background: linear-gradient(180deg, #87ceeb 0%, #98fb98 50%, #228b22 100%);
+            display: block;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .ui {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #10b981;
+            display: none;
+            z-index: 20;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.5);
+        }
+
+        .controls {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .credit {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #10b981;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui">
+            <div>🏃 คะแนน: <span id="score">0</span></div>
+            <div>💨 ความเร็ว: <span id="speed">1.0x</span></div>
+            <div>💎 เก็บได้: <span id="gems">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="game-over" id="gameOver">
+            <h2 style="color: #10b981; margin-top: 0;">🏃 หยุดวิ่งแล้ว!</h2>
+            <p>คะแนนสุดท้าย: <span id="finalScore">0</span></p>
+            <p>เพชรที่เก็บได้: <span id="finalGems">0</span></p>
+            <button class="restart-btn" onclick="startGame()">วิ่งใหม่</button>
+        </div>
+
+        <div class="controls">
+            A/D หรือ ← → เพื่อเลี้ยว | W/S หรือ ↑ ↓ เพื่อกระโดด/เลื่อน | เก็บเพชรและหลีกเลี่ยงอุปสรรค!
+        </div>
+    </div>
+
+    <div class="credit">© ASHURA Games</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameRunning = false;
+        let score = 0;
+        let speed = 1;
+        let gems = 0;
+        let keys = {};
+
+        // ผู้เล่น
+        const player = {
+            x: 0,
+            y: 0,
+            z: 0,
+            lane: 0, // -1, 0, 1
+            height: 0, // 0: normal, 1: jumping, -1: sliding
+            jumpVelocity: 0,
+            size: 30
+        };
+
+        let obstacles = [];
+        let collectibles = [];
+        let particles = [];
+        let platforms = [];
+
+        // คลาส Obstacle
+        class Obstacle {
+            constructor() {
+                this.x = (Math.random() - 0.5) * 6;
+                this.y = Math.random() < 0.5 ? 0 : 1; // ground or air
+                this.z = 50;
+                this.type = Math.random() < 0.7 ? 'box' : 'spike';
+                this.size = 1;
+                this.color = this.type === 'box' ? '#ff4444' : '#ff0000';
+            }
+
+            update() {
+                this.z -= speed * 0.8;
+            }
+
+            draw() {
+                const perspective = 400 / (this.z + 400);
+                const screenX = canvas.width / 2 + this.x * 80 * perspective;
+                const screenY = canvas.height / 2 + (this.y * 60 - 30) * perspective;
+                const size = this.size * 40 * perspective;
+
+                if (perspective > 0.1 && size > 2) {
+                    ctx.fillStyle = this.color;
+                    
+                    if (this.type === 'box') {
+                        ctx.fillRect(screenX - size/2, screenY - size/2, size, size);
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.strokeRect(screenX - size/2, screenY - size/2, size, size);
+                    } else {
+                        // วาดหนาม
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY - size);
+                        ctx.lineTo(screenX - size/2, screenY + size/2);
+                        ctx.lineTo(screenX + size/2, screenY + size/2);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+            }
+
+            checkCollision() {
+                const distance = Math.sqrt(
+                    (this.x - player.x) ** 2 + 
+                    (this.y - player.height) ** 2 + 
+                    this.z ** 2
+                );
+                return distance < 1.5;
+            }
+        }
+
+        // คลาส Collectible
+        class Collectible {
+            constructor() {
+                this.x = (Math.random() - 0.5) * 4;
+                this.y = Math.random() * 2;
+                this.z = 50;
+                this.rotation = 0;
+                this.bob = 0;
+            }
+
+            update() {
+                this.z -= speed * 0.8;
+                this.rotation += 0.1;
+                this.bob += 0.1;
+            }
+
+            draw() {
+                const perspective = 400 / (this.z + 400);
+                const screenX = canvas.width / 2 + this.x * 80 * perspective;
+                const screenY = canvas.height / 2 + (this.y * 60 - 30 + Math.sin(this.bob) * 5) * perspective;
+                const size = 15 * perspective;
+
+                if (perspective > 0.1 && size > 2) {
+                    ctx.save();
+                    ctx.translate(screenX, screenY);
+                    ctx.rotate(this.rotation);
+                    
+                    // เพชร
+                    ctx.fillStyle = '#00ffff';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -size);
+                    ctx.lineTo(size * 0.7, -size * 0.3);
+                    ctx.lineTo(size * 0.7, size * 0.3);
+                    ctx.lineTo(0, size);
+                    ctx.lineTo(-size * 0.7, size * 0.3);
+                    ctx.lineTo(-size * 0.7, -size * 0.3);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+            }
+
+            checkCollision() {
+                const distance = Math.sqrt(
+                    (this.x - player.x) ** 2 + 
+                    (this.y - player.height) ** 2 + 
+                    this.z ** 2
+                );
+                return distance < 1;
+            }
+        }
+
+        // คลาส Particle
+        class Particle {
+            constructor(x, y, z, color) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = (Math.random() - 0.5) * 0.2;
+                this.vy = (Math.random() - 0.5) * 0.2;
+                this.vz = (Math.random() - 0.5) * 0.2;
+                this.color = color;
+                this.life = 30;
+                this.size = Math.random() * 0.2 + 0.1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.z += this.vz - speed * 0.8;
+                this.life--;
+            }
+
+            draw() {
+                const perspective = 400 / (this.z + 400);
+                const screenX = canvas.width / 2 + this.x * 80 * perspective;
+                const screenY = canvas.height / 2 + this.y * 60 * perspective;
+                const size = this.size * 50 * perspective;
+
+                if (perspective > 0.1 && size > 1) {
+                    ctx.save();
+                    ctx.globalAlpha = this.life / 30;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // วาดพื้นหลัง
+        function drawBackground() {
+            // ฟ้า
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87ceeb');
+            gradient.addColorStop(1, '#98fb98');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // ถนน
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            
+            for (let i = -5; i <= 5; i++) {
+                const perspective1 = 400 / (0 + 400);
+                const perspective2 = 400 / (50 + 400);
+                
+                const x1 = canvas.width / 2 + i * 80 * perspective1;
+                const x2 = canvas.width / 2 + i * 80 * perspective2;
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, canvas.height);
+                ctx.lineTo(x2, canvas.height / 2);
+                ctx.stroke();
+            }
+
+            // เส้นแบ่งเลน
+            for (let z = 0; z <= 50; z += 5) {
+                const perspective = 400 / (z + 400);
+                const y = canvas.height / 2 + 0 * 60 * perspective;
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        // วาดผู้เล่น
+        function drawPlayer() {
+            const screenX = canvas.width / 2 + player.x * 80;
+            const screenY = canvas.height / 2 + (player.height * 60 - 30);
+
+            // เงา
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(screenX, canvas.height / 2 + 30, 25, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ตัวผู้เล่น
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(screenX - player.size/2, screenY - player.size/2, player.size, player.size);
+
+            // หัว
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY - player.size/2 - 15, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ตา
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(screenX - 3, screenY - player.size/2 - 17, 2, 0, Math.PI * 2);
+            ctx.arc(screenX + 3, screenY - player.size/2 - 17, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // อัปเดตผู้เล่น
+        function updatePlayer() {
+            // เคลื่อนที่ซ้าย-ขวา
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.lane = Math.max(-1, player.lane - 0.1);
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.lane = Math.min(1, player.lane + 0.1);
+            }
+
+            player.x = player.lane * 2;
+
+            // กระโดด
+            if ((keys['ArrowUp'] || keys['w'] || keys['W']) && player.height === 0) {
+                player.jumpVelocity = 0.4;
+                player.height = 1;
+            }
+
+            // เลื่อน
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                player.height = -0.5;
+            } else if (player.height === -0.5) {
+                player.height = 0;
+            }
+
+            // ฟิสิกส์การกระโดด
+            if (player.height > 0) {
+                player.height += player.jumpVelocity;
+                player.jumpVelocity -= 0.02;
+                
+                if (player.height <= 0) {
+                    player.height = 0;
+                    player.jumpVelocity = 0;
+                }
+            }
+        }
+
+        // สร้างอุปสรรค
+        function spawnObstacle() {
+            if (Math.random() < 0.015) {
+                obstacles.push(new Obstacle());
+            }
+        }
+
+        // สร้างเพชร
+        function spawnCollectible() {
+            if (Math.random() < 0.02) {
+                collectibles.push(new Collectible());
+            }
+        }
+
+        // ตรวจสอบการชน
+        function checkCollisions() {
+            // ชนอุปสรรค
+            obstacles.forEach((obstacle, index) => {
+                if (obstacle.checkCollision()) {
+                    gameOver();
+                    return;
+                }
+            });
+
+            // เก็บเพชร
+            collectibles.forEach((collectible, index) => {
+                if (collectible.checkCollision()) {
+                    collectibles.splice(index, 1);
+                    gems++;
+                    score += 50;
+                    
+                    // สร้างอนุภาค
+                    for (let i = 0; i < 8; i++) {
+                        particles.push(new Particle(collectible.x, collectible.y, collectible.z, '#00ffff'));
+                    }
+                }
+            });
+        }
+
+        // อัปเดตเกม
+        function update() {
+            if (!gameRunning) return;
+
+            updatePlayer();
+            spawnObstacle();
+            spawnCollectible();
+
+            // อัปเดตออบเจกต์
+            obstacles.forEach(obstacle => obstacle.update());
+            collectibles.forEach(collectible => collectible.update());
+            particles.forEach(particle => particle.update());
+
+            // ลบออบเจกต์ที่ผ่านไปแล้ว
+            obstacles = obstacles.filter(obstacle => obstacle.z > -10);
+            collectibles = collectibles.filter(collectible => collectible.z > -10);
+            particles = particles.filter(particle => particle.life > 0);
+
+            checkCollisions();
+
+            // เพิ่มความเร็วและคะแนน
+            speed += 0.001;
+            score += Math.floor(speed * 5);
+
+            updateUI();
+        }
+
+        // วาดเกม
+        function draw() {
+            drawBackground();
+            
+            obstacles.forEach(obstacle => obstacle.draw());
+            collectibles.forEach(collectible => collectible.draw());
+            particles.forEach(particle => particle.draw());
+            
+            drawPlayer();
+        }
+
+        // อัปเดต UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = speed.toFixed(1) + 'x';
+            document.getElementById('gems').textContent = gems;
+        }
+
+        // จบเกม
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalGems').textContent = gems;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        // เริ่มเกม
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            speed = 1;
+            gems = 0;
+            
+            player.x = 0;
+            player.y = 0;
+            player.z = 0;
+            player.lane = 0;
+            player.height = 0;
+            player.jumpVelocity = 0;
+            
+            obstacles = [];
+            collectibles = [];
+            particles = [];
+            
+            document.getElementById('gameOver').style.display = 'none';
+            updateUI();
+        }
+
+        // ลูปเกม
+        let lastTime = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime < frameTime) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            lastTime = currentTime;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ควบคุม
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // เริ่มเกม
+        startGame();
+        gameLoop(0);
+    </script>
+</body>
+</html>

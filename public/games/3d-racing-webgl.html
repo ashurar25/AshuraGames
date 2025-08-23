@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Racing WebGL - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+
+    <link rel="stylesheet" href="./game-enhancement.css">
+    <link rel="stylesheet" href="./game-optimization.css">
+    <link rel="stylesheet" href="./_assets/game-frame.css">
     <style>
         body {
             margin: 0;
@@ -150,6 +155,8 @@
         </button>
     </div>
 
+    <script src="./game-optimization.js"></script>
+    <script src="./_assets/game-frame.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const gl = canvas.getContext('webgl');
@@ -751,5 +758,6 @@
         gl.clearColor(0.5, 0.8, 1.0, 1.0);
         gameLoop();
     </script>
+    <!-- ASHURA:shared-js -->
 </body>
 </html>
