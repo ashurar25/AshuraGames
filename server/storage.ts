@@ -193,7 +193,7 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async async searchGames(query: string): Promise<Game[]> {
+  async searchGames(query: string): Promise<Game[]> {
     const lowercaseQuery = query.toLowerCase();
     return Array.from(this.games.values())
       .filter(game => 
