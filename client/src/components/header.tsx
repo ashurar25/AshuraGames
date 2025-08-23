@@ -69,9 +69,11 @@ export default function Header({ onSearch, searchQuery }: HeaderProps) {
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center space-x-3 cursor-pointer">
-              <div className="w-10 h-10 mint-gradient rounded-lg flex items-center justify-center">
-                <GamepadIcon className="text-white text-xl" />
-              </div>
+              <img 
+                src="/ashura-logo.png" 
+                alt="ASHURA Games Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
                 <h1 className="text-xl font-bold text-white">ASHURA</h1>
                 <p className="text-xs text-gray-400">Games</p>

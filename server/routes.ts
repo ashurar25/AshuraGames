@@ -224,8 +224,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate game thumbnail
   app.get('/api/games/:id/thumbnail', async (req: Request, res: Response) => {
     try {
-      const gameId = parseInt(req.params.id);
-      const game = gameStorage.getGameById(gameId);
+      const gameId = req.params.id;
+      const game = await gameStorage.getGameById(gameId);
 
       if (!game) {
         return res.status(404).json({ error: 'Game not found' });
