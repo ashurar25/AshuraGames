@@ -638,60 +638,61 @@
         }
 
         // Input handling
-        document.addEventListener('keydown', (e) => {
-            keys[e.key.toLowerCase()] = true;
+        document.addEventListener('keydown', function(e) {
+            keys[e.key] = true;
+            // ป้องกัน default browser behavior
+            if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) {
+                e.preventDefault();
+            }
         });
 
-        document.addEventListener('keyup', (e) => {
-            keys[e.key.toLowerCase()] = false;
+        document.addEventListener('keyup', function(e) {
+            keys[e.key] = false;
+            if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) {
+                e.preventDefault();
+            }
         });
 
-        // Touch controls
-        canvas.addEventListener('touchstart', (e) => {
+        // Mobile touch controls
+        let touchX = null;
+
+        canvas.addEventListener('touchstart', function(e) {
             e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            touchControls.touching = true;
-            touchControls.startX = touch.clientX - rect.left;
-            touchControls.startY = touch.clientY - rect.top;
-        });
+            touchX = e.touches[0].clientX;
+        }, {passive: false});
 
-        canvas.addEventListener('touchend', (e) => {
+        canvas.addEventListener('touchmove', function(e) {
             e.preventDefault();
-            if (!touchControls.touching) return;
+            if (touchX !== null) {
+                const currentX = e.touches[0].clientX;
+                const deltaX = currentX - touchX;
 
-            const touch = e.changedTouches[0];
-            const rect = canvas.getBoundingClientRect();
-            const endX = touch.clientX - rect.left;
-            const endY = touch.clientY - rect.top;
+                // Reset movement keys
+                keys['ArrowLeft'] = false;
+                keys['ArrowRight'] = false;
 
-            const deltaX = endX - touchControls.startX;
-            const deltaY = endY - touchControls.startY;
-
-            // Handle swipe directions
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (Math.abs(deltaX) > 30) {
-                    if (deltaX > 0) {
-                        // Swipe right
-                        if (player.lane < 1) player.lane++;
-                    } else {
-                        // Swipe left
-                        if (player.lane > -1) player.lane--;
-                    }
-                }
-            } else {
-                if (Math.abs(deltaY) > 30) {
-                    if (deltaY > 0) {
-                        // Swipe down
-                        if (player.height > -1) player.height--;
-                    } else {
-                        // Swipe up
-                        if (player.height < 1) player.height++;
-                    }
+                // Set movement based on swipe
+                if (deltaX > 30) {
+                    keys['ArrowRight'] = true;
+                    touchX = currentX;
+                } else if (deltaX < -30) {
+                    keys['ArrowLeft'] = true;
+                    touchX = currentX;
                 }
             }
+        }, {passive: false});
 
-            touchControls.touching = false;
+        canvas.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            touchX = null;
+            keys['ArrowLeft'] = false;
+            keys['ArrowRight'] = false;
+        }, {passive: false});
+
+        // Tap to jump
+        canvas.addEventListener('click', function(e) {
+            keys[' '] = true;
+            setTimeout(() => { keys[' '] = false; }, 100);
         });
 
         // Start game

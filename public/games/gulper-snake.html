@@ -935,7 +935,18 @@
 
         // Start the game when the page loads
         window.addEventListener('DOMContentLoaded', () => {
-            new GulperSnake();
+            // เพิ่ม optimization CSS และ JS
+            const optimizationCSS = document.createElement('link');
+            optimizationCSS.rel = 'stylesheet';
+            optimizationCSS.href = 'game-optimization.css';
+            document.head.appendChild(optimizationCSS);
+            
+            const optimizationJS = document.createElement('script');
+            optimizationJS.src = 'game-optimization.js';
+            optimizationJS.onload = () => {
+                new GulperSnake();
+            };
+            document.head.appendChild(optimizationJS);
         });
     </script>
 </body>

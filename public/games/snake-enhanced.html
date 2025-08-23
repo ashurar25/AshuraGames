@@ -215,9 +215,20 @@
 
     <div class="credit">© ASHURA Games</div>
 
+    <!-- เพิ่ม optimization files -->
+    <link rel="stylesheet" href="game-optimization.css">
+    <script src="game-optimization.js"></script>
+    
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // ป้องกันการ scroll ของหน้าจอ
+        document.addEventListener('keydown', function(e) {
+            if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) > -1) {
+                e.preventDefault();
+            }
+        }, false);
         
         // Game variables
         const gridSize = 20;
