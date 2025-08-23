@@ -292,8 +292,30 @@
                 updateScore();
                 generateFood();
                 
+                // Play eat sound
+                if (window.GameEnhancement && window.GameEnhancement.audio) {
+                    const eatSound = window.GameEnhancement.audio.createSound(440, 0.1, 'square');
+                    eatSound();
+                }
+                
                 // Increase speed slightly
                 gameSpeed = Math.max(80, gameSpeed - 2);
+                
+                // Add particle effect
+                if (window.particleSystem) {
+                    for (let i = 0; i < 10; i++) {
+                        window.particleSystem.add(
+                            head.x + 10, head.y + 10,
+                            {
+                                vx: (Math.random() - 0.5) * 4,
+                                vy: (Math.random() - 0.5) * 4,
+                                color: '#00ffc8',
+                                size: Math.random() * 3 + 1,
+                                life: 0.5
+                            }
+                        );
+                    }
+                }
             } else {
                 snake.pop();
             }
@@ -405,6 +427,31 @@
         canvas.addEventListener('click', () => canvas.focus());
         canvas.focus();
 
+        // Initialize particle system
+        if (window.GameEnhancement) {
+            window.particleSystem = window.GameEnhancement.createParticleSystem();
+        }
+        
+        // Enhanced game step with particles
+        function enhancedGameStep() {
+            if (!gameRunning) return;
+            
+            clearCanvas();
+            
+            // Update and draw particles
+            if (window.particleSystem) {
+                window.particleSystem.update();
+                window.particleSystem.draw(ctx);
+            }
+            
+            moveSnake();
+            drawSnake();
+            drawFood();
+        }
+        
+        // Override gameStep
+        gameStep = enhancedGameStep;
+        
         // Start game
         startGame();
     </script>

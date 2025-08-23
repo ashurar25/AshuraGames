@@ -338,6 +338,21 @@
             
             // Ground collision
             if (bird.y + bird.height >= canvas.height - 50) {
+                // Add particle effect on crash
+                if (window.particleSystem) {
+                    for (let i = 0; i < 15; i++) {
+                        window.particleSystem.add(
+                            bird.x + bird.width / 2, bird.y + bird.height / 2,
+                            {
+                                vx: (Math.random() - 0.5) * 6,
+                                vy: Math.random() * -4 - 2,
+                                color: '#ff6b35',
+                                size: Math.random() * 4 + 2,
+                                life: 1
+                            }
+                        );
+                    }
+                }
                 gameOver();
             }
             
@@ -410,6 +425,28 @@
         function jump() {
             if (!gameRunning) return;
             bird.velocity = bird.jumpStrength;
+            
+            // Play jump sound
+            if (window.GameEnhancement && window.GameEnhancement.audio) {
+                const jumpSound = window.GameEnhancement.audio.createSound(330, 0.1, 'square');
+                jumpSound();
+            }
+            
+            // Add wing flap particles
+            if (window.particleSystem) {
+                for (let i = 0; i < 5; i++) {
+                    window.particleSystem.add(
+                        bird.x, bird.y + bird.height / 2,
+                        {
+                            vx: Math.random() * -2 - 1,
+                            vy: (Math.random() - 0.5) * 2,
+                            color: '#70c5ce',
+                            size: Math.random() * 2 + 1,
+                            life: 0.3
+                        }
+                    );
+                }
+            }
         }
 
         function gameOver() {

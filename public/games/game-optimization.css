@@ -1,479 +1,291 @@
 
-/* ASHURA Universal Game Enhancement CSS */
+/* ASHURA Games - Universal CSS Optimization */
 
-/* Global reset and optimization */
+/* Reset and base styles */
 * {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-    margin: 0;
-    padding: 0;
+    width: 100%;
     height: 100%;
-    overflow: hidden;
-    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    position: relative;
-    touch-action: none;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Enhanced canvas optimization */
-canvas {
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    display: block;
-    margin: 0 auto;
-    touch-action: none;
-    outline: none;
-    border: none;
-    max-width: calc(100vw - 20px);
-    max-height: calc(100vh - 150px);
-    width: auto !important;
-    height: auto !important;
-    border-radius: 8px;
-    box-shadow: 0 10px 40px rgba(0, 255, 200, 0.3);
-    background: #000;
-    object-fit: contain;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
+    line-height: 1.6;
     position: relative;
-    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Game container optimization */
-.game-container, 
-body:has(canvas) {
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+#gameContainer {
+    width: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
     padding: 20px;
-    overflow: hidden;
-}
-
-/* Universal Mobile Controls */
-.universal-mobile-controls {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: none;
-    gap: 15px;
-    z-index: 1000;
-    align-items: flex-end;
-    justify-content: center;
-    width: calc(100vw - 20px);
-    max-width: 800px;
-    pointer-events: none;
-}
-
-.universal-mobile-controls > div {
-    pointer-events: auto;
-}
-
-/* Direction Controls */
-.direction-controls {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 3px;
-}
-
-.horizontal-dirs {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-}
-
-/* WASD Controls */
-.wasd-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-}
-
-.wasd-row {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-}
-
-/* Action Controls */
-.action-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-}
-
-/* Game Controls */
-.game-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-}
-
-/* Universal Control Button Styling */
-.control-btn {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background: rgba(0, 20, 40, 0.9);
-    border: 2px solid rgba(0, 255, 200, 0.6);
-    color: #00ffc8;
-    font-size: 16px;
-    font-weight: bold;
-    display: flex;
     align-items: center;
     justify-content: center;
-    touch-action: manipulation;
-    user-select: none;
-    backdrop-filter: blur(20px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
     position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.2);
 }
 
-.control-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent, rgba(0, 255, 200, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+/* Canvas optimization */
+canvas {
+    display: block;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    background: #000;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 200px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.control-btn:hover::before,
-.control-btn:focus::before {
-    opacity: 1;
+/* Performance optimizations */
+.performance-low canvas {
+    image-rendering: pixelated !important;
+    filter: contrast(1.1);
 }
 
-/* Button press states */
-.control-btn.pressed,
-.control-btn:active {
-    background: rgba(0, 255, 200, 0.4);
-    border-color: #00ffc8;
-    transform: scale(0.92);
-    box-shadow: 0 0 25px rgba(0, 255, 200, 0.6), inset 0 0 15px rgba(0, 255, 200, 0.2);
+.performance-medium canvas {
+    image-rendering: crisp-edges;
 }
 
-/* Direction button colors */
-.dir-up, .dir-down, .dir-left, .dir-right {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.6);
-    color: #10b981;
+.performance-high canvas {
+    image-rendering: auto;
+    filter: none;
 }
 
-.dir-up.pressed, .dir-down.pressed, .dir-left.pressed, .dir-right.pressed {
-    background: rgba(16, 185, 129, 0.5);
-    border-color: #10b981;
+/* Typography */
+h1 {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease infinite;
 }
 
-/* WASD button colors */
-.wasd-w, .wasd-a, .wasd-s, .wasd-d {
-    background: rgba(59, 130, 246, 0.2);
-    border-color: rgba(59, 130, 246, 0.6);
-    color: #3b82f6;
-    font-size: 14px;
-    width: 50px;
-    height: 50px;
+h2 {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    margin-bottom: 10px;
+    text-align: center;
 }
 
-.wasd-w.pressed, .wasd-a.pressed, .wasd-s.pressed, .wasd-d.pressed {
-    background: rgba(59, 130, 246, 0.5);
-    border-color: #3b82f6;
-}
-
-/* Action button colors */
-.action-space, .action-enter {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.6);
-    color: #ef4444;
-    width: 60px;
-    height: 60px;
-}
-
-.action-space.pressed, .action-enter.pressed {
-    background: rgba(239, 68, 68, 0.5);
-    border-color: #ef4444;
-}
-
-/* Game control colors */
-.action-restart, .game-pause, .game-fullscreen {
-    background: rgba(156, 163, 175, 0.2);
-    border-color: rgba(156, 163, 175, 0.6);
-    color: #9ca3af;
-    width: 50px;
-    height: 50px;
-    font-size: 14px;
-}
-
-.action-restart.pressed, .game-pause.pressed, .game-fullscreen.pressed {
-    background: rgba(156, 163, 175, 0.5);
-    border-color: #9ca3af;
-}
-
-/* Responsive design for mobile controls */
-@media (max-width: 768px) {
-    .universal-mobile-controls {
-        display: flex;
-    }
-    
-    canvas {
-        max-height: calc(100vh - 130px);
-    }
-}
-
-@media (max-width: 480px) {
-    .control-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 14px;
-    }
-    
-    .wasd-w, .wasd-a, .wasd-s, .wasd-d {
-        width: 45px;
-        height: 45px;
-        font-size: 12px;
-    }
-    
-    .action-restart, .game-pause, .game-fullscreen {
-        width: 45px;
-        height: 45px;
-        font-size: 12px;
-    }
-    
-    .universal-mobile-controls {
-        gap: 10px;
-        bottom: 5px;
-    }
-    
-    canvas {
-        max-height: calc(100vh - 120px);
-    }
-}
-
-/* Landscape orientation for mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .universal-mobile-controls {
-        right: 10px;
-        bottom: 50%;
-        left: auto;
-        transform: translateY(50%);
-        flex-direction: column;
-        align-items: center;
-        width: auto;
-    }
-    
-    .direction-controls,
-    .wasd-controls {
-        order: 1;
-    }
-    
-    .action-controls {
-        order: 2;
-    }
-    
-    .game-controls {
-        order: 3;
-    }
-    
-    canvas {
-        max-width: calc(100vw - 120px);
-        max-height: calc(100vh - 20px);
-    }
-}
-
-/* Hide mobile controls on desktop */
-@media (min-width: 769px) {
-    .universal-mobile-controls {
-        display: none !important;
-    }
-}
-
-/* Performance modes */
-.performance-low * {
-    animation-duration: 0.1s !important;
-    transition-duration: 0.1s !important;
-}
-
-.performance-low .control-btn {
-    backdrop-filter: none;
-    background: rgba(0, 20, 40, 0.95);
-}
-
-.performance-medium .control-btn {
-    backdrop-filter: blur(5px);
-}
-
-.performance-high .control-btn {
-    backdrop-filter: blur(20px);
-}
-
-/* Fullscreen optimizations */
-.fullscreen canvas,
-:fullscreen canvas,
-:-webkit-full-screen canvas,
-:-moz-full-screen canvas {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    object-fit: contain;
-    border-radius: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
-}
-
-.fullscreen .universal-mobile-controls,
-:fullscreen .universal-mobile-controls,
-:-webkit-full-screen .universal-mobile-controls,
-:-moz-full-screen .universal-mobile-controls {
-    z-index: 10000;
-    position: fixed;
-}
-
-/* Game UI improvements */
-.game-ui {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
+/* Game info panel */
+#gameInfo {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    z-index: 100;
-    pointer-events: none;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    min-height: 50px;
 }
 
-.game-info {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px 16px;
-    border-radius: 25px;
-    color: #00ffc8;
-    font-weight: bold;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 255, 200, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.1);
-    font-size: 14px;
+#gameInfo span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
 }
 
-/* Loading states */
-.game-loading {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #00ffc8;
-    font-size: 18px;
-    font-weight: bold;
-    z-index: 1000;
+/* Instructions */
+#instructions {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
     text-align: center;
+    font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+    line-height: 1.4;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.game-loading::after {
-    content: '...';
-    animation: loading-dots 1.5s infinite;
-}
-
-@keyframes loading-dots {
-    0%, 20% { content: '.'; }
-    40% { content: '..'; }
-    60%, 100% { content: '...'; }
-}
-
-/* Enhanced game container styles */
-.game-container h1,
-.game-container h2,
-.game-container h3 {
-    color: #00ffc8;
-    text-align: center;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
-    font-weight: bold;
-}
-
-.game-container button:not(.control-btn) {
-    background: linear-gradient(135deg, #00ffc8, #10b981);
+/* Buttons */
+.btn, button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     padding: 12px 24px;
     border-radius: 25px;
-    color: #000;
+    color: #ffffff;
     font-weight: bold;
     cursor: pointer;
+    margin: 10px;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
     transition: all 0.3s ease;
-    margin: 5px;
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.2);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
 }
 
-.game-container button:not(.control-btn):hover {
+.btn:hover, button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 255, 200, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
-.game-container button:not(.control-btn):active {
+.btn:active, button:active {
     transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
 }
 
-/* Score displays */
-.score, .lives, .level, .time {
-    background: rgba(0, 0, 0, 0.8);
-    color: #00ffc8;
-    padding: 8px 16px;
-    border-radius: 20px;
-    margin: 5px;
-    font-weight: bold;
-    border: 1px solid rgba(0, 255, 200, 0.3);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.1);
-}
-
-/* Game over and pause screens */
-.game-over, .game-pause {
+/* Game over and start screens */
+#gameOver, #startScreen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.95);
-    display: flex;
+    backdrop-filter: blur(10px);
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(20px);
+    padding: 20px;
+    text-align: center;
 }
 
-.game-over h2, .game-pause h2 {
-    color: #00ffc8;
-    font-size: 3em;
+#gameOver.show, #startScreen.show {
+    display: flex;
+}
+
+#gameOver h2, #startScreen h2 {
+    font-size: clamp(2rem, 6vw, 4rem);
     margin-bottom: 20px;
-    text-shadow: 0 0 20px rgba(0, 255, 200, 0.8);
     animation: pulse 2s infinite;
+}
+
+/* Power meter and progress bars */
+#powerMeter, .progress-bar {
+    width: 200px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    margin: 10px auto;
+    position: relative;
+    overflow: hidden;
+}
+
+#powerBar, .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+    width: 0%;
+    border-radius: 8px;
+    transition: width 0.1s ease;
+}
+
+/* Virtual controls for mobile */
+#virtualControls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    gap: 20px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.virtual-dpad {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    pointer-events: auto;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.virtual-btn {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #000;
+    user-select: none;
+    transition: all 0.1s ease;
+}
+
+.virtual-btn:active {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(0.95);
+}
+
+.virtual-btn.up { top: 5px; left: 50%; transform: translateX(-50%); }
+.virtual-btn.down { bottom: 5px; left: 50%; transform: translateX(-50%); }
+.virtual-btn.left { left: 5px; top: 50%; transform: translateY(-50%); }
+.virtual-btn.right { right: 5px; top: 50%; transform: translateY(-50%); }
+
+.virtual-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.virtual-action-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.8);
+    font-weight: bold;
+    font-size: 18px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+}
+
+.virtual-action-btn:active {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(0.95);
 }
 
 /* Animations */
@@ -482,44 +294,138 @@ body:has(canvas) {
     50% { transform: scale(1.05); opacity: 0.8; }
 }
 
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Prevent scrolling and zooming */
-body, html {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    touch-action: none;
-    user-scalable: no;
-    -webkit-user-scalable: no;
-    -moz-user-scalable: no;
-    -ms-user-scalable: no;
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
 }
 
-/* Context menu prevention */
-canvas, .game-container {
-    -webkit-context-menu: none;
-    -moz-context-menu: none;
-    -o-context-menu: none;
-    context-menu: none;
+/* Loading spinner */
+.loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-left: 4px solid #667eea;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
 }
 
-/* High contrast support */
-.high-contrast canvas {
-    filter: contrast(1.5) brightness(1.2);
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.high-contrast .control-btn {
-    border-width: 3px;
-    font-weight: 900;
-    background: rgba(0, 0, 0, 0.95);
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    #gameContainer {
+        padding: 10px;
+        max-height: 100vh;
+    }
+    
+    canvas {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 180px);
+    }
+    
+    #gameInfo {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+    
+    #instructions {
+        font-size: 0.7rem;
+        padding: 8px;
+    }
+    
+    .btn, button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        margin: 5px;
+    }
+    
+    #virtualControls {
+        display: flex !important;
+    }
+    
+    /* Hide virtual controls in landscape on mobile */
+    @media (orientation: landscape) and (max-height: 500px) {
+        #virtualControls {
+            bottom: 10px;
+            gap: 15px;
+        }
+        
+        .virtual-dpad {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .virtual-btn {
+            width: 25px;
+            height: 25px;
+            font-size: 12px;
+        }
+        
+        .virtual-action-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+    }
 }
 
-/* Reduced motion support */
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #gameContainer {
+        padding: 30px;
+    }
+    
+    canvas {
+        max-height: calc(100vh - 250px);
+    }
+    
+    #virtualControls {
+        display: none !important;
+    }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+    canvas {
+        max-height: calc(100vh - 300px);
+    }
+    
+    #virtualControls {
+        display: none !important;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .performance-high canvas {
+        image-rendering: auto;
+    }
+}
+
+/* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -528,38 +434,63 @@ canvas, .game-container {
     }
 }
 
-/* Auto-hide controls */
-.universal-mobile-controls.auto-hide {
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    }
 }
 
-.universal-mobile-controls.auto-hide:hover,
-.universal-mobile-controls.auto-hide:focus-within {
-    opacity: 1;
+/* Print styles */
+@media print {
+    #virtualControls,
+    #gameOver,
+    #startScreen {
+        display: none !important;
+    }
 }
 
-/* Enhanced focus indicators */
-.control-btn:focus {
-    outline: 2px solid #00ffc8;
+/* Focus styles for accessibility */
+.btn:focus, button:focus, canvas:focus {
+    outline: 2px solid #667eea;
     outline-offset: 2px;
 }
 
-/* Touch ripple effect */
-.control-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s, height 0.3s;
+/* Selection styles */
+::selection {
+    background: rgba(102, 126, 234, 0.3);
 }
 
-.control-btn:active::after {
-    width: 100%;
-    height: 100%;
+::-moz-selection {
+    background: rgba(102, 126, 234, 0.3);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.6);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.8);
+}
+
+/* Additional utility classes */
+.hidden { display: none !important; }
+.fade-in { animation: fadeIn 0.5s ease; }
+.bounce-in { animation: bounceIn 0.6s ease; }
+.center { text-align: center; }
+.full-width { width: 100%; }
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }

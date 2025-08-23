@@ -422,8 +422,37 @@
                         goals++;
                         score += Math.floor(power / 10) + 10;
                         ballMoving = false;
+                        
+                        // Add goal celebration particles
+                        if (window.particleSystem) {
+                            for (let i = 0; i < 20; i++) {
+                                window.particleSystem.add(
+                                    ball.x, ball.y,
+                                    {
+                                        vx: (Math.random() - 0.5) * 8,
+                                        vy: Math.random() * -6 - 2,
+                                        color: ['#ffff00', '#ff6b35', '#00ff00'][Math.floor(Math.random() * 3)],
+                                        size: Math.random() * 4 + 2,
+                                        life: 1.5
+                                    }
+                                );
+                            }
+                        }
+                        
+                        // Play goal sound
+                        if (window.GameEnhancement && window.GameEnhancement.audio) {
+                            const goalSound = window.GameEnhancement.audio.createSound(523, 0.3, 'square');
+                            goalSound();
+                        }
+                        
                         clearInterval(ballAnimation);
                         setTimeout(nextShot, 1500);
+                    } else {
+                        // Play save sound
+                        if (window.GameEnhancement && window.GameEnhancement.audio) {
+                            const saveSound = window.GameEnhancement.audio.createSound(220, 0.2, 'triangle');
+                            saveSound();
+                        }
                     }
                 }
                 
