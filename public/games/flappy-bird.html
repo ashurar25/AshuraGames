@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -123,7 +122,7 @@
             #gameContainer {
                 padding: 10px;
             }
-            
+
             #gameCanvas {
                 max-height: calc(100vh - 250px);
             }
@@ -138,9 +137,9 @@
             <span>🥇 สูงสุด: <span id="bestScore">0</span></span>
             <span>🎯 ผ่าน: <span id="pipes">0</span> ท่อ</span>
         </div>
-        
+
         <canvas id="gameCanvas" width="400" height="600"></canvas>
-        
+
         <div id="instructions">
             🖱️ คลิก หรือ 🚀 Space หรือ 📱 แตะหน้าจอ เพื่อกระดิก | 🚫 อย่าให้ชนท่อหรือพื้น!
         </div>
@@ -164,14 +163,15 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         // Game variables
         let score = 0;
         let bestScore = localStorage.getItem('flappyBirdBest') || 0;
         let pipesPassedCount = 0;
         let gameRunning = false;
         let gameStarted = false;
-        
+        let gameSpeed = 2; // ความเร็วเกมเริ่มต้น
+
         // Bird variables
         let bird = {
             x: 50,
@@ -187,17 +187,17 @@
             magnetActive: false,
             magnetTime: 0
         };
-        
+
         // Power-ups
         let powerUps = [];
         let powerUpTimer = 0;
-        
+
         // Pipes array
         let pipes = [];
         const pipeWidth = 60;
         const pipeGap = 150;
         let pipeTimer = 0;
-        
+
         // Background variables
         let backgroundOffset = 0;
         const backgroundSpeed = 1;
@@ -209,11 +209,11 @@
         function resizeCanvas() {
             const maxWidth = Math.min(400, window.innerWidth - 40);
             const maxHeight = Math.min(600, window.innerHeight - 250);
-            
+
             // Keep aspect ratio
             const aspectRatio = 400 / 600;
             let newWidth, newHeight;
-            
+
             if (maxWidth / maxHeight > aspectRatio) {
                 newHeight = maxHeight;
                 newWidth = newHeight * aspectRatio;
@@ -221,12 +221,12 @@
                 newWidth = maxWidth;
                 newHeight = newWidth / aspectRatio;
             }
-            
+
             canvas.width = newWidth;
             canvas.height = newHeight;
             canvas.style.width = newWidth + 'px';
             canvas.style.height = newHeight + 'px';
-            
+
             // Scale bird position
             bird.x = canvas.width * 0.125;
             bird.y = canvas.height * 0.5;
@@ -243,7 +243,7 @@
             gradient.addColorStop(1, '#8ed8f8');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // Clouds
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             for (let i = 0; i < 3; i++) {
@@ -251,11 +251,11 @@
                 const y = 50 + i * 30;
                 drawCloud(x, y);
             }
-            
+
             // Ground
             ctx.fillStyle = '#8B4513';
             ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-            
+
             // Ground pattern
             ctx.fillStyle = '#228B22';
             for (let x = 0; x < canvas.width; x += 20) {
@@ -275,27 +275,27 @@
             ctx.save();
             ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
             ctx.rotate(bird.rotation);
-            
+
             // Bird body
             ctx.fillStyle = '#ffdb4a';
             ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
-            
+
             // Bird wing
             ctx.fillStyle = '#ff6b35';
             const wingOffset = Math.sin(Date.now() * 0.01) * 3;
             ctx.fillRect(-bird.width / 4, -bird.height / 4 + wingOffset, bird.width / 2, bird.height / 3);
-            
+
             // Bird eye
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(bird.width / 4, -bird.height / 4, bird.width / 6, 0, Math.PI * 2);
             ctx.fill();
-            
+
             ctx.fillStyle = '#000000';
             ctx.beginPath();
             ctx.arc(bird.width / 4, -bird.height / 4, bird.width / 12, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // Bird beak
             ctx.fillStyle = '#ff6b35';
             ctx.beginPath();
@@ -304,7 +304,7 @@
             ctx.lineTo(bird.width / 2 + 10, 5);
             ctx.closePath();
             ctx.fill();
-            
+
             ctx.restore();
         }
 
@@ -313,23 +313,23 @@
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.fillRect(pipe.x + 5, 0, pipeWidth, pipe.topHeight);
             ctx.fillRect(pipe.x + 5, pipe.topHeight + pipeGap, pipeWidth, canvas.height - pipe.topHeight - pipeGap);
-            
+
             // Top pipe
             ctx.fillStyle = '#228B22';
             ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-            
+
             // Top pipe cap
             ctx.fillStyle = '#32CD32';
             ctx.fillRect(pipe.x - 5, pipe.topHeight - 30, pipeWidth + 10, 30);
-            
+
             // Bottom pipe
             ctx.fillStyle = '#228B22';
             ctx.fillRect(pipe.x, pipe.topHeight + pipeGap, pipeWidth, canvas.height - pipe.topHeight - pipeGap);
-            
+
             // Bottom pipe cap
             ctx.fillStyle = '#32CD32';
             ctx.fillRect(pipe.x - 5, pipe.topHeight + pipeGap, pipeWidth + 10, 30);
-            
+
             // Pipe highlights
             ctx.fillStyle = '#90EE90';
             ctx.fillRect(pipe.x + 5, 0, 5, pipe.topHeight);
@@ -340,10 +340,10 @@
         function updateBird() {
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
-            
+
             // Bird rotation based on velocity
             bird.rotation = Math.min(Math.max(bird.velocity * 0.1, -0.5), 1.5);
-            
+
             // Ground collision
             if (bird.y + bird.height >= canvas.height - 50) {
                 // Add particle effect on crash
@@ -363,7 +363,7 @@
                 }
                 gameOver();
             }
-            
+
             // Ceiling collision
             if (bird.y <= 0) {
                 bird.y = 0;
@@ -373,26 +373,26 @@
 
         function updatePipes() {
             pipeTimer++;
-            
+
             // Generate new pipe
             if (pipeTimer > 90) {
                 const minHeight = 50;
                 const maxHeight = canvas.height - pipeGap - 100;
                 const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-                
+
                 pipes.push({
                     x: canvas.width,
                     topHeight: topHeight,
                     passed: false
                 });
-                
+
                 pipeTimer = 0;
             }
-            
+
             // Update pipe positions
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= 3;
-                
+
                 // Check if bird passed pipe
                 if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
                     pipes[i].passed = true;
@@ -400,12 +400,12 @@
                     pipesPassedCount++;
                     updateScore();
                 }
-                
+
                 // Remove pipes that are off screen
                 if (pipes[i].x + pipeWidth < 0) {
                     pipes.splice(i, 1);
                 }
-                
+
                 // Collision detection
                 if (pipes[i] && checkCollision(bird, pipes[i])) {
                     gameOver();
@@ -417,7 +417,7 @@
         function checkCollision(bird, pipe) {
             // ถ้ามี shield ไม่ชน
             if (bird.shield) return false;
-            
+
             // Check if bird is within pipe x range
             if (bird.x < pipe.x + pipeWidth && bird.x + bird.width > pipe.x) {
                 // Check if bird hits top or bottom pipe
@@ -432,15 +432,15 @@
             document.getElementById('score').textContent = score;
             document.getElementById('pipes').textContent = pipesPassedCount;
         }
-        
+
         function updatePowerUps() {
             powerUpTimer++;
-            
+
             // สร้าง power-up ใหม่
             if (powerUpTimer > 600 && Math.random() < 0.003) {
                 const types = ['shield', 'magnet', 'slowmo'];
                 const type = types[Math.floor(Math.random() * types.length)];
-                
+
                 powerUps.push({
                     x: canvas.width,
                     y: Math.random() * (canvas.height - 200) + 100,
@@ -449,26 +449,26 @@
                     type: type,
                     collected: false
                 });
-                
+
                 powerUpTimer = 0;
             }
-            
+
             // อัพเดท power-ups
             for (let i = powerUps.length - 1; i >= 0; i--) {
                 const powerUp = powerUps[i];
                 powerUp.x -= 3;
-                
+
                 // ตรวจสอบการชน
                 if (!powerUp.collected && 
                     bird.x < powerUp.x + powerUp.width &&
                     bird.x + bird.width > powerUp.x &&
                     bird.y < powerUp.y + powerUp.height &&
                     bird.y + bird.height > powerUp.y) {
-                    
+
                     powerUp.collected = true;
                     activatePowerUp(powerUp.type);
                     score += 5;
-                    
+
                     // เอฟเฟกต์การเก็บ
                     if (window.particleSystem) {
                         for (let j = 0; j < 10; j++) {
@@ -486,13 +486,13 @@
                         }
                     }
                 }
-                
+
                 // ลบ power-up ที่ออกจากหน้าจอ
                 if (powerUp.x + powerUp.width < 0) {
                     powerUps.splice(i, 1);
                 }
             }
-            
+
             // อัพเดท shield
             if (bird.shield) {
                 bird.shieldTime--;
@@ -500,7 +500,7 @@
                     bird.shield = false;
                 }
             }
-            
+
             // อัพเดท magnet
             if (bird.magnetActive) {
                 bird.magnetTime--;
@@ -509,7 +509,7 @@
                 }
             }
         }
-        
+
         function activatePowerUp(type) {
             switch(type) {
                 case 'shield':
@@ -532,18 +532,18 @@
                     break;
             }
         }
-        
+
         function drawPowerUps() {
             powerUps.forEach(powerUp => {
                 if (powerUp.collected) return;
-                
+
                 const time = Date.now() * 0.005;
                 const bobOffset = Math.sin(time + powerUp.x * 0.01) * 3;
-                
+
                 ctx.save();
                 ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + bobOffset);
                 ctx.rotate(time);
-                
+
                 // วาด power-up แต่ละประเภท
                 switch(powerUp.type) {
                     case 'shield':
@@ -575,11 +575,11 @@
                         ctx.fillText('⏰', 0, 4);
                         break;
                 }
-                
+
                 ctx.restore();
             });
         }
-        
+
         function drawBirdEffects() {
             if (bird.shield) {
                 ctx.save();
@@ -591,7 +591,7 @@
                 ctx.stroke();
                 ctx.restore();
             }
-            
+
             if (bird.magnetActive) {
                 ctx.save();
                 ctx.globalAlpha = 0.2;
@@ -606,13 +606,13 @@
         function jump() {
             if (!gameRunning) return;
             bird.velocity = bird.jumpStrength;
-            
+
             // Play jump sound
             if (window.GameEnhancement && window.GameEnhancement.audio) {
                 const jumpSound = window.GameEnhancement.audio.createSound(330, 0.1, 'square');
                 jumpSound();
             }
-            
+
             // Add wing flap particles
             if (window.particleSystem) {
                 for (let i = 0; i < 5; i++) {
@@ -632,7 +632,7 @@
 
         function gameOver() {
             gameRunning = false;
-            
+
             // Check for new best score
             let isNewRecord = false;
             if (score > bestScore) {
@@ -641,32 +641,35 @@
                 document.getElementById('bestScore').textContent = bestScore;
                 isNewRecord = true;
             }
-            
+
             document.getElementById('finalScore').textContent = score;
             document.getElementById('finalPipes').textContent = pipesPassedCount;
             document.getElementById('newRecord').style.display = isNewRecord ? 'block' : 'none';
             document.getElementById('gameOver').style.display = 'flex';
         }
 
+        // เริ่มเกม
         function startGame() {
+            if (gameRunning) return;
+
             gameRunning = true;
-            gameStarted = true;
-            
-            // Reset game state
             bird.y = canvas.height / 2;
             bird.velocity = 0;
             bird.rotation = 0;
             score = 0;
-            pipesPassedCount = 0;
             pipes = [];
-            pipeTimer = 0;
-            
-            updateScore();
+            gameSpeed = 2;
+
+            // เพิ่มเสียงเริ่มเกม
+            if (window.GameEnhancement && window.GameEnhancement.audio) {
+                const startSound = window.GameEnhancement.audio.createSound(440, 0.2);
+                startSound();
+            }
+
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOver').style.display = 'none';
-            
-            // Focus canvas for keyboard input
-            canvas.focus();
+
+            gameLoop();
         }
 
         function restartGame() {
@@ -676,29 +679,29 @@
         function gameLoop() {
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Update background
             backgroundOffset += backgroundSpeed;
             drawBackground();
-            
+
             if (gameRunning) {
                 updateBird();
                 updatePipes();
                 updatePowerUps();
             }
-            
+
             // Draw pipes
             pipes.forEach(drawPipe);
-            
+
             // Draw power-ups
             drawPowerUps();
-            
+
             // Draw bird
             drawBird();
-            
+
             // Draw bird effects
             drawBirdEffects();
-            
+
             requestAnimationFrame(gameLoop);
         }
 
@@ -728,10 +731,10 @@
         // Initialize game
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-        
+
         updateScore();
         gameLoop();
-        
+
         // Focus canvas
         canvas.focus();
     </script>

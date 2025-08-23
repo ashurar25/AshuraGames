@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -144,8 +143,8 @@
             x: canvas.width / 2,
             y: canvas.height / 2,
             radius: 8,
-            speedX: 5,
-            speedY: -5,
+            vx: 5, // Changed from speedX to vx for consistency with provided change
+            vy: -5, // Changed from speedY to vy for consistency with provided change
             maxSpeed: 12
         };
 
@@ -212,10 +211,10 @@
             const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
             gradient.addColorStop(0, '#10b981');
             gradient.addColorStop(1, '#059669');
-            
+
             ctx.fillStyle = gradient;
             ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-            
+
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 2;
             ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -226,7 +225,7 @@
             const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius);
             gradient.addColorStop(0, '#ffffff');
             gradient.addColorStop(1, '#10b981');
-            
+
             ctx.fillStyle = gradient;
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -248,10 +247,10 @@
                     const gradient = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
                     gradient.addColorStop(0, brick.color);
                     gradient.addColorStop(1, '#000000');
-                    
+
                     ctx.fillStyle = gradient;
                     ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
-                    
+
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 1;
                     ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
@@ -261,39 +260,34 @@
 
         // อัปเดตบอล
         function updateBall() {
-            ball.x += ball.speedX;
-            ball.y += ball.speedY;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
 
-            // ชนผนัง
+            // ชนผนังซ้าย-ขวา
             if (ball.x <= ball.radius || ball.x >= canvas.width - ball.radius) {
-                ball.speedX = -ball.speedX;
-            }
-            if (ball.y <= ball.radius) {
-                ball.speedY = -ball.speedY;
-            }
+                ball.vx = -ball.vx;
+                ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
 
-            // ชนแพดเดิล
-            if (ball.y + ball.radius >= paddle.y &&
-                ball.x >= paddle.x &&
-                ball.x <= paddle.x + paddle.width &&
-                ball.speedY > 0) {
-                
-                ball.speedY = -ball.speedY;
-                
-                // เปลี่ยนมุมตามตำแหน่งที่ชน
-                const hitPos = (ball.x - paddle.x) / paddle.width;
-                ball.speedX = (hitPos - 0.5) * 10;
-                
-                // จำกัดความเร็ว
-                const speed = Math.sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
-                if (speed > ball.maxSpeed) {
-                    ball.speedX = (ball.speedX / speed) * ball.maxSpeed;
-                    ball.speedY = (ball.speedY / speed) * ball.maxSpeed;
+                // เพิ่มเอฟเฟกต์เสียง
+                if (window.GameEnhancement && window.GameEnhancement.audio) {
+                    const bounceSound = window.GameEnhancement.audio.createSound(330, 0.1);
+                    bounceSound();
                 }
             }
 
-            // ตกหล่น
-            if (ball.y > canvas.height) {
+            // ชนผนังบน
+            if (ball.y <= ball.radius) {
+                ball.y = ball.radius;
+                ball.vy = -ball.vy;
+
+                if (window.GameEnhancement && window.GameEnhancement.audio) {
+                    const bounceSound = window.GameEnhancement.audio.createSound(330, 0.1);
+                    bounceSound();
+                }
+            }
+
+            // ตรวจสอบการตกลงล่าง
+            if (ball.y > canvas.height + ball.radius) {
                 lives--;
                 if (lives <= 0) {
                     gameOver();
@@ -309,16 +303,16 @@
                     ball.x <= brick.x + brick.width &&
                     ball.y >= brick.y &&
                     ball.y <= brick.y + brick.height) {
-                    
+
                     brick.visible = false;
-                    ball.speedY = -ball.speedY;
+                    ball.vy = -ball.vy;
                     score += brick.points;
-                    
+
                     // สร้างอนุภาค
                     for (let i = 0; i < 8; i++) {
                         particles.push(new Particle(brick.x + brick.width/2, brick.y + brick.height/2, brick.color));
                     }
-                    
+
                     // เช็คชนะ
                     if (bricks.every(b => !b.visible)) {
                         nextLevel();
@@ -331,8 +325,8 @@
         function resetBall() {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
-            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
-            ball.speedY = -5;
+            ball.vx = (Math.random() > 0.5 ? 1 : -1) * 5;
+            ball.vy = -5;
         }
 
         // ด่านถัดไป
@@ -381,7 +375,7 @@
 
             createBricks();
             resetBall();
-            
+
             document.getElementById('gameOver').style.display = 'none';
             updateUI();
         }
@@ -407,7 +401,7 @@
         // อัปเดตเกม
         function update() {
             if (!gameRunning) return;
-            
+
             updateBall();
             updateParticles();
             updateUI();
@@ -444,7 +438,7 @@
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             paddle.x = mouseX - paddle.width / 2;
-            
+
             if (paddle.x < 0) paddle.x = 0;
             if (paddle.x > canvas.width - paddle.width) paddle.x = canvas.width - paddle.width;
         });

@@ -205,11 +205,17 @@
                 <canvas id="nextPiece" width="80" height="80"></canvas>
             </div>
 
+            <div class="info-panel">
+                <div class="info-title">🗄️ เก็บ</div>
+                <canvas id="holdPieceCanvas" width="80" height="80"></canvas>
+            </div>
+
             <div id="controls">
                 ⬅️➡️ เลื่อน<br>
                 ⬇️ ลงเร็ว<br>
                 ⬆️ หมุน<br>
-                Space วาง
+                Space วาง<br>
+                C เก็บ
             </div>
         </div>
     </div>
@@ -219,20 +225,29 @@
         const ctx = canvas.getContext('2d');
         const nextCanvas = document.getElementById('nextPiece');
         const nextCtx = nextCanvas.getContext('2d');
+        const holdCanvas = document.getElementById('holdPieceCanvas');
+        const holdCtx = holdCanvas.getContext('2d');
+
 
         const BLOCK_SIZE = 30;
         const BOARD_WIDTH = 10;
         const BOARD_HEIGHT = 20;
 
+        // ตัวแปรเกม
         let board = [];
         let currentPiece = null;
         let nextPiece = null;
+        let holdPiece = null;
+        let canHold = true;
         let score = 0;
         let level = 1;
         let lines = 0;
-        let gameRunning = true;
         let dropTime = 0;
-        let dropInterval = 1000;
+        let dropInterval = 500;
+        let ghostPiece = null;
+        let combo = 0;
+        let backToBack = 0;
+        let gameRunning = true;
         let particles = [];
         let lastFrame = Date.now();
 
@@ -355,6 +370,19 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Draw ghost piece
+            if (ghostPiece) {
+                ctx.globalAlpha = 0.4;
+                for (let y = 0; y < ghostPiece.shape.length; y++) {
+                    for (let x = 0; x < ghostPiece.shape[y].length; x++) {
+                        if (ghostPiece.shape[y][x]) {
+                            drawBlock(ghostPiece.x + x, ghostPiece.y + y, ghostPiece.color, false);
+                        }
+                    }
+                }
+                ctx.globalAlpha = 1;
+            }
+
             // Draw grid
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
             ctx.lineWidth = 1;
@@ -417,6 +445,31 @@
             }
         }
 
+        function drawHold() {
+            holdCtx.fillStyle = 'rgba(0,0,0,0.8)';
+            holdCtx.fillRect(0, 0, holdCanvas.width, holdCanvas.height);
+
+            if (holdPiece) {
+                const blockSize = 15;
+                const offsetX = (holdCanvas.width - holdPiece.shape[0].length * blockSize) / 2;
+                const offsetY = (holdCanvas.height - holdPiece.shape.length * blockSize) / 2;
+
+                for (let y = 0; y < holdPiece.shape.length; y++) {
+                    for (let x = 0; x < holdPiece.shape[y].length; x++) {
+                        if (holdPiece.shape[y][x]) {
+                            holdCtx.fillStyle = holdPiece.color;
+                            holdCtx.fillRect(
+                                offsetX + x * blockSize,
+                                offsetY + y * blockSize,
+                                blockSize - 1,
+                                blockSize - 1
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         function rotatePiece(piece) {
             const rotated = {
                 ...piece,
@@ -445,6 +498,15 @@
             return true;
         }
 
+        function getGhostPiece(piece) {
+            const ghost = JSON.parse(JSON.stringify(piece));
+            let y = ghost.y;
+            while (isValidMove(ghost, 0, 1)) {
+                ghost.y++;
+            }
+            return ghost;
+        }
+
         function placePiece() {
             for (let y = 0; y < currentPiece.shape.length; y++) {
                 for (let x = 0; x < currentPiece.shape[y].length; x++) {
@@ -463,8 +525,28 @@
             if (clearedLines > 0) {
                 // Update score and level
                 const linePoints = [0, 100, 300, 500, 800];
-                score += linePoints[clearedLines] * level;
+                let scoreToAdd = linePoints[clearedLines];
+
+                // Handle T-spins and back-to-back
+                // (Implementation for T-spin detection would be complex and is omitted here)
+                if (clearedLines === 1 && combo > 0) { // Simple combo check
+                    scoreToAdd += combo * 50;
+                }
+
+                if (clearedLines >= 2) { // Back-to-back for double, triple, tetris
+                    backToBack++;
+                } else {
+                    backToBack = 0;
+                }
+
+                if (backToBack > 1) { // Back-to-back bonus
+                    scoreToAdd *= 1.5;
+                }
+
+                score += Math.floor(scoreToAdd * level);
                 lines += clearedLines;
+                combo = (clearedLines > 0) ? combo + 1 : 0;
+
 
                 // Level up every 10 lines
                 if (Math.floor(lines / 10) + 1 > level) {
@@ -479,10 +561,13 @@
             // Create new piece
             currentPiece = nextPiece;
             nextPiece = createPiece();
+            canHold = true;
 
             // Check game over
             if (!isValidMove(currentPiece)) {
                 gameOver();
+            } else {
+                ghostPiece = getGhostPiece(currentPiece);
             }
         }
 
@@ -529,7 +614,6 @@
             document.getElementById('lines').textContent = lines;
         }
 
-        // Renamed update and draw functions to match the gameLoop structure
         function update() {
             // Update particles
             particles = particles.filter(particle => {
@@ -564,6 +648,7 @@
                 drawPiece(currentPiece);
             }
             drawNext();
+            drawHold();
         }
 
         function gameLoop() {
@@ -601,17 +686,25 @@
             initBoard();
             currentPiece = createPiece();
             nextPiece = createPiece();
+            holdPiece = null;
+            canHold = true;
             score = 0;
             level = 1;
             lines = 0;
-            dropInterval = 1000;
+            dropInterval = 500;
             particles = [];
             gameRunning = true;
             dropTime = 0; // Reset dropTime
             lastFrame = Date.now(); // Reset lastFrame
+            combo = 0;
+            backToBack = 0;
+            ghostPiece = getGhostPiece(currentPiece);
+
 
             document.getElementById('gameOver').style.display = 'none';
             updateUI();
+            drawHold();
+
 
             requestAnimationFrame(gameLoop);
         }
@@ -653,6 +746,26 @@
                     placePiece();
                     updateUI();
                     e.preventDefault();
+                    break;
+                case 'c':
+                case 'C':
+                    if (canHold) {
+                        holdPiece = JSON.parse(JSON.stringify(currentPiece));
+                        holdPiece.x = 0; // Reset position for drawing
+                        holdPiece.y = 0;
+
+                        if (nextPiece) {
+                            currentPiece = nextPiece;
+                            nextPiece = createPiece();
+                        } else {
+                            // Should not happen if nextPiece is always generated
+                            currentPiece = createPiece();
+                        }
+                        
+                        canHold = false;
+                        ghostPiece = getGhostPiece(currentPiece);
+                        drawHold();
+                    }
                     break;
             }
         });

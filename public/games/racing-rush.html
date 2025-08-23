@@ -16,6 +16,7 @@
         <div>ความเร็ว: <span id="speed">0</span> km/h</div>
         <div>ระยะทาง: <span id="distance">0</span> m</div>
         <div>คะแนน: <span id="score">0</span></div>
+        <div>เหรียญ: <span id="coins_collected">0</span></div>
     </div>
     <div class="controls">
         <div>← → : หลีกเลี่ยง | ↑ ↓ : เร่ง/ลดความเร็ว</div>
@@ -28,27 +29,24 @@
         canvas.width = 800;
         canvas.height = 600;
 
-        let gameSpeed = 2;
+        // ตัวแปรเกม
+        let car = { 
+            x: 375, y: 400, width: 50, height: 80, 
+            speed: 0, maxSpeed: 8, acceleration: 0.2, friction: 0.95,
+            angle: 0, drift: 0, boostTimer: 0
+        };
+        let obstacles = [];
+        let coins = [];
         let score = 0;
         let distance = 0;
+        let gameSpeed = 2;
         let roadOffset = 0;
-        let keys = {};
-
-        // ตัวแปรรถ
-        const car = {
-            x: canvas.width / 2 - 25,
-            y: canvas.height - 120,
-            width: 50,
-            height: 80,
-            speed: 5
-        };
+        let particles = [];
+        let coins_collected = 0;
 
         // รถคันอื่น
         let otherCars = [];
         let lastCarSpawn = 0;
-
-        // อนุภาคควัน
-        let particles = [];
 
         // คลาสรถอื่น
         class OtherCar {
@@ -172,57 +170,65 @@
 
         // วาดรถผู้เล่น
         function drawPlayerCar() {
+            ctx.save();
+            ctx.translate(car.x + car.width / 2, car.y + car.height / 2);
+            ctx.rotate(car.angle);
+
             // เงารถ
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(car.x + 5, car.y + car.height + 2, car.width, 10);
+            ctx.fillRect(-car.width / 2, -car.height / 2 + 8, car.width, car.height - 5);
 
             // ตัวรถ
             ctx.fillStyle = '#ff0000';
-            ctx.fillRect(car.x, car.y, car.width, car.height);
+            ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
 
             // รายละเอียดรถ
             ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(car.x + 5, car.y + 15, car.width - 10, 25);
+            ctx.fillRect(-car.width / 2 + 5, -car.height / 2 + 15, car.width - 10, 25);
 
             // ไฟหน้า
             ctx.fillStyle = '#ffff99';
-            ctx.fillRect(car.x + 5, car.y, 12, 8);
-            ctx.fillRect(car.x + car.width - 17, car.y, 12, 8);
+            ctx.fillRect(-car.width / 2 + 5, -car.height / 2, 12, 8);
+            ctx.fillRect(car.width / 2 - 17, -car.height / 2, 12, 8);
 
             // กันชน
             ctx.fillStyle = '#ccc';
-            ctx.fillRect(car.x, car.y - 3, car.width, 3);
+            ctx.fillRect(-car.width / 2, -car.height / 2 - 3, car.width, 3);
 
             // ล้อ
             ctx.fillStyle = '#333';
-            ctx.fillRect(car.x - 3, car.y + 15, 8, 12);
-            ctx.fillRect(car.x + car.width - 5, car.y + 15, 8, 12);
-            ctx.fillRect(car.x - 3, car.y + car.height - 25, 8, 12);
-            ctx.fillRect(car.x + car.width - 5, car.y + car.height - 25, 8, 12);
+            ctx.fillRect(-car.width / 2 - 3, -car.height / 2 + 15, 8, 12);
+            ctx.fillRect(car.width / 2 - 5, -car.height / 2 + 15, 8, 12);
+            ctx.fillRect(-car.width / 2 - 3, car.height / 2 - 25, 8, 12);
+            ctx.fillRect(car.width / 2 - 5, car.height / 2 - 25, 8, 12);
 
             // ไฟท้าย
             ctx.fillStyle = '#ff4444';
-            ctx.fillRect(car.x + 5, car.y + car.height - 8, 8, 6);
-            ctx.fillRect(car.x + car.width - 13, car.y + car.height - 8, 8, 6);
+            ctx.fillRect(-car.width / 2 + 5, car.height / 2 - 8, 8, 6);
+            ctx.fillRect(car.width / 2 - 13, car.height / 2 - 8, 8, 6);
+
+            ctx.restore();
         }
 
         // ตรวจสอบการชน
         function checkCollisions() {
-            const carLeft = car.x + 5;
-            const carRight = car.x + car.width - 5;
-            const carTop = car.y + 5;
-            const carBottom = car.y + car.height - 5;
+            const carRect = {
+                x: car.x,
+                y: car.y,
+                width: car.width,
+                height: car.height
+            };
 
             for (let i = 0; i < otherCars.length; i++) {
                 const other = otherCars[i];
-                const otherLeft = other.x + 5;
-                const otherRight = other.x + other.width - 5;
-                const otherTop = other.y + 5;
-                const otherBottom = other.y + other.height - 5;
+                const otherRect = {
+                    x: other.x,
+                    y: other.y,
+                    width: other.width,
+                    height: other.height
+                };
 
-                if (carLeft < otherRight && carRight > otherLeft &&
-                    carTop < otherBottom && carBottom > otherTop) {
-                    // ชน! - ใช้ confirm แทน alert
+                if (isColliding(carRect, otherRect)) {
                     gameSpeed = 0;
                     if (confirm('อุบัติเหตุ! คะแนน: ' + score + '\nคลิก OK เพื่อเล่นใหม่')) {
                         resetGame();
@@ -233,31 +239,80 @@
             return false;
         }
 
+        function isColliding(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+
         // รีเซ็ตเกม
         function resetGame() {
             gameSpeed = 2;
             score = 0;
             distance = 0;
-            car.x = canvas.width / 2 - 25;
+            car.x = canvas.width / 2 - car.width / 2;
+            car.y = canvas.height - 120;
+            car.speed = 0;
+            car.angle = 0;
+            car.drift = 0;
             otherCars = [];
             particles = [];
+            coins_collected = 0;
         }
 
         // อัปเดตเกม
         function update() {
-            // ควบคุมรถ
-            if (keys['ArrowLeft'] && car.x > canvas.width * 0.2) {
-                car.x -= car.speed;
+            // การเคลื่อนไหวของรถ
+            let acceleration = 0;
+            if (keys['ArrowUp']) {
+                acceleration += car.acceleration;
             }
-            if (keys['ArrowRight'] && car.x < canvas.width * 0.8 - car.width) {
-                car.x += car.speed;
+            if (keys['ArrowDown']) {
+                acceleration -= car.acceleration * 0.5; // ลดความเร็ว
             }
-            if (keys['ArrowUp'] && gameSpeed < 8) {
-                gameSpeed += 0.1;
+
+            car.speed += acceleration;
+            car.speed *= car.friction; // ใช้ friction เพื่อลดความเร็ว
+            car.speed = Math.max(-car.maxSpeed * 0.5, Math.min(car.maxSpeed, car.speed)); // จำกัดความเร็ว
+
+            // การควบคุมเลี้ยว
+            let turn = 0;
+            if (keys['ArrowLeft']) {
+                turn = -0.1;
             }
-            if (keys['ArrowDown'] && gameSpeed > 1) {
-                gameSpeed -= 0.1;
+            if (keys['ArrowRight']) {
+                turn = 0.1;
             }
+
+            car.angle += turn - car.drift * 0.05; // การเลี้ยวและการดริฟท์
+            car.drift *= 0.9; // ลดค่า drift
+
+            // การเคลื่อนที่จริง
+            const moveX = car.speed * Math.sin(car.angle);
+            const moveY = car.speed * Math.cos(car.angle);
+
+            car.x += moveX;
+            car.y -= moveY; // ตามแกน Y ปกติ
+
+            // จำกัดขอบเขตถนน
+            const roadLeft = canvas.width * 0.2;
+            const roadRight = canvas.width * 0.8;
+            const carHalfWidth = car.width / 2;
+
+            if (car.x < roadLeft) {
+                car.x = roadLeft;
+                car.drift = 0.1; // เกิดการดริฟท์เมื่อชนขอบ
+            } else if (car.x > roadRight - car.width) {
+                car.x = roadRight - car.width;
+                car.drift = -0.1; // เกิดการดริฟท์เมื่อชนขอบ
+            }
+
+            // ปรับปรุง gameSpeed ตามความเร็วรถ
+            gameSpeed = car.speed * 5; // ปรับ gameSpeed ให้สัมพันธ์กับความเร็วรถ
+            gameSpeed = Math.max(1, Math.min(8, gameSpeed));
+
 
             // สร้างรถคันอื่น
             if (Date.now() - lastCarSpawn > 2000 - gameSpeed * 200) {
@@ -306,9 +361,10 @@
             drawPlayerCar();
 
             // อัปเดต UI
-            document.getElementById('speed').textContent = Math.floor(gameSpeed * 50);
+            document.getElementById('speed').textContent = Math.floor(car.speed * 50); // แสดงความเร็วที่คำนวณได้
             document.getElementById('distance').textContent = Math.floor(distance);
             document.getElementById('score').textContent = score;
+            document.getElementById('coins_collected').textContent = coins_collected;
         }
 
         let lastTime = 0;
@@ -369,7 +425,9 @@
             const roadWidth = roadRight - roadLeft;
 
             if (currentX > roadLeft && currentX < roadRight) {
-                car.x = currentX - car.width/2;
+                // Adjust car's x position based on touch x
+                car.x = currentX - car.width / 2;
+                // Limit car's x position within road boundaries
                 car.x = Math.max(roadLeft, Math.min(roadRight - car.width, car.x));
             }
 
@@ -377,16 +435,23 @@
             const deltaY = currentY - touchControls.startY;
             if (deltaY < -20) {
                 // Touch moved up - accelerate
-                if (gameSpeed < 8) gameSpeed += 0.05;
+                if (car.speed < car.maxSpeed) {
+                    car.speed += car.acceleration;
+                }
             } else if (deltaY > 20) {
                 // Touch moved down - brake
-                if (gameSpeed > 1) gameSpeed -= 0.05;
+                if (car.speed > -car.maxSpeed * 0.5) { // Allow reverse slightly
+                    car.speed -= car.acceleration;
+                }
             }
+            touchControls.startY = currentY; // Update startY for continuous control
         });
 
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             touchControls.touching = false;
+            // Reset drift when touch ends
+            car.drift = 0; 
         });
 
         // เริ่มเกม

@@ -50,6 +50,14 @@
                 this.bullets = [];
                 this.lastShot = 0;
                 this.trail = [];
+                // Player properties from changes
+                this.health = 100;
+                this.maxHealth = 100;
+                this.shield = 0;
+                this.maxShield = 50;
+                this.weaponType = 'single';
+                this.fireRate = 10; // Lower number means faster fire
+                this.lastShot = 0;
             }
 
             update() {
@@ -70,7 +78,14 @@
             }
 
             shoot() {
-                this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8));
+                // Based on weaponType and fireRate, adjust bullet creation
+                if (this.weaponType === 'single') {
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8));
+                } else if (this.weaponType === 'spread') {
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -8, 0)); // Center
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -7, -1)); // Left
+                    this.bullets.push(new Bullet(this.x + this.width/2, this.y, -7, 1)); // Right
+                }
                 playSound('shoot');
             }
 
@@ -116,16 +131,18 @@
 
         // คลาส Bullet
         class Bullet {
-            constructor(x, y, speedY) {
+            constructor(x, y, speedY, speedX = 0) { // Added speedX for spread
                 this.x = x;
                 this.y = y;
                 this.speedY = speedY;
+                this.speedX = speedX;
                 this.width = 4;
                 this.height = 10;
             }
 
             update() {
                 this.y += this.speedY;
+                this.x += this.speedX; // Update x position
             }
 
             draw() {
@@ -204,6 +221,13 @@
         let stars = [];
         let lastEnemySpawn = 0;
 
+        // เพิ่มตัวแปรจาก changes
+        let enemyBullets = []; // Assuming this is needed for enemy projectiles
+        let powerUps = []; // For future power-up implementation
+        let wave = 1;
+        let enemiesKilled = 0;
+        let particles = []; // For explosions and effects
+
         // สร้างดาว
         for (let i = 0; i < 50; i++) {
             stars.push(new Star());
@@ -219,6 +243,7 @@
                         player.bullets.splice(bulletIndex, 1);
                         enemies.splice(enemyIndex, 1);
                         score += 100;
+                        enemiesKilled++;
                         playSound('explosion');
                     }
                 });
@@ -262,8 +287,11 @@
 
             // สร้างศัตรูใหม่
             if (Date.now() - lastEnemySpawn > 2000) {
-                enemies.push(new Enemy(Math.random() * (canvas.width - 35), -35));
-                lastEnemySpawn = Date.now();
+                // Adjust enemy spawning based on wave and enemiesKilled
+                if (enemies.length < wave * 2) { // Spawn more enemies in later waves
+                    enemies.push(new Enemy(Math.random() * (canvas.width - 35), -35));
+                    lastEnemySpawn = Date.now();
+                }
             }
 
             // อัปเดตผู้เล่น
@@ -274,6 +302,11 @@
                 enemy.update();
                 return enemy.y < canvas.height + 50;
             });
+
+            // Update powerUps, particles, enemyBullets if they exist
+            powerUps.forEach(pu => pu.update());
+            particles.forEach(p => p.update());
+            enemyBullets.forEach(eb => eb.update());
 
             // ตรวจสอบการชน
             checkCollisions();
@@ -299,6 +332,11 @@
             enemies.forEach(enemy => {
                 enemy.draw();
             });
+
+            // Draw powerUps, particles, enemyBullets
+            powerUps.forEach(pu => pu.draw());
+            particles.forEach(p => p.draw());
+            enemyBullets.forEach(eb => eb.draw());
 
             if (gameState === 'gameOver') {
                 document.getElementById('gameOver').style.display = 'block';
@@ -452,6 +490,16 @@
             player.x = canvas.width / 2;
             player.y = canvas.height - 60;
             player.bullets = [];
+            // Reset player properties from changes
+            player.health = 100;
+            player.shield = 0;
+            player.weaponType = 'single';
+            player.fireRate = 10;
+            wave = 1;
+            enemiesKilled = 0;
+            particles = [];
+            powerUps = [];
+            enemyBullets = [];
         }
 
         // Event listeners

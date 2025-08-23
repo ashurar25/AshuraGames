@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -113,7 +112,7 @@
 <body>
     <div class="game-container">
         <h1>🃏 จับคู่การ์ด</h1>
-        
+
         <div class="difficulty">
             <button id="easy" class="active" onclick="setDifficulty('easy')">ง่าย (4x4)</button>
             <button id="medium" onclick="setDifficulty('medium')">ปานกลาง (4x5)</button>
@@ -140,30 +139,33 @@
     </div>
 
     <script>
-        let currentDifficulty = 'easy';
-        let gameStarted = false;
-        let startTime;
-        let timerInterval;
-        let moves = 0;
-        let matches = 0;
-        let totalPairs = 0;
+        // ตัวแปรเกม
+        let cards = [];
         let flippedCards = [];
-        let gameBoard = [];
-        
+        let matchedPairs = 0;
+        let moves = 0;
+        let gameStarted = false;
+        let timer = 0;
+        let gameMode = 'easy'; // easy: 4x4, medium: 6x4, hard: 6x6
+        let streak = 0;
+        let bestTime = localStorage.getItem('memoryBestTime') || Infinity;
+        let hint = null;
+        let hintTimer = 0;
+
         const emojis = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦋', '🐛', '🐝', '🐞', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🐙', '🦑', '🦐', '🦀', '🐡', '🐠'];
 
         function setDifficulty(level) {
-            currentDifficulty = level;
+            gameMode = level; // Renamed from currentDifficulty to gameMode for clarity
             document.querySelectorAll('.difficulty button').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.getElementById(level).classList.add('active');
-            
+
             const board = document.getElementById('gameBoard');
             if (level === 'easy') {
                 board.style.gridTemplateColumns = 'repeat(4, 1fr)';
             } else if (level === 'medium') {
-                board.style.gridTemplateColumns = 'repeat(5, 1fr)';
+                board.style.gridTemplateColumns = 'repeat(5, 1fr)'; // Adjusted for 4x5
             } else {
                 board.style.gridTemplateColumns = 'repeat(6, 1fr)';
             }
@@ -180,22 +182,22 @@
         function createGameBoard() {
             const board = document.getElementById('gameBoard');
             board.innerHTML = '';
-            
+
             let gridSize;
-            if (currentDifficulty === 'easy') {
+            if (gameMode === 'easy') {
                 gridSize = 16; // 4x4
-            } else if (currentDifficulty === 'medium') {
+            } else if (gameMode === 'medium') {
                 gridSize = 20; // 4x5
             } else {
                 gridSize = 36; // 6x6
             }
-            
-            totalPairs = gridSize / 2;
-            const selectedEmojis = emojis.slice(0, totalPairs);
+
+            matchedPairs = gridSize / 2; // Renamed totalPairs to matchedPairs to align with variable names
+            const selectedEmojis = emojis.slice(0, matchedPairs);
             const cardValues = [...selectedEmojis, ...selectedEmojis];
-            gameBoard = shuffle(cardValues);
-            
-            gameBoard.forEach((emoji, index) => {
+            cards = shuffle(cardValues); // Renamed gameBoard to cards to align with variable names
+
+            cards.forEach((emoji, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.index = index;
@@ -207,16 +209,16 @@
 
         function flipCard(e) {
             if (!gameStarted) startTimer();
-            
+
             const card = e.target;
             if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) {
                 return;
             }
-            
+
             card.classList.add('flipped');
             card.textContent = card.dataset.value;
             flippedCards.push(card);
-            
+
             if (flippedCards.length === 2) {
                 moves++;
                 document.getElementById('moves').textContent = moves;
@@ -226,15 +228,15 @@
 
         function checkMatch() {
             const [card1, card2] = flippedCards;
-            
+
             setTimeout(() => {
                 if (card1.dataset.value === card2.dataset.value) {
                     card1.classList.add('matched');
                     card2.classList.add('matched');
-                    matches++;
-                    document.getElementById('matches').textContent = matches;
-                    
-                    if (matches === totalPairs) {
+                    matchedPairs--; // Decrement matchedPairs
+                    document.getElementById('matches').textContent = (cards.length / 2) - matchedPairs; // Update displayed matches
+
+                    if (matchedPairs === 0) { // Check if all pairs are matched
                         winGame();
                     }
                 } else {
@@ -267,24 +269,32 @@
             document.getElementById('finalTime').textContent = finalTime;
             document.getElementById('finalMoves').textContent = moves;
             document.getElementById('winMessage').style.display = 'block';
+            
+            // Update best time if current time is better
+            const currentTimeInSeconds = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
+            if (currentTimeInSeconds < bestTime) {
+                bestTime = currentTimeInSeconds;
+                localStorage.setItem('memoryBestTime', bestTime);
+            }
         }
 
         function startGame() {
             gameStarted = false;
             moves = 0;
-            matches = 0;
+            matchedPairs = 0; // Reset matchedPairs
             flippedCards = [];
             clearInterval(timerInterval);
-            
+
             document.getElementById('timer').textContent = '00:00';
             document.getElementById('moves').textContent = '0';
             document.getElementById('matches').textContent = '0';
             document.getElementById('winMessage').style.display = 'none';
-            
+
             createGameBoard();
         }
 
-        // เริ่มเกมครั้งแรก
+        // Initialize the game with the default difficulty on load
+        setDifficulty(gameMode);
         startGame();
     </script>
 </body>
