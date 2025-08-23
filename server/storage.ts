@@ -1,5 +1,7 @@
 import { type Game, type InsertGame, GAME_CATEGORIES } from "@shared/schema";
 import { randomUUID } from "crypto";
+import fs from "fs";
+import path from "path";
 
 export interface IStorage {
   // Game operations
@@ -24,7 +26,108 @@ export class MemStorage implements IStorage {
   }
 
   private seedInitialData() {
-    // เกมที่สร้างขึ้นเองใน ASHURA Games - เล่นได้จริงทุกเกม
+    // โหลดเกมจากโฟลเดอร์ public/games จริง ๆ
+    this.loadGamesFromDirectory();
+  }
+
+  private loadGamesFromDirectory() {
+    const gamesDir = path.join(process.cwd(), 'public', 'games');
+    
+    try {
+      const gameFiles = fs.readdirSync(gamesDir).filter((file: string) => file.endsWith('.html'));
+      
+      gameFiles.forEach((file: string) => {
+        const gameName = file.replace('.html', '');
+        const gameTitle = this.formatGameTitle(gameName);
+        const category = this.detectGameCategory(gameName);
+        
+        const id = randomUUID();
+        const game: Game = {
+          id,
+          title: gameTitle,
+          description: `เล่นเกม ${gameTitle} - เกมสุดมันส์บนเว็บไซต์ ASHURA Games`,
+          thumbnail: `/api/games/${id}/thumbnail`,
+          gameUrl: `/games/${file}`,
+          gameFile: null,
+          isEmbedded: false,
+          category,
+          rating: Math.floor(Math.random() * 10) + 40, // 40-50
+          plays: Math.floor(Math.random() * 20000) + 1000, // 1000-21000
+          isNew: Math.random() > 0.7,
+          isTrending: Math.random() > 0.6,
+          createdAt: new Date()
+        };
+        
+        this.games.set(id, game);
+      });
+      
+      console.log(`Loaded ${this.games.size} games from public/games directory`);
+    } catch (error) {
+      console.error('Error loading games from directory:', error);
+      // Fallback to manual games if directory loading fails
+      this.loadManualGames();
+    }
+  }
+
+  private formatGameTitle(filename: string): string {
+    // แปลงชื่อไฟล์เป็นชื่อเกมที่อ่านง่าย
+    const titleMap: {[key: string]: string} = {
+      '3d-cube-runner': '3D Cube Runner',
+      '3d-racing-webgl': '3D Racing WebGL',
+      'particle-explosion': 'Particle Explosion',
+      'space-invaders-3d': '3D Space Invaders',
+      'neon-maze-3d': 'Neon Maze 3D',
+      'cyber-runner-3d': 'Cyber Runner 3D',
+      'galactic-defender-3d': 'Galactic Defender 3D',
+      'crystal-caverns-3d': 'Crystal Caverns 3D',
+      'neural-network-3d': 'Neural Network 3D',
+      'volleyball-championship': 'Volleyball Championship',
+      'ashura-volleyball-advanced': 'ASHURA Volleyball Advanced',
+      'flappy-bird': 'Flappy Bird',
+      'snake-enhanced': 'Snake Enhanced',
+      'tetris-enhanced': 'Tetris Enhanced',
+      'breakout-enhanced': 'Breakout Enhanced',
+      'bubble-shooter': 'Bubble Shooter',
+      'racing-rush': 'Racing Rush',
+      'space-shooter': 'Space Shooter',
+      'asteroid-shooter': 'Asteroid Shooter',
+      'memory-cards': 'Memory Cards',
+      'puzzle-blocks': 'Puzzle Blocks',
+      'gulper-snake': 'Gulper Snake',
+      'หนอนน้อย': 'หนอนน้อย'
+    };
+    
+    return titleMap[filename] || filename.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  }
+
+  private detectGameCategory(filename: string): string {
+    const categoryMap: {[key: string]: string} = {
+      '3d': 'action',
+      'racing': 'racing', 
+      'volleyball': 'sports',
+      'snake': 'arcade',
+      'tetris': 'puzzle',
+      'bubble': 'puzzle',
+      'shooter': 'action',
+      'puzzle': 'puzzle',
+      'adventure': 'adventure',
+      'strategy': 'strategy',
+      'casual': 'casual'
+    };
+    
+    for (const [keyword, category] of Object.entries(categoryMap)) {
+      if (filename.toLowerCase().includes(keyword)) {
+        return category;
+      }
+    }
+    
+    return 'arcade'; // default category
+  }
+
+  private loadManualGames() {
+    // เกมสำรองในกรณีที่โหลดจากโฟลเดอร์ไม่ได้
     const defaultGames = [
       {
         title: '3D Cube Runner',
