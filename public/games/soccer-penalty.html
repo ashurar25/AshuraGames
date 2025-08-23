@@ -201,7 +201,17 @@
         let powerInterval;
 
         // Ball variables
-        let ball = { x: 400, y: 450, vx: 0, vy: 0, radius: 15 };
+        const ball = {
+            x: canvas.width / 2 - 10,
+            y: canvas.height - 100,
+            radius: 12,
+            vx: 0,
+            vy: 0,
+            isMoving: false,
+            trail: [],
+            spin: 0,
+            color: '#FFFFFF'
+        };
         let ballAnimating = false;
 
         // Goal variables
@@ -317,35 +327,44 @@
         }
 
         function drawBall() {
-            // Ball shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            // Draw ball trail
+            ctx.globalAlpha = 0.5;
+            for (let i = 0; i < ball.trail.length; i++) {
+                const alpha = (i + 1) / ball.trail.length * 0.5;
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(ball.trail[i].x, ball.trail[i].y, ball.radius * 0.8, 0, Math.PI * 2);
+                ctx.fillStyle = ball.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+            ctx.globalAlpha = 1;
+
+            // Draw main ball with glow
+            ctx.save();
+            ctx.shadowColor = '#FFFFFF';
+            ctx.shadowBlur = 15;
             ctx.beginPath();
-            ctx.ellipse(ball.x, ball.y + ball.radius + 5, ball.radius * 0.8, ball.radius * 0.3, 0, 0, 2 * Math.PI);
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
             ctx.fill();
 
-            // Ball
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // Ball pattern
+            // Draw ball pattern
+            ctx.shadowBlur = 0;
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, 2 * Math.PI);
             ctx.stroke();
 
-            // Pentagon pattern
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 2 * Math.PI) / 5;
-                const x = ball.x + Math.cos(angle) * (ball.radius * 0.5);
-                const y = ball.y + Math.sin(angle) * (ball.radius * 0.5);
-                ctx.beginPath();
-                ctx.moveTo(ball.x, ball.y);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            }
+            // Draw soccer ball pattern
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(ball.x - ball.radius * 0.7, ball.y);
+            ctx.lineTo(ball.x + ball.radius * 0.7, ball.y);
+            ctx.moveTo(ball.x, ball.y - ball.radius * 0.7);
+            ctx.lineTo(ball.x, ball.y + ball.radius * 0.7);
+            ctx.stroke();
+            ctx.restore();
         }
 
         function drawAimLine() {

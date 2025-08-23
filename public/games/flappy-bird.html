@@ -173,19 +173,16 @@
         let gameSpeed = 2; // ความเร็วเกมเริ่มต้น
 
         // Bird variables
-        let bird = {
+        const bird = {
             x: 50,
-            y: 300,
-            width: 30,
-            height: 30,
+            y: canvas.height / 2,
+            width: 25,
+            height: 25,
             velocity: 0,
             gravity: 0.5,
-            jumpStrength: -10,
-            rotation: 0,
-            shield: false,
-            shieldTime: 0,
-            magnetActive: false,
-            magnetTime: 0
+            jump: -9,
+            color: '#FFD700',
+            trail: []
         };
 
         // Power-ups
@@ -272,40 +269,28 @@
         }
 
         function drawBird() {
-            ctx.save();
-            ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
-            ctx.rotate(bird.rotation);
+            // Draw bird trail
+            ctx.globalAlpha = 0.3;
+            for (let i = 0; i < bird.trail.length; i++) {
+                const alpha = (i + 1) / bird.trail.length * 0.3;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = bird.color;
+                ctx.fillRect(bird.trail[i].x, bird.trail[i].y, bird.width * 0.8, bird.height * 0.8);
+            }
+            ctx.globalAlpha = 1;
 
-            // Bird body
-            ctx.fillStyle = '#ffdb4a';
-            ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
+            // Draw main bird with glow effect
+            ctx.shadowColor = bird.color;
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = bird.color;
+            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+            ctx.shadowBlur = 0;
 
-            // Bird wing
-            ctx.fillStyle = '#ff6b35';
-            const wingOffset = Math.sin(Date.now() * 0.01) * 3;
-            ctx.fillRect(-bird.width / 4, -bird.height / 4 + wingOffset, bird.width / 2, bird.height / 3);
-
-            // Bird eye
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(bird.width / 4, -bird.height / 4, bird.width / 6, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(bird.width / 4, -bird.height / 4, bird.width / 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Bird beak
-            ctx.fillStyle = '#ff6b35';
-            ctx.beginPath();
-            ctx.moveTo(bird.width / 2, 0);
-            ctx.lineTo(bird.width / 2 + 10, -5);
-            ctx.lineTo(bird.width / 2 + 10, 5);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.restore();
+            // Draw bird eye
+            ctx.fillStyle = '#000';
+            ctx.fillRect(bird.x + 15, bird.y + 5, 4, 4);
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(bird.x + 16, bird.y + 6, 2, 2);
         }
 
         function drawPipe(pipe) {
@@ -341,33 +326,20 @@
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            // Bird rotation based on velocity
-            bird.rotation = Math.min(Math.max(bird.velocity * 0.1, -0.5), 1.5);
-
-            // Ground collision
-            if (bird.y + bird.height >= canvas.height - 50) {
-                // Add particle effect on crash
-                if (window.particleSystem) {
-                    for (let i = 0; i < 15; i++) {
-                        window.particleSystem.add(
-                            bird.x + bird.width / 2, bird.y + bird.height / 2,
-                            {
-                                vx: (Math.random() - 0.5) * 6,
-                                vy: Math.random() * -4 - 2,
-                                color: '#ff6b35',
-                                size: Math.random() * 4 + 2,
-                                life: 1
-                            }
-                        );
-                    }
-                }
-                gameOver();
+            // Update trail
+            bird.trail.push({x: bird.x - 5, y: bird.y});
+            if (bird.trail.length > 8) {
+                bird.trail.shift();
             }
 
-            // Ceiling collision
-            if (bird.y <= 0) {
+            // Prevent bird from going off screen
+            if (bird.y < 0) {
                 bird.y = 0;
                 bird.velocity = 0;
+            }
+            if (bird.y + bird.height > canvas.height - 50) { // Adjusted to consider ground height
+                gameOver();
+                return;
             }
         }
 
@@ -459,7 +431,7 @@
                 powerUp.x -= 3;
 
                 // ตรวจสอบการชน
-                if (!powerUp.collected && 
+                if (!powerUp.collected &&
                     bird.x < powerUp.x + powerUp.width &&
                     bird.x + bird.width > powerUp.x &&
                     bird.y < powerUp.y + powerUp.height &&
@@ -605,7 +577,7 @@
 
         function jump() {
             if (!gameRunning) return;
-            bird.velocity = bird.jumpStrength;
+            bird.velocity = bird.jump;
 
             // Play jump sound
             if (window.GameEnhancement && window.GameEnhancement.audio) {
@@ -658,7 +630,11 @@
             bird.rotation = 0;
             score = 0;
             pipes = [];
-            gameSpeed = 2;
+            pipesPassedCount = 0; // Reset pipesPassedCount
+            powerUps = []; // Reset powerUps
+            powerUpTimer = 0; // Reset powerUpTimer
+            pipeTimer = 0; // Reset pipeTimer
+            bird.trail = []; // Clear bird trail
 
             // เพิ่มเสียงเริ่มเกม
             if (window.GameEnhancement && window.GameEnhancement.audio) {
@@ -710,7 +686,8 @@
             e.preventDefault();
             if (!gameStarted) {
                 startGame();
-            } else {
+                gameStarted = true; // Set gameStarted to true after the first input
+            } else if (gameRunning) { // Only jump if the game is running
                 jump();
             }
         }
@@ -733,7 +710,7 @@
         window.addEventListener('resize', resizeCanvas);
 
         updateScore();
-        gameLoop();
+        // gameLoop(); // Moved gameLoop call to startGame for initial rendering
 
         // Focus canvas
         canvas.focus();
