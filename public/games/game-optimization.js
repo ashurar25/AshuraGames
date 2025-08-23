@@ -11,37 +11,34 @@
     let isHighRes = window.devicePixelRatio > 1.5;
     let performanceLevel = 'high'; // high, medium, low
     
+    // Global game state management
+    let gameStates = new Map();
+    let currentGame = null;
+    let isGamePaused = false;
+    
     // Disable right-click context menu on games
     document.addEventListener('contextmenu', function(e) {
-        if (e.target.tagName === 'CANVAS') {
+        if (e.target.tagName === 'CANVAS' || e.target.closest('.game-container')) {
             e.preventDefault();
             return false;
         }
     });
     
-    // Prevent default touch behaviors on canvas
-    document.addEventListener('touchstart', function(e) {
-        if (e.target.tagName === 'CANVAS') {
-            e.preventDefault();
-        }
-    }, { passive: false });
+    // Prevent default touch behaviors on canvas and game containers
+    ['touchstart', 'touchmove', 'touchend', 'touchcancel'].forEach(eventType => {
+        document.addEventListener(eventType, function(e) {
+            if (e.target.tagName === 'CANVAS' || e.target.closest('.game-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    });
     
-    document.addEventListener('touchmove', function(e) {
-        if (e.target.tagName === 'CANVAS') {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
-    document.addEventListener('touchend', function(e) {
-        if (e.target.tagName === 'CANVAS') {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
-    // Enhanced canvas optimization with performance levels
+    // Enhanced canvas optimization with comprehensive fixes
     function optimizeCanvas() {
         const canvases = document.querySelectorAll('canvas');
         canvases.forEach(canvas => {
+            if (canvas.dataset.optimized) return; // Skip already optimized canvases
+            
             const ctx = canvas.getContext('2d') || canvas.getContext('webgl') || canvas.getContext('webgl2');
             if (ctx) {
                 // Performance-based optimization
@@ -54,13 +51,16 @@
                         ctx.imageSmoothingEnabled = false;
                     }
                     
-                    // Set optimal pixel ratio based on device
-                    const ratio = Math.min(window.devicePixelRatio || 1, performanceLevel === 'high' ? 2 : 1.5);
+                    // Fix canvas scaling issues
                     const rect = canvas.getBoundingClientRect();
+                    const ratio = Math.min(window.devicePixelRatio || 1, performanceLevel === 'high' ? 2 : 1.5);
                     
                     if (rect.width && rect.height) {
-                        canvas.width = rect.width * ratio;
-                        canvas.height = rect.height * ratio;
+                        // Ensure canvas has proper dimensions
+                        if (!canvas.width || !canvas.height) {
+                            canvas.width = rect.width * ratio;
+                            canvas.height = rect.height * ratio;
+                        }
                         ctx.scale(ratio, ratio);
                         canvas.style.width = rect.width + 'px';
                         canvas.style.height = rect.height + 'px';
@@ -70,208 +70,270 @@
                     const ext = ctx.getExtension('OES_texture_float') || 
                               ctx.getExtension('OES_texture_half_float') ||
                               ctx.getExtension('WEBGL_color_buffer_float');
-                    if (ext && performanceLevel === 'high') {
-                        console.log('WebGL optimizations enabled');
-                    }
+                    
+                    // Enable antialiasing for better quality
+                    ctx.enable(ctx.BLEND);
+                    ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
                 }
             }
             
             // Enhanced focus and interaction
             canvas.tabIndex = 0;
-            canvas.setAttribute('aria-label', 'Game Canvas');
+            canvas.setAttribute('aria-label', 'Game Canvas - ใช้ปุ่มลูกศรหรือ WASD เพื่อควบคุม');
             canvas.style.outline = 'none';
             
-            // Auto-focus on interaction
+            // Auto-focus on interaction with debounce
+            let focusTimeout;
             ['click', 'touchstart', 'keydown'].forEach(event => {
                 canvas.addEventListener(event, function() {
-                    this.focus();
+                    clearTimeout(focusTimeout);
+                    focusTimeout = setTimeout(() => {
+                        this.focus();
+                    }, 50);
                 }, { passive: event === 'touchstart' });
             });
             
-            // Responsive canvas sizing
+            // Responsive canvas sizing with proper aspect ratio
             const resizeCanvas = () => {
-                if (canvas.style.maxWidth !== '100%') {
-                    canvas.style.maxWidth = '100%';
-                    canvas.style.height = 'auto';
-                }
+                const container = canvas.closest('.game-container') || canvas.parentElement;
+                const maxWidth = Math.min(window.innerWidth - 20, 900);
+                const maxHeight = Math.min(window.innerHeight - 100, 700);
+                
+                canvas.style.maxWidth = maxWidth + 'px';
+                canvas.style.maxHeight = maxHeight + 'px';
+                canvas.style.width = 'auto';
+                canvas.style.height = 'auto';
+                canvas.style.display = 'block';
+                canvas.style.margin = '0 auto';
             };
             
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
+            
+            canvas.dataset.optimized = 'true';
         });
     }
     
-    // Auto-focus canvas for keyboard input
-    function setupCanvasFocus() {
-        const canvas = document.querySelector('canvas');
-        if (canvas) {
-            canvas.focus();
-            canvas.addEventListener('click', () => canvas.focus());
-            canvas.addEventListener('touchstart', () => canvas.focus());
-        }
-    }
-    
-    // Enhanced mobile controls with better UX
+    // Enhanced mobile controls with better game detection
     function addMobileControls() {
         if (!isMobile && window.innerWidth > 768) return;
         
         const existingControls = document.querySelector('.mobile-controls');
         if (existingControls) return;
         
-        // Smart control detection based on game type
-        const needsDirectional = document.querySelector('canvas') && 
-            (document.body.textContent.includes('Arrow') || 
-             document.body.textContent.includes('WASD') ||
-             document.body.textContent.includes('เลื่อน'));
+        // Intelligent control detection based on game content
+        const pageContent = document.body.textContent.toLowerCase();
+        const needsDirectional = pageContent.includes('arrow') || 
+                               pageContent.includes('wasd') ||
+                               pageContent.includes('เลื่อน') ||
+                               pageContent.includes('เคลื่อน') ||
+                               document.querySelector('canvas');
         
-        const needsSpace = document.body.textContent.includes('Space') ||
-                          document.body.textContent.includes('กระโดด') ||
-                          document.body.textContent.includes('ยิง');
+        const needsSpace = pageContent.includes('space') ||
+                          pageContent.includes('กระโดด') ||
+                          pageContent.includes('ยิง') ||
+                          pageContent.includes('fire') ||
+                          pageContent.includes('shoot');
         
+        const needsEnter = pageContent.includes('enter') ||
+                          pageContent.includes('เริ่ม') ||
+                          pageContent.includes('start');
+        
+        // Create adaptive control layout
         let controlsHTML = '<div class="mobile-controls">';
         
         if (needsDirectional) {
             controlsHTML += `
-                <button class="mobile-btn" data-key="ArrowLeft" title="ซ้าย">←</button>
-                <button class="mobile-btn" data-key="ArrowUp" title="ขึ้น">↑</button>
-                <button class="mobile-btn" data-key="ArrowDown" title="ลง">↓</button>
-                <button class="mobile-btn" data-key="ArrowRight" title="ขวา">→</button>
+                <div class="direction-pad">
+                    <button class="mobile-btn dir-btn" data-key="ArrowUp" title="ขึ้น">↑</button>
+                    <div class="horizontal-controls">
+                        <button class="mobile-btn dir-btn" data-key="ArrowLeft" title="ซ้าย">←</button>
+                        <button class="mobile-btn dir-btn" data-key="ArrowDown" title="ลง">↓</button>
+                        <button class="mobile-btn dir-btn" data-key="ArrowRight" title="ขวา">→</button>
+                    </div>
+                </div>
             `;
         }
         
+        controlsHTML += '<div class="action-buttons">';
+        
         if (needsSpace) {
-            controlsHTML += '<button class="mobile-btn" data-key="Space" title="กระทำ">⎵</button>';
+            controlsHTML += '<button class="mobile-btn action-btn" data-key="Space" title="กระทำ">⚡</button>';
+        }
+        
+        if (needsEnter) {
+            controlsHTML += '<button class="mobile-btn action-btn" data-key="Enter" title="เริ่ม">▶</button>';
         }
         
         // Add common game keys
         controlsHTML += `
-            <button class="mobile-btn" data-key="KeyR" title="รีสตาร์ท">🔄</button>
-            <button class="mobile-btn" data-key="KeyP" title="หยุด">⏸</button>
-        </div>`;
+            <button class="mobile-btn utility-btn" data-key="KeyR" title="รีสตาร์ท">🔄</button>
+            <button class="mobile-btn utility-btn" data-key="KeyP" title="หยุด">⏸</button>
+        `;
+        
+        controlsHTML += '</div></div>';
         
         document.body.insertAdjacentHTML('beforeend', controlsHTML);
         
-        // Enhanced mobile control events with haptic feedback
+        // Enhanced mobile control events with better feedback
         document.querySelectorAll('.mobile-btn').forEach(btn => {
             const key = btn.dataset.key;
             let pressInterval;
+            let isPressed = false;
             
-            // Haptic feedback function
             const hapticFeedback = () => {
                 if (navigator.vibrate) {
-                    navigator.vibrate(10);
+                    navigator.vibrate(15);
                 }
+            };
+            
+            const createKeyEvent = (type) => {
+                const keyCode = getKeyCode(key);
+                const keyName = key === 'Space' ? ' ' : key.replace('Key', '').toLowerCase();
+                
+                return new KeyboardEvent(type, {
+                    key: keyName,
+                    code: key,
+                    keyCode: keyCode,
+                    which: keyCode,
+                    bubbles: true,
+                    cancelable: true
+                });
             };
             
             const pressStart = (e) => {
                 e.preventDefault();
+                if (isPressed) return;
+                
+                isPressed = true;
                 hapticFeedback();
                 
-                const event = new KeyboardEvent('keydown', {
-                    key: key === 'Space' ? ' ' : key.replace('Key', '').toLowerCase(),
-                    code: key,
-                    keyCode: getKeyCode(key),
-                    bubbles: true
-                });
+                const event = createKeyEvent('keydown');
                 
-                // Dispatch to both document and canvas
+                // Dispatch to multiple targets for better compatibility
                 document.dispatchEvent(event);
                 const canvas = document.querySelector('canvas');
-                if (canvas) canvas.dispatchEvent(event);
+                if (canvas) {
+                    canvas.dispatchEvent(event);
+                    canvas.focus();
+                }
                 
-                btn.style.transform = 'scale(1.1)';
-                btn.style.background = 'rgba(16, 185, 129, 0.5)';
+                // Visual feedback
+                btn.classList.add('pressed');
+                btn.style.transform = 'scale(0.9)';
+                btn.style.opacity = '0.8';
                 
                 // Continuous press for movement keys
                 if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
                     pressInterval = setInterval(() => {
-                        document.dispatchEvent(event);
-                        if (canvas) canvas.dispatchEvent(event);
+                        if (isPressed) {
+                            const continuousEvent = createKeyEvent('keydown');
+                            document.dispatchEvent(continuousEvent);
+                            if (canvas) canvas.dispatchEvent(continuousEvent);
+                        }
                     }, 16); // ~60fps
                 }
             };
             
             const pressEnd = (e) => {
                 e.preventDefault();
+                if (!isPressed) return;
+                
+                isPressed = false;
                 clearInterval(pressInterval);
                 
-                const event = new KeyboardEvent('keyup', {
-                    key: key === 'Space' ? ' ' : key.replace('Key', '').toLowerCase(),
-                    code: key,
-                    keyCode: getKeyCode(key),
-                    bubbles: true
-                });
-                
+                const event = createKeyEvent('keyup');
                 document.dispatchEvent(event);
                 const canvas = document.querySelector('canvas');
                 if (canvas) canvas.dispatchEvent(event);
                 
+                // Reset visual feedback
+                btn.classList.remove('pressed');
                 btn.style.transform = 'scale(1)';
-                btn.style.background = '';
+                btn.style.opacity = '1';
             };
             
+            // Touch events
             btn.addEventListener('touchstart', pressStart, { passive: false });
             btn.addEventListener('touchend', pressEnd, { passive: false });
             btn.addEventListener('touchcancel', pressEnd, { passive: false });
+            
+            // Mouse events for desktop testing
             btn.addEventListener('mousedown', pressStart);
             btn.addEventListener('mouseup', pressEnd);
             btn.addEventListener('mouseleave', pressEnd);
         });
         
-        // Auto-hide controls after inactivity
+        // Auto-hide controls with improved timing
         let hideTimeout;
         const resetHideTimeout = () => {
             clearTimeout(hideTimeout);
             const controls = document.querySelector('.mobile-controls');
             if (controls) {
                 controls.style.opacity = '1';
+                controls.style.pointerEvents = 'auto';
                 hideTimeout = setTimeout(() => {
                     controls.style.opacity = '0.7';
-                }, 5000);
+                }, 8000);
             }
         };
         
-        ['touchstart', 'touchmove', 'click'].forEach(event => {
+        ['touchstart', 'touchmove', 'click', 'keydown'].forEach(event => {
             document.addEventListener(event, resetHideTimeout);
         });
     }
     
     function getKeyCode(key) {
         const codes = {
-            'ArrowLeft': 37,
-            'ArrowUp': 38,
-            'ArrowRight': 39,
-            'ArrowDown': 40,
-            'Space': 32,
-            'KeyR': 82,
-            'KeyP': 80,
-            'KeyW': 87,
-            'KeyA': 65,
-            'KeyS': 83,
-            'KeyD': 68,
-            'Enter': 13,
-            'Escape': 27
+            'ArrowLeft': 37, 'ArrowUp': 38, 'ArrowRight': 39, 'ArrowDown': 40,
+            'Space': 32, 'Enter': 13, 'Escape': 27,
+            'KeyR': 82, 'KeyP': 80, 'KeyW': 87, 'KeyA': 65, 'KeyS': 83, 'KeyD': 68,
+            'KeyQ': 81, 'KeyE': 69, 'KeyF': 70, 'KeyG': 71, 'KeyH': 72,
+            'Digit1': 49, 'Digit2': 50, 'Digit3': 51, 'Digit4': 52, 'Digit5': 53
         };
         return codes[key] || key.charCodeAt(0) || 0;
     }
     
-    // Fullscreen functionality
+    // Enhanced fullscreen functionality
     function setupFullscreen() {
         const canvas = document.querySelector('canvas');
         if (!canvas) return;
         
-        // Double-click to fullscreen
-        canvas.addEventListener('dblclick', function() {
+        // Double-click to fullscreen with better handling
+        let clickCount = 0;
+        canvas.addEventListener('click', function() {
+            clickCount++;
+            setTimeout(() => {
+                if (clickCount === 2) {
+                    toggleFullscreen();
+                }
+                clickCount = 0;
+            }, 300);
+        });
+        
+        // Add fullscreen button
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'fullscreen-btn';
+        fullscreenBtn.innerHTML = '⛶';
+        fullscreenBtn.title = 'เต็มจอ';
+        fullscreenBtn.onclick = toggleFullscreen;
+        
+        const gameContainer = canvas.closest('.game-container') || canvas.parentElement;
+        gameContainer.style.position = 'relative';
+        gameContainer.appendChild(fullscreenBtn);
+        
+        function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                this.requestFullscreen?.() || 
-                this.webkitRequestFullscreen?.() || 
-                this.msRequestFullscreen?.();
+                const element = gameContainer || canvas;
+                element.requestFullscreen?.() || 
+                element.webkitRequestFullscreen?.() || 
+                element.msRequestFullscreen?.();
             } else {
                 document.exitFullscreen?.() || 
                 document.webkitExitFullscreen?.() || 
                 document.msExitFullscreen?.();
             }
-        });
+        }
         
         // Handle fullscreen change
         document.addEventListener('fullscreenchange', function() {
@@ -279,18 +341,22 @@
             if (canvas) {
                 if (document.fullscreenElement) {
                     canvas.classList.add('fullscreen');
+                    document.body.classList.add('game-fullscreen');
                 } else {
                     canvas.classList.remove('fullscreen');
+                    document.body.classList.remove('game-fullscreen');
                 }
+                optimizeCanvas(); // Re-optimize for new size
             }
         });
     }
     
-    // Performance monitoring
+    // Enhanced performance monitoring
     function setupPerformanceMonitoring() {
         let lastTime = performance.now();
         let frameCount = 0;
-        let fps = 0;
+        let fps = 60;
+        let performanceHistory = [];
         
         function measureFPS() {
             frameCount++;
@@ -302,16 +368,22 @@
                 frameCount = 0;
                 lastTime = currentTime;
                 
-                // Optimize based on FPS
-                if (fps < 30) {
-                    // Reduce quality if FPS is too low
-                    const canvases = document.querySelectorAll('canvas');
-                    canvases.forEach(canvas => {
-                        const ctx = canvas.getContext('2d');
-                        if (ctx) {
-                            ctx.imageSmoothingEnabled = false;
-                        }
-                    });
+                performanceHistory.push(fps);
+                if (performanceHistory.length > 10) {
+                    performanceHistory.shift();
+                }
+                
+                const avgFPS = performanceHistory.reduce((a, b) => a + b, 0) / performanceHistory.length;
+                
+                // Dynamic performance adjustment
+                if (avgFPS < 25) {
+                    performanceLevel = 'low';
+                    applyLowPerformanceMode();
+                } else if (avgFPS < 45) {
+                    performanceLevel = 'medium';
+                    applyMediumPerformanceMode();
+                } else {
+                    performanceLevel = 'high';
                 }
             }
             
@@ -321,60 +393,114 @@
         measureFPS();
     }
     
-    // Enhanced initialization with progressive loading
-    function init() {
-        console.log('🎮 ASHURA Games Enhancement Loading...');
-        
-        // Detect performance level
-        detectPerformanceLevel();
-        
-        // Load enhancements progressively
-        optimizeCanvas();
-        setupCanvasFocus();
-        addMobileControls();
-        setupFullscreen();
-        setupPerformanceMonitoring();
-        addVisualEnhancements();
-        setupAccessibility();
-        
-        // Resize handler with debounce
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                optimizeCanvas();
-                adjustForScreenSize();
-            }, 150);
-        });
-        
-        // Enhanced visibility change handler
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                const pauseEvent = new CustomEvent('gamePause');
-                document.dispatchEvent(pauseEvent);
-                // Reduce performance when hidden
-                if (performanceLevel !== 'low') {
-                    performanceLevel = 'low';
-                }
-            } else {
-                const resumeEvent = new CustomEvent('gameResume');
-                document.dispatchEvent(resumeEvent);
-                // Restore performance when visible
-                detectPerformanceLevel();
+    function applyLowPerformanceMode() {
+        const canvases = document.querySelectorAll('canvas');
+        canvases.forEach(canvas => {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.imageSmoothingEnabled = false;
             }
         });
         
-        // Network change handler
-        if ('connection' in navigator) {
-            navigator.connection.addEventListener('change', adjustForConnection);
-        }
+        // Reduce particle effects
+        document.querySelectorAll('.particle').forEach(p => p.remove());
         
-        // Battery optimization
-        if ('getBattery' in navigator) {
-            navigator.getBattery().then(setupBatteryOptimization);
+        // Disable animations
+        document.body.classList.add('low-performance');
+    }
+    
+    function applyMediumPerformanceMode() {
+        document.body.classList.remove('low-performance');
+        document.body.classList.add('medium-performance');
+    }
+    
+    // Game state management
+    function saveGameState(gameId, state) {
+        try {
+            localStorage.setItem(`game_${gameId}`, JSON.stringify(state));
+        } catch (e) {
+            console.warn('Could not save game state:', e);
         }
+    }
+    
+    function loadGameState(gameId) {
+        try {
+            const saved = localStorage.getItem(`game_${gameId}`);
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.warn('Could not load game state:', e);
+            return null;
+        }
+    }
+    
+    // Enhanced game detection and initialization
+    function detectAndInitializeGame() {
+        const canvas = document.querySelector('canvas');
+        const gameContainer = document.querySelector('.game-container') || document.getElementById('gameContainer');
         
-        console.log('✨ ASHURA Games Enhancement Ready!');
+        if (canvas || gameContainer) {
+            currentGame = document.title || 'unknown';
+            
+            // Apply game-specific optimizations
+            optimizeCanvas();
+            setupCanvasFocus();
+            addMobileControls();
+            setupFullscreen();
+            addGameUI();
+            
+            console.log(`🎮 Game detected and optimized: ${currentGame}`);
+        }
+    }
+    
+    function addGameUI() {
+        if (document.querySelector('.game-ui-overlay')) return;
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'game-ui-overlay';
+        overlay.innerHTML = `
+            <div class="game-info">
+                <span class="fps-counter">FPS: 60</span>
+                <span class="performance-indicator">⚡ ${performanceLevel}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Update FPS display
+        setInterval(() => {
+            const fpsElement = document.querySelector('.fps-counter');
+            const perfElement = document.querySelector('.performance-indicator');
+            if (fpsElement && perfElement) {
+                fpsElement.textContent = `FPS: ${Math.round(60 * (performanceLevel === 'high' ? 1 : performanceLevel === 'medium' ? 0.8 : 0.6))}`;
+                perfElement.textContent = `⚡ ${performanceLevel}`;
+            }
+        }, 1000);
+    }
+    
+    function setupCanvasFocus() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.focus();
+            
+            // Enhanced keyboard event handling
+            const keyStates = {};
+            
+            document.addEventListener('keydown', (e) => {
+                keyStates[e.code] = true;
+                
+                // Prevent page scrolling on game keys
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keyStates[e.code] = false;
+            });
+            
+            // Make key states available globally
+            window.gameKeyStates = keyStates;
+        }
     }
     
     // Performance level detection
@@ -409,113 +535,71 @@
             }
         }
         
-        console.log('🚀 Performance level:', performanceLevel);
+        console.log('🚀 Performance level detected:', performanceLevel);
     }
     
-    // Visual enhancements
-    function addVisualEnhancements() {
-        if (performanceLevel === 'low') return;
+    // Enhanced initialization
+    function init() {
+        console.log('🎮 ASHURA Games Enhancement Loading...');
         
-        // Add particle container
-        const particleContainer = document.createElement('div');
-        particleContainer.className = 'particle-container';
-        document.body.appendChild(particleContainer);
+        detectPerformanceLevel();
+        detectAndInitializeGame();
+        setupPerformanceMonitoring();
         
-        // Add random particles occasionally
-        setInterval(() => {
-            if (Math.random() < 0.3 && document.querySelectorAll('.particle').length < 5) {
-                createFloatingParticle();
-            }
-        }, 3000);
-    }
-    
-    function createFloatingParticle() {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * window.innerWidth + 'px';
-        particle.style.top = window.innerHeight + 'px';
-        particle.style.width = (Math.random() * 6 + 4) + 'px';
-        particle.style.height = particle.style.width;
-        
-        document.querySelector('.particle-container')?.appendChild(particle);
-        
-        setTimeout(() => {
-            particle.remove();
-        }, 3000);
-    }
-    
-    // Accessibility enhancements
-    function setupAccessibility() {
-        // Add screen reader support
-        const canvas = document.querySelector('canvas');
-        if (canvas && !canvas.getAttribute('aria-label')) {
-            canvas.setAttribute('aria-label', 'เกม ASHURA - ใช้ปุ่มลูกศรหรือแตะเพื่อควบคุม');
-        }
-        
-        // High contrast detection
-        if (window.matchMedia('(prefers-contrast: high)').matches) {
-            document.body.classList.add('high-contrast');
-        }
-        
-        // Reduced motion detection
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            document.body.classList.add('reduced-motion');
-        }
-    }
-    
-    function adjustForScreenSize() {
-        const gameContainer = document.querySelector('.game-container') || document.querySelector('#gameContainer');
-        if (gameContainer) {
-            if (window.innerWidth < 480) {
-                gameContainer.style.padding = '10px';
-                gameContainer.style.margin = '5px';
-            } else if (window.innerWidth < 768) {
-                gameContainer.style.padding = '15px';
-                gameContainer.style.margin = '10px';
-            }
-        }
-    }
-    
-    function adjustForConnection() {
-        if ('connection' in navigator) {
-            const connection = navigator.connection;
-            if (connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g') {
-                performanceLevel = 'low';
-                // Reduce visual effects
-                document.querySelectorAll('.particle').forEach(p => p.remove());
-            }
-        }
-    }
-    
-    function setupBatteryOptimization(battery) {
-        battery.addEventListener('levelchange', () => {
-            if (battery.level < 0.2) {
-                performanceLevel = 'low';
-                console.log('🔋 Battery low - reducing performance');
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                isGamePaused = true;
+                const pauseEvent = new CustomEvent('gamePause');
+                document.dispatchEvent(pauseEvent);
+            } else {
+                isGamePaused = false;
+                const resumeEvent = new CustomEvent('gameResume');
+                document.dispatchEvent(resumeEvent);
             }
         });
-    }
-    
-    // Initialize when ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+        
+        // Resize handler with debounce
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                optimizeCanvas();
+                addMobileControls();
+            }, 150);
+        });
+        
+        // Error handling for games
+        window.addEventListener('error', function(e) {
+            console.warn('Game error caught:', e.error);
+            // Try to recover
+            setTimeout(() => {
+                optimizeCanvas();
+            }, 1000);
+        });
+        
+        console.log('✨ ASHURA Games Enhancement Ready!');
     }
     
     // Global game utilities
     window.GameOptimization = {
-        isMobile: isMobile,
-        isIOS: isIOS,
-        isAndroid: isAndroid,
-        optimizeCanvas: optimizeCanvas,
+        isMobile,
+        isIOS,
+        isAndroid,
+        performanceLevel,
+        optimizeCanvas,
+        saveGameState,
+        loadGameState,
         
-        // Enhanced requestAnimationFrame for smooth gameplay
+        // Enhanced requestAnimationFrame
         smoothRAF: function(callback) {
             let lastTime = 0;
             function frame(currentTime) {
                 const deltaTime = currentTime - lastTime;
-                if (deltaTime >= 16.67) { // Cap at 60 FPS
+                const targetFrameTime = performanceLevel === 'high' ? 16.67 : 
+                                      performanceLevel === 'medium' ? 20 : 33.33;
+                
+                if (deltaTime >= targetFrameTime && !isGamePaused) {
                     callback(deltaTime);
                     lastTime = currentTime;
                 }
@@ -524,20 +608,15 @@
             requestAnimationFrame(frame);
         },
         
-        // Prevent game lag
+        // Game utilities
         preventLag: function() {
-            // Disable smooth scrolling
             document.documentElement.style.scrollBehavior = 'auto';
             
-            // Optimize animations
             const style = document.createElement('style');
             style.innerHTML = `
-                * {
-                    animation-fill-mode: both;
-                    animation-duration: 0.01ms !important;
-                    animation-delay: 0.01ms !important;
-                    transition-duration: 0.01ms !important;
-                    transition-delay: 0.01ms !important;
+                * { 
+                    backface-visibility: hidden;
+                    transform: translateZ(0);
                 }
                 .game-animation {
                     animation-duration: revert !important;
@@ -545,7 +624,39 @@
                 }
             `;
             document.head.appendChild(style);
+        },
+        
+        // Restart current game
+        restartGame: function() {
+            if (window.location.reload) {
+                window.location.reload();
+            }
+        },
+        
+        // Pause/Resume game
+        togglePause: function() {
+            isGamePaused = !isGamePaused;
+            const event = new CustomEvent(isGamePaused ? 'gamePause' : 'gameResume');
+            document.dispatchEvent(event);
+            return isGamePaused;
         }
     };
+    
+    // Initialize when ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+    // Re-initialize on navigation (for SPA games)
+    let lastURL = location.href;
+    new MutationObserver(() => {
+        const url = location.href;
+        if (url !== lastURL) {
+            lastURL = url;
+            setTimeout(init, 100);
+        }
+    }).observe(document, { subtree: true, childList: true });
     
 })();
