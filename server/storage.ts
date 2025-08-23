@@ -33,10 +33,20 @@ export class MemStorage implements IStorage {
     const gamesDir = path.join(process.cwd(), 'public', 'games');
     
     try {
-      const gameFiles = fs.readdirSync(gamesDir).filter((file: string) => file.endsWith('.html'));
+      if (!fs.existsSync(gamesDir)) {
+        console.log('Games directory does not exist, creating it...');
+        fs.mkdirSync(gamesDir, { recursive: true });
+        return;
+      }
+
+      const gameFiles = fs.readdirSync(gamesDir).filter((file: string) => {
+        return file.endsWith('.html') || file.endsWith('.htm');
+      });
       
-      gameFiles.forEach((file: string) => {
-        const gameName = file.replace('.html', '');
+      console.log(`Found ${gameFiles.length} game files in ${gamesDir}`);
+      
+      gameFiles.forEach((file: string, index: number) => {
+        const gameName = file.replace(/\.(html|htm)$/, '');
         const gameTitle = this.formatGameTitle(gameName);
         const category = this.detectGameCategory(gameName);
         
@@ -58,9 +68,10 @@ export class MemStorage implements IStorage {
         };
         
         this.games.set(id, game);
+        console.log(`Loaded game ${index + 1}: ${gameTitle} (${file})`);
       });
       
-      console.log(`Loaded ${this.games.size} games from public/games directory`);
+      console.log(`Successfully loaded ${this.games.size} games from public/games directory`);
     } catch (error) {
       console.error('Error loading games from directory:', error);
     }
@@ -182,7 +193,7 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async searchGames(query: string): Promise<Game[]> {
+  async async searchGames(query: string): Promise<Game[]> {
     const lowercaseQuery = query.toLowerCase();
     return Array.from(this.games.values())
       .filter(game => 

@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
 
-      const results = gameStorage.searchGames(query);
+      const results = await gameStorage.searchGames(query);
       res.json(results);
     } catch (error) {
       console.error('Search error:', error);
