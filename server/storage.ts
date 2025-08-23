@@ -90,50 +90,50 @@ export class MemStorage implements IStorage {
 
   private formatGameTitle(filename: string): string {
     const titleMap: {[key: string]: string} = {
-      '3d-cube-runner': '3D Cube Runner',
-      '3d-racing-webgl': '3D Racing WebGL',
-      'particle-explosion': 'Particle Explosion',
-      'space-invaders-3d': '3D Space Invaders',
-      'neon-maze-3d': 'Neon Maze 3D',
-      'cyber-runner-3d': 'Cyber Runner 3D',
-      'galactic-defender-3d': 'Galactic Defender 3D',
-      'crystal-caverns-3d': 'Crystal Caverns 3D',
-      'neural-network-3d': 'Neural Network 3D',
-      'volleyball-championship': 'Volleyball Championship',
-      'ashura-volleyball-advanced': 'ASHURA Volleyball Advanced',
-      'flappy-bird': 'Flappy Bird',
-      'snake-enhanced': 'Snake Enhanced',
-      'tetris-enhanced': 'Tetris Enhanced',
-      'breakout-enhanced': 'Breakout Enhanced',
-      'bubble-shooter': 'Bubble Shooter',
-      'racing-rush': 'Racing Rush',
-      'space-shooter': 'Space Shooter',
-      'asteroid-shooter': 'Asteroid Shooter',
-      'memory-cards': 'Memory Cards',
-      'puzzle-blocks': 'Puzzle Blocks',
-      'gulper-snake': 'Gulper Snake',
+      '3d-cube-runner': 'นักวิ่งก้อนลูกบาศก์ 3D',
+      '3d-racing-webgl': 'แข่งรถสุดเร็ว 3D',
+      'particle-explosion': 'ระเบิดอนุภาค',
+      'space-invaders-3d': 'ผู้รุกรานจากอวกาศ 3D',
+      'neon-maze-3d': 'เขาวงกตนีออน 3D',
+      'cyber-runner-3d': 'นักวิ่งไซเบอร์ 3D',
+      'galactic-defender-3d': 'ผู้พิทักษ์กาแล็กซี่ 3D',
+      'crystal-caverns-3d': 'ถ้ำคริสตัล 3D',
+      'neural-network-3d': 'โครงข่ายประสาท 3D',
+      'volleyball-championship': 'แชมป์วอลเลย์บอล',
+      'ashura-volleyball-advanced': 'อาสุรวอลเลย์บอลขั้นสูง',
+      'flappy-bird': 'นกบินได้',
+      'snake-enhanced': 'งูกินหางพิเศษ',
+      'tetris-enhanced': 'เททริสสุดพิเศษ',
+      'breakout-enhanced': 'ทำลายบล็อคสุดมันส์',
+      'bubble-shooter': 'ยิงฟองสบู่',
+      'racing-rush': 'วิ่งแข่งรถเร็ว',
+      'space-shooter': 'ยิงปืนอวกาศ',
+      'asteroid-shooter': 'ยิงดาวเคราะห์น้อย',
+      'memory-cards': 'เกมจำคารด์',
+      'puzzle-blocks': 'จิ๊กซอว์บล็อค',
+      'gulper-snake': 'งูกลืนของ',
       'หนอนน้อย': 'หนอนน้อย',
-      'neon-platformer-webgl': 'Neon Platformer WebGL',
-      'quantum-shooter-webgl': 'Quantum Shooter WebGL',
-      'cosmic-defender-webgl': 'Cosmic Defender WebGL',
-      'space-mining-3d': 'Space Mining 3D',
-      'ninja-runner-3d': 'Ninja Runner 3D',
-      'tower-defense-3d': 'Tower Defense 3D',
-      'portal-escape-3d': 'Portal Escape 3D',
-      'dragon-flight-3d': 'Dragon Flight 3D',
-      'basketball-shots-3d': 'Basketball Shots 3D',
-      'chess-master-3d': 'Chess Master 3D',
-      'medieval-kingdom': 'Medieval Kingdom',
-      'cooking-master-3d': 'Cooking Master 3D',
-      'fashion-designer-studio': 'Fashion Designer Studio',
-      'pixel-art-creator': 'Pixel Art Creator',
-      'dancing-beat-challenge': 'Dancing Beat Challenge',
-      'endless-runner-3d': 'Endless Runner 3D',
-      'neon-pong': 'Neon Pong',
-      'pacman-adventure': 'Pacman Adventure',
-      'soccer-penalty': 'Soccer Penalty',
-      'snake-classic': 'Snake Classic',
-      'tetris-rush': 'Tetris Rush',
+      'neon-platformer-webgl': 'กระโดดนีออน WebGL',
+      'quantum-shooter-webgl': 'ยิงปืนควอนตัม WebGL',
+      'cosmic-defender-webgl': 'ผู้พิทักษ์จักรวาล WebGL',
+      'space-mining-3d': 'ขุดแร่อวกาศ 3D',
+      'ninja-runner-3d': 'นินจาวิ่ง 3D',
+      'tower-defense-3d': 'ป้องกันหอคอย 3D',
+      'portal-escape-3d': 'หนีประตูมิติ 3D',
+      'dragon-flight-3d': 'มังกรบิน 3D',
+      'basketball-shots-3d': 'ยิงบาสเก็ตบอล 3D',
+      'chess-master-3d': 'ปรมาจารย์หมากรุก 3D',
+      'medieval-kingdom': 'อาณาจักรยุคกลาง',
+      'cooking-master-3d': 'เชฟปรมาจารย์ 3D',
+      'fashion-designer-studio': 'สตูดิโอนักออกแบบแฟชั่น',
+      'pixel-art-creator': 'สร้างพิกเซลอาร์ต',
+      'dancing-beat-challenge': 'ท้าทายเต้นรำ',
+      'endless-runner-3d': 'วิ่งไม่รู้จบ 3D',
+      'neon-pong': 'ปองนีออน',
+      'pacman-adventure': 'ผจญภัยแพคแมน',
+      'soccer-penalty': 'เตะจุดโทษฟุตบอล',
+      'snake-classic': 'งูคลาสสิค',
+      'tetris-rush': 'เททริสเร่งด่วน',
       '2048': '2048'
     };
     
@@ -272,8 +272,7 @@ export class MemStorage implements IStorage {
     const game: Game = {
       id,
       ...gameData,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date()
     };
     this.games.set(id, game);
     return game;
@@ -286,8 +285,7 @@ export class MemStorage implements IStorage {
     const updatedGame: Game = {
       ...existingGame,
       ...updates,
-      id, // ensure ID doesn't change
-      updatedAt: new Date()
+      id // ensure ID doesn't change
     };
     this.games.set(id, updatedGame);
     return updatedGame;

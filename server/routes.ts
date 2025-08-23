@@ -339,6 +339,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Game not found' });
       }
 
+      // Check for custom cover image first
+      const thumbnailMapPath = path.join(process.cwd(), 'public', 'games', 'game-thumbnails.json');
+      
+      try {
+        if (fs.existsSync(thumbnailMapPath)) {
+          const thumbnailMap = JSON.parse(fs.readFileSync(thumbnailMapPath, 'utf8'));
+          // Extract filename from game URL to match with thumbnail map
+          const gameFilename = game.gameUrl.replace('/games/', '').replace('.html', '');
+          const customThumbnail = thumbnailMap[gameFilename];
+          
+          if (customThumbnail) {
+            const customImagePath = path.join(process.cwd(), customThumbnail.replace('/', ''));
+            if (fs.existsSync(customImagePath)) {
+              res.setHeader('Content-Type', 'image/png');
+              res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+              return res.sendFile(customImagePath);
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Could not load custom thumbnails:', error.message);
+      }
+
       // Check if generated image already exists
       const imagePath = path.join(process.cwd(), 'public', 'generated-thumbnails', `${gameId}.png`);
 
