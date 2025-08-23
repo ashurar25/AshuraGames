@@ -189,33 +189,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (filename.endsWith('.html')) {
         let htmlContent = fs.readFileSync(filePath, 'utf8');
         
-        // Check if optimization script is already included
+        // Check if enhancements are already included
         if (!htmlContent.includes('game-optimization.js') && !htmlContent.includes('GameOptimization')) {
-          // Inject optimization script before closing head tag
-          const optimizationScript = `
+          // Inject enhancement CSS and scripts before closing head tag
+          const enhancementInjection = `
+    <!-- ASHURA Games Enhancement System -->
+    <link rel="stylesheet" href="/games/game-enhancement.css">
     <script src="/games/game-optimization.js"></script>
     <script>
-    // Enhanced mobile touch controls
+    // ASHURA Games Auto-Enhancement
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎮 ASHURA Games Auto-Enhancement Loading...');
+        
         // Auto-focus canvas for better input handling
         const canvas = document.querySelector('canvas');
         if (canvas) {
             canvas.focus();
             canvas.addEventListener('click', () => canvas.focus());
-            canvas.addEventListener('touchstart', () => canvas.focus());
+            canvas.addEventListener('touchstart', () => canvas.focus(), { passive: true });
             
-            // Enhanced mobile controls
+            // Enhanced mobile optimizations
             if (window.innerWidth < 768) {
                 canvas.style.touchAction = 'manipulation';
                 document.body.style.touchAction = 'manipulation';
                 document.body.style.overflow = 'hidden';
+                
+                // Add viewport meta if missing
+                if (!document.querySelector('meta[name="viewport"]')) {
+                    const viewport = document.createElement('meta');
+                    viewport.name = 'viewport';
+                    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    document.head.appendChild(viewport);
+                }
             }
         }
+        
+        // Add ASHURA branding if not present
+        if (!document.querySelector('.credit') && !document.querySelector('[class*="ashura"]')) {
+            const credit = document.createElement('div');
+            credit.className = 'credit';
+            credit.innerHTML = '© ASHURA Games';
+            credit.style.position = 'fixed';
+            credit.style.bottom = '10px';
+            credit.style.right = '10px';
+            credit.style.zIndex = '1000';
+            document.body.appendChild(credit);
+        }
+        
+        // Auto-enhance game titles
+        const titles = document.querySelectorAll('h1, .title, .game-title');
+        titles.forEach(title => {
+            if (!title.textContent.includes('ASHURA')) {
+                title.style.background = 'linear-gradient(135deg, #fff, #10b981)';
+                title.style.webkitBackgroundClip = 'text';
+                title.style.backgroundClip = 'text';
+                title.style.webkitTextFillColor = 'transparent';
+            }
+        });
+        
+        console.log('✨ ASHURA Games Enhancement Complete!');
     });
     </script>
 </head>`;
           
-          htmlContent = htmlContent.replace('</head>', optimizationScript);
+          htmlContent = htmlContent.replace('</head>', enhancementInjection);
         }
         
         res.setHeader('Content-Type', 'text/html');
