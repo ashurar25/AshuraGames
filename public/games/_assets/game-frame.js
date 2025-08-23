@@ -1,6 +1,16 @@
 /* Shared Game Frame JS: toolbar, helpers, and loader */
 (function(){
-  const state = { muted: false, fpsVisible: true };
+  const state = { muted: false, fpsVisible: true, fs: false, audioUnlocked: false };
+
+  // Lightweight config hook: set window.GF_CONFIG before this script
+  // Example: window.GF_CONFIG = { maxDevicePixelRatio: 1.75, resizeDebounceMs: 150, autoPauseOnHide: true, pixelArt: false, debug: false }
+  const CFG = Object.assign({
+    maxDevicePixelRatio: 1.75,
+    resizeDebounceMs: 150,
+    autoPauseOnHide: true,
+    pixelArt: false,
+    debug: /[?&]gfDebug=1/i.test(location.search) || false,
+  }, window.GF_CONFIG || {});
 
   function el(tag, cls, html){
     const e = document.createElement(tag);
@@ -125,8 +135,126 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ()=>{
       ensureToolbar();
+      initRuntime();
     });
   } else {
     ensureToolbar();
+    initRuntime();
   }
 })();
+
+// --- Runtime stability features ---
+function initRuntime(){
+  try {
+    const CFG = Object.assign({
+      maxDevicePixelRatio: 1.75,
+      resizeDebounceMs: 150,
+      autoPauseOnHide: true,
+      pixelArt: false,
+      debug: /[?&]gfDebug=1/i.test(location.search) || false,
+    }, window.GF_CONFIG || {});
+
+    // Per-game pixel-art opt-in (CSS hook)
+    if (CFG.pixelArt) {
+      document.body.setAttribute('data-gf-pixel-art','true');
+    }
+
+    // Fullscreen button label sync
+    const fsBtn = document.querySelector('.gf-btn.gf-btn--primary');
+    const syncFS = () => {
+      if (!fsBtn) return;
+      fsBtn.textContent = document.fullscreenElement ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
+    };
+    document.addEventListener('fullscreenchange', syncFS);
+    syncFS();
+
+    // Visibility-based pause/resume via custom events
+    if (CFG.autoPauseOnHide) {
+      document.addEventListener('visibilitychange', () => {
+        const evt = new CustomEvent(document.hidden ? 'gf:pause' : 'gf:resume');
+        window.dispatchEvent(evt);
+      });
+      // Mobile back/forward cache handling
+      window.addEventListener('pagehide', () => window.dispatchEvent(new CustomEvent('gf:pause')));
+      window.addEventListener('pageshow', () => window.dispatchEvent(new CustomEvent('gf:resume')));
+    }
+
+    // Resize debounce with DPR cap (emit info for games to react)
+    const emitResize = () => {
+      const dprRaw = window.devicePixelRatio || 1;
+      const dpr = Math.min(dprRaw, CFG.maxDevicePixelRatio);
+      const detail = { width: window.innerWidth, height: window.innerHeight, dpr, dprRaw };
+      window.dispatchEvent(new CustomEvent('gf:resize', { detail }));
+    };
+    let rezTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(rezTimer);
+      rezTimer = setTimeout(emitResize, CFG.resizeDebounceMs);
+    }, { passive: true });
+    // Fire once initially
+    emitResize();
+
+    // iOS/Android audio unlock on first interaction
+    const unlockAudio = () => {
+      try {
+        if (window.__gfAudioCtx == null) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) window.__gfAudioCtx = new AC();
+        }
+        if (window.__gfAudioCtx && window.__gfAudioCtx.state === 'suspended') {
+          window.__gfAudioCtx.resume();
+        }
+        if (window.Howler && window.Howler.ctx && window.Howler.ctx.state === 'suspended') {
+          window.Howler.ctx.resume();
+        }
+      } catch (e) {}
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+    window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+
+    // WebGL context loss handling: show loader while restoring
+    const canvases = Array.from(document.querySelectorAll('canvas'));
+    canvases.forEach(cv => {
+      cv.addEventListener('webglcontextlost', (e) => {
+        try { e.preventDefault(); } catch(_) {}
+        if (window.GameFrame && window.GameFrame.showLoader) {
+          window.GameFrame.showLoader('Recovering graphics…');
+        }
+      }, false);
+      cv.addEventListener('webglcontextrestored', () => {
+        if (window.GameFrame && window.GameFrame.hideLoader) {
+          window.GameFrame.hideLoader();
+        }
+      }, false);
+    });
+
+    // Telemetry (optional)
+    if (CFG.debug) {
+      window.addEventListener('error', (e) => {
+        console.error('[GF:error]', e.message, e.error);
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        console.error('[GF:unhandled]', e.reason);
+      });
+      let last = performance.now(), frames = 0;
+      const tick = () => {
+        frames++;
+        const now = performance.now();
+        if (now - last >= 1000) {
+          const fps = frames; frames = 0; last = now;
+          const el = document.getElementById('fps-counter');
+          if (el) el.textContent = `FPS: ${fps}`;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+  } catch (err) {
+    console.error('[GF:initRuntime] failed', err);
+  }
+}

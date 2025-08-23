@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breakout Enhanced - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+    <link rel="stylesheet" href="./game-enhancement.css">
+    <link rel="stylesheet" href="./game-optimization.css">
+    <link rel="stylesheet" href="./_assets/game-frame.css">
+
     <link rel="stylesheet" href="game-optimization.css">
     <style>
         body {
@@ -456,5 +461,8 @@
         draw();
         updateUI();
     </script>
+    <!-- ASHURA:shared-js -->
+    <script src="./game-optimization.js"></script>
+    <script src="./_assets/game-frame.js"></script>
 </body>
 </html>

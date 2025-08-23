@@ -482,6 +482,15 @@
     </script>
     <!-- ASHURA:shared-js -->
     <script src="./game-optimization.js"></script>
-    <script src="./_assets/game-frame.js"></script>
+    <!-- ASHURA:gf-config -->
+<script>
+  window.GF_CONFIG = {
+    maxDevicePixelRatio: 1.5,
+    resizeDebounceMs: 180,
+    autoPauseOnHide: true,
+    debug: false
+  };
+</script>
+<script src="./_assets/game-frame.js"></script>
 </body>
 </html>

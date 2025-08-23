@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Cube Runner - ASHURA Games</title>
+    <!-- ASHURA:shared-css -->
+
     <link rel="stylesheet" href="./game-enhancement.css">
     <link rel="stylesheet" href="./game-optimization.css">
     <link rel="stylesheet" href="./_assets/game-frame.css">
@@ -534,5 +536,6 @@
         gl.clearColor(0.5, 0.8, 1.0, 1.0); // Sky blue
         gameLoop();
     </script>
+    <!-- ASHURA:shared-js -->
 </body>
 </html>

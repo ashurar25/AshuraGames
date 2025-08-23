@@ -113,3 +113,52 @@ body.gf-with-toolbar {
 @media (hover: none) and (pointer: coarse) {
   .game-toolbar { padding-top: max(10px, env(safe-area-inset-top)); }
 }
+
+/* --- Mobile-safe viewport and input hygiene --- */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+
+/* Fill the viewport reliably across browsers */
+body {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  /* Reserve safe-areas so UI isn’t clipped on notched devices */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent accidental page interactions during gameplay */
+body, .game-container, canvas {
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+/* Ensure the main game area can cover the viewport */
+.game-container, #gameContainer, .game, #game {
+  position: fixed;
+  inset: 0;
+}
+
+/* Cursor and rendering hints */
+canvas { cursor: none; }
+.gf-btn { cursor: pointer; }
+
+/* Pixel art opt-in via attribute/class; fallback smooth elsewhere */
+[data-gf-pixel-art="true"] canvas, .gf-pixel-art canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Smoother text rendering for overlays */
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Respect user reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .game-loader .spinner { animation: none; }
+}
