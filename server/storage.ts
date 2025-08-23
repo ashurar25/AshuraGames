@@ -25,20 +25,46 @@ export class MemStorage implements IStorage {
 
   private seedInitialData() {
     // เกมที่สร้างขึ้นเองใน ASHURA Games - เล่นได้จริงทุกเกม
-    const defaultGames: Omit<Game, 'id' | 'createdAt'>[] = [
-  {
-    title: '3D Cube Runner',
-    description: 'เกมวิ่งหลบสิ่งกีดขวางแบบ 3D ด้วย WebGL กราฟิกสุดล้ำ วิ่งไปข้างหน้าและหลบอุปสรรค',
-    thumbnail: '/api/games/1/thumbnail',
-    gameUrl: '/games/3d-cube-runner.html',
-    gameFile: null,
-    isEmbedded: false,
-    category: 'action',
-    rating: 50,
-    plays: 18750,
-    isNew: true,
-    isTrending: true,
-  },
+    const defaultGames = [
+      {
+        title: '3D Cube Runner',
+        description: 'เกมวิ่งหลบสิ่งกีดขวางแบบ 3D ด้วย WebGL กราฟิกสุดล้ำ วิ่งไปข้างหน้าและหลบอุปสรรค',
+        thumbnail: '/api/games/1/thumbnail',
+        gameUrl: '/games/3d-cube-runner.html',
+        gameFile: null,
+        isEmbedded: false,
+        category: 'action',
+        rating: 50,
+        plays: 18750,
+        isNew: true,
+        isTrending: true,
+      },
+      {
+        title: 'Particle Explosion WebGL',
+        description: 'เกมอนุภาคระเบิดสุดมันส์ด้วย WebGL เอฟเฟกต์สวยงาม คลิกเพื่อสร้างการระเบิดสีสัน',
+        thumbnail: '/api/games/2/thumbnail',
+        gameUrl: '/games/particle-explosion.html',
+        gameFile: null,
+        isEmbedded: false,
+        category: 'arcade',
+        rating: 49,
+        plays: 12450,
+        isNew: true,
+        isTrending: true,
+      },
+      {
+        title: '3D Racing WebGL',
+        description: 'เกมแข่งรถ 3D สุดเร้าใจ ขับรถหลบคู่แข่ง ใช้บูสเตอร์ และแซงหน้าเพื่อคะแนนสูง',
+        thumbnail: '/api/games/3/thumbnail',
+        gameUrl: '/games/3d-racing-webgl.html',
+        gameFile: null,
+        isEmbedded: false,
+        category: 'racing',
+        rating: 50,
+        plays: 21300,
+        isNew: true,
+        isTrending: true,
+      },
   {
     title: 'Particle Explosion WebGL',
     description: 'เกมอนุภาคระเบิดสุดมันส์ด้วย WebGL เอฟเฟกต์สวยงาม คลิกเพื่อสร้างการระเบิดสีสัน',
@@ -159,28 +185,28 @@ export class MemStorage implements IStorage {
   {
     title: 'Neural Network 3D',
     description: 'สำรวจโครงข่ายประสาทเทียมในมิติสาม พัฒนาทักษะการวิเคราะห์และการคิดเชิงระบบ',
-    thumbnail: '',
+    thumbnail: '/api/games/11/thumbnail',
     gameUrl: '/games/neural-network-3d.html',
-    category: 'simulation',
-    playCount: 0,
-    rating: 0,
+    gameFile: null,
+    isEmbedded: false,
+    category: 'puzzle',
+    plays: 0,
+    rating: 45,
     isNew: true,
-    isTrending: false,
-    createdAt: new Date('2024-03-20'),
-    updatedAt: new Date('2024-03-20')
+    isTrending: false
 },
     {
         title: 'Volleyball Championship',
         description: 'เกมวอลเลย์บอลสุดมันส์! ตีลูกให้แรงด้วยปุ่มพิเศษ แข่งขันกับเพื่อนในสนามวอลเลย์บอลจำลอง',
-        thumbnail: '',
+        thumbnail: '/api/games/12/thumbnail',
         gameUrl: '/games/volleyball-championship.html',
+        gameFile: null,
+        isEmbedded: false,
         category: 'sports',
-        playCount: 0,
-        rating: 0,
+        plays: 8500,
+        rating: 47,
         isNew: true,
-        isTrending: true,
-        createdAt: new Date('2024-03-21'),
-        updatedAt: new Date('2024-03-21')
+        isTrending: true
     },
   {
     title: 'Space Mining 3D',
@@ -690,35 +716,23 @@ export class MemStorage implements IStorage {
     isTrending: true,
   },
   {
-    title: "Volleyball Championship",
-    description: "เกมวอลเลย์บอลสุดมันส์ พร้อม AI และฟิสิกส์สมจริง",
-    thumbnail: "/games/volleyball-championship.html",
-    gameUrl: "/games/volleyball-championship.html",
-    category: "Sports",
-    playCount: 0,
-    rating: 4.7,
-    isNew: true,
-    isTrending: false
-  },
-  {
-    id: "ashura-volleyball-advanced",
     title: "ASHURA Volleyball Advanced",
     description: "วอลเลย์บอลขั้นสูง พร้อมฟิสิกส์ลูกบอล Magnus Effect และ AI ที่ฉลาด",
-    thumbnail: "/games/ashura-volleyball-advanced.html",
+    thumbnail: "/api/games/50/thumbnail",
     gameUrl: "/games/ashura-volleyball-advanced.html",
-    category: "Sports",
-    playCount: 0,
-    rating: 4.9,
+    gameFile: null,
+    isEmbedded: false,
+    category: "sports",
+    plays: 12400,
+    rating: 49,
     isNew: true,
     isTrending: true
   },
 ];
 
     defaultGames.forEach((gameData, index) => {
-      // Use randomUUID for all games except the explicitly defined one
-      const id = gameData.id || randomUUID();
+      const id = randomUUID();
       const game: Game = {
-        // Ensure all required fields are present, providing defaults if necessary
         id,
         title: gameData.title,
         description: gameData.description,
@@ -728,11 +742,10 @@ export class MemStorage implements IStorage {
         isEmbedded: gameData.isEmbedded || false,
         category: gameData.category,
         rating: gameData.rating || 0,
-        plays: gameData.playCount || gameData.plays || 0, // Handle both playCount and plays
+        plays: gameData.plays || 0,
         isNew: gameData.isNew || false,
         isTrending: gameData.isTrending || false,
-        createdAt: gameData.createdAt || new Date(),
-        updatedAt: gameData.updatedAt || new Date()
+        createdAt: new Date()
       };
       this.games.set(id, game);
     });
