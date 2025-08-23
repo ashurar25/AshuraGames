@@ -68,7 +68,18 @@ export class MemStorage implements IStorage {
         };
         
         this.games.set(id, game);
-        console.log(`Loaded game ${index + 1}: ${gameTitle} (${file})`);
+        console.log(`Loaded game ${index + 1}: ${gameTitle} (${file}) - Category: ${category}`);
+      });
+      
+      // แสดงสถิติหมวดหมู่
+      const categoryStats: {[key: string]: number} = {};
+      this.games.forEach(game => {
+        categoryStats[game.category] = (categoryStats[game.category] || 0) + 1;
+      });
+      
+      console.log('Category distribution:');
+      Object.entries(categoryStats).forEach(([category, count]) => {
+        console.log(`  ${category}: ${count} games`);
       });
       
       console.log(`Successfully loaded ${this.games.size} games from public/games directory`);
@@ -133,33 +144,83 @@ export class MemStorage implements IStorage {
 
   private detectGameCategory(filename: string): string {
     const categoryMap: {[key: string]: string} = {
+      // Action games
       '3d': 'action',
-      'racing': 'racing', 
+      'shooter': 'action',
+      'defender': 'action',
+      'runner': 'action',
+      'cube': 'action',
+      'space': 'action',
+      'galactic': 'action',
+      'cyber': 'action',
+      'ninja': 'action',
+      'crystal': 'action',
+      'neural': 'action',
+      'quantum': 'action',
+      'cosmic': 'action',
+      'asteroid': 'action',
+      'particle': 'action',
+      'dragon': 'action',
+      
+      // Racing games
+      'racing': 'racing',
+      'rush': 'racing',
+      
+      // Sports games
       'volleyball': 'sports',
       'basketball': 'sports',
       'soccer': 'sports',
+      'penalty': 'sports',
+      'shots': 'sports',
+      
+      // Arcade games
       'snake': 'arcade',
+      'pong': 'arcade',
+      'pacman': 'arcade',
+      'flappy': 'arcade',
+      'breakout': 'arcade',
+      'neon': 'arcade',
+      'endless': 'arcade',
+      'gulper': 'arcade',
+      'หนอน': 'arcade',
+      
+      // Puzzle games
       'tetris': 'puzzle',
       'bubble': 'puzzle',
-      'shooter': 'action',
       'puzzle': 'puzzle',
-      'adventure': 'adventure',
-      'strategy': 'strategy',
-      'casual': 'casual',
+      'memory': 'puzzle',
+      '2048': 'puzzle',
+      'blocks': 'puzzle',
+      
+      // Strategy games
       'chess': 'strategy',
       'tower-defense': 'strategy',
+      'kingdom': 'strategy',
+      'medieval': 'strategy',
+      
+      // Casual games
       'cooking': 'casual',
       'fashion': 'casual',
       'pixel': 'casual',
       'dancing': 'casual',
-      'pong': 'arcade',
-      'pacman': 'arcade',
-      'memory': 'puzzle',
-      '2048': 'puzzle'
+      'designer': 'casual',
+      'creator': 'casual',
+      'beat': 'casual',
+      
+      // Adventure games
+      'adventure': 'adventure',
+      'escape': 'adventure',
+      'portal': 'adventure',
+      'maze': 'adventure',
+      'caverns': 'adventure',
+      'mining': 'adventure',
+      'flight': 'adventure'
     };
     
+    const lowerFilename = filename.toLowerCase();
+    
     for (const [keyword, category] of Object.entries(categoryMap)) {
-      if (filename.toLowerCase().includes(keyword)) {
+      if (lowerFilename.includes(keyword)) {
         return category;
       }
     }

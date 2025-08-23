@@ -151,6 +151,17 @@ export default function GamesGrid({ onGamePlay, selectedCategory, searchQuery }:
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
                 <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce opacity-60" style={{ animationDelay: '0ms' }}></div>
               </div>
+            </div>
+            
+            <h3 className="text-2xl font-bold text-white mb-4">
+              {searchQuery ? `ไม่พบเกมที่ค้นหา "${searchQuery}"` : 'ไม่มีเกมในหมวดหมู่นี้'}
+            </h3>
+            <p className="text-gray-400 mb-6">
+              {searchQuery 
+                ? 'ลองค้นหาด้วยคำอื่นหรือเลือกหมวดหมู่อื่น' 
+                : 'เกมในหมวดหมู่นี้กำลังอัพเดท กรุณาลองหมวดหมู่อื่น'
+              }
+            </p>
               <div className="absolute top-4 left-1/2 transform -translate-x-8">
                 <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce opacity-40" style={{ animationDelay: '200ms' }}></div>
               </div>
