@@ -186,6 +186,12 @@
         let currentShot = 1;
         let maxShots = 10;
         let gameRunning = true;
+        let difficulty = 'normal';
+        let goalkeeperAI = {
+            reflexSpeed: 0.7,
+            reactionTime: 150,
+            accuracy: 0.6
+        };
         
         // Shooting variables
         let isAiming = false;
@@ -412,10 +418,13 @@
                 if (ball.x >= goal.x && ball.x <= goal.x + goal.width &&
                     ball.y >= goal.y && ball.y <= goal.y + goal.height) {
                     
-                    // Check if goalkeeper saves
-                    const goalkeeperSave = 
-                        ball.x >= goalkeeper.x - 20 && ball.x <= goalkeeper.x + goalkeeper.width + 20 &&
-                        ball.y >= goalkeeper.y - 20 && ball.y <= goalkeeper.y + goalkeeper.height + 20;
+                    // Smart goalkeeper AI
+                    const goalkeeperSave = checkGoalkeeperSave(ball, aimX, aimY, power);
+                    
+                    if (goalkeeperSave) {
+                        // Goalkeeper animation
+                        animateGoalkeeperSave(aimX);
+                    }
                     
                     if (!goalkeeperSave) {
                         // Goal!
@@ -470,6 +479,74 @@
             }, 16);
         }
 
+        function checkGoalkeeperSave(ball, targetX, targetY, shotPower) {
+            const distance = Math.sqrt((targetX - (goalkeeper.x + goalkeeper.width / 2)) ** 2 + 
+                                     (targetY - (goalkeeper.y + goalkeeper.height / 2)) ** 2);
+            
+            // AI difficulty adjustment
+            let saveChance = goalkeeperAI.accuracy;
+            
+            // ระยะห่างจากผู้รักษาประตู
+            if (distance < 50) saveChance += 0.3;
+            else if (distance < 100) saveChance += 0.1;
+            else if (distance > 200) saveChance -= 0.2;
+            
+            // พลังการยิง
+            if (shotPower > 80) saveChance -= 0.15;
+            else if (shotPower < 30) saveChance += 0.1;
+            
+            // ความสูงของลูกบอล
+            if (targetY < goal.y + goal.height * 0.3) saveChance -= 0.1; // ยิงสูง
+            
+            return Math.random() < saveChance;
+        }
+        
+        function animateGoalkeeperSave(targetX) {
+            const centerX = goalkeeper.x + goalkeeper.width / 2;
+            const direction = targetX > centerX ? 1 : -1;
+            
+            // Animation goalkeeper dive
+            const originalX = goalkeeper.x;
+            const moveDistance = 60 * direction;
+            
+            let animationFrame = 0;
+            const animationDuration = 20;
+            
+            const saveAnimation = setInterval(() => {
+                animationFrame++;
+                const progress = animationFrame / animationDuration;
+                
+                if (progress <= 1) {
+                    goalkeeper.x = originalX + (moveDistance * progress);
+                } else {
+                    clearInterval(saveAnimation);
+                    // กลับตำแหน่งเดิม
+                    setTimeout(() => {
+                        goalkeeper.x = originalX;
+                    }, 500);
+                }
+            }, 16);
+        }
+        
+        function adjustDifficulty(newDifficulty) {
+            difficulty = newDifficulty;
+            
+            switch(difficulty) {
+                case 'easy':
+                    goalkeeperAI.accuracy = 0.3;
+                    goalkeeperAI.reflexSpeed = 0.5;
+                    break;
+                case 'normal':
+                    goalkeeperAI.accuracy = 0.6;
+                    goalkeeperAI.reflexSpeed = 0.7;
+                    break;
+                case 'hard':
+                    goalkeeperAI.accuracy = 0.8;
+                    goalkeeperAI.reflexSpeed = 0.9;
+                    break;
+            }
+        }
+        
         function nextShot() {
             currentShot++;
             updateScore();
@@ -488,8 +565,14 @@
             power = 0;
             updatePowerMeter();
             
-            // Move goalkeeper randomly
-            goalkeeper.x = goal.x + Math.random() * (goal.width - goalkeeper.width);
+            // Smart goalkeeper positioning
+            const smartPositions = [
+                goal.x + goal.width * 0.2,  // ซ้าย
+                goal.x + goal.width * 0.5,  // กลาง
+                goal.x + goal.width * 0.8   // ขวา
+            ];
+            
+            goalkeeper.x = smartPositions[Math.floor(Math.random() * smartPositions.length)];
         }
 
         function updateScore() {

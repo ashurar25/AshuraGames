@@ -181,8 +181,16 @@
             velocity: 0,
             gravity: 0.5,
             jumpStrength: -10,
-            rotation: 0
+            rotation: 0,
+            shield: false,
+            shieldTime: 0,
+            magnetActive: false,
+            magnetTime: 0
         };
+        
+        // Power-ups
+        let powerUps = [];
+        let powerUpTimer = 0;
         
         // Pipes array
         let pipes = [];
@@ -407,6 +415,9 @@
         }
 
         function checkCollision(bird, pipe) {
+            // ถ้ามี shield ไม่ชน
+            if (bird.shield) return false;
+            
             // Check if bird is within pipe x range
             if (bird.x < pipe.x + pipeWidth && bird.x + bird.width > pipe.x) {
                 // Check if bird hits top or bottom pipe
@@ -420,6 +431,176 @@
         function updateScore() {
             document.getElementById('score').textContent = score;
             document.getElementById('pipes').textContent = pipesPassedCount;
+        }
+        
+        function updatePowerUps() {
+            powerUpTimer++;
+            
+            // สร้าง power-up ใหม่
+            if (powerUpTimer > 600 && Math.random() < 0.003) {
+                const types = ['shield', 'magnet', 'slowmo'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                powerUps.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 200) + 100,
+                    width: 25,
+                    height: 25,
+                    type: type,
+                    collected: false
+                });
+                
+                powerUpTimer = 0;
+            }
+            
+            // อัพเดท power-ups
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const powerUp = powerUps[i];
+                powerUp.x -= 3;
+                
+                // ตรวจสอบการชน
+                if (!powerUp.collected && 
+                    bird.x < powerUp.x + powerUp.width &&
+                    bird.x + bird.width > powerUp.x &&
+                    bird.y < powerUp.y + powerUp.height &&
+                    bird.y + bird.height > powerUp.y) {
+                    
+                    powerUp.collected = true;
+                    activatePowerUp(powerUp.type);
+                    score += 5;
+                    
+                    // เอฟเฟกต์การเก็บ
+                    if (window.particleSystem) {
+                        for (let j = 0; j < 10; j++) {
+                            window.particleSystem.add(
+                                powerUp.x + powerUp.width / 2,
+                                powerUp.y + powerUp.height / 2,
+                                {
+                                    vx: (Math.random() - 0.5) * 4,
+                                    vy: (Math.random() - 0.5) * 4,
+                                    color: '#ffff00',
+                                    size: Math.random() * 3 + 1,
+                                    life: 0.8
+                                }
+                            );
+                        }
+                    }
+                }
+                
+                // ลบ power-up ที่ออกจากหน้าจอ
+                if (powerUp.x + powerUp.width < 0) {
+                    powerUps.splice(i, 1);
+                }
+            }
+            
+            // อัพเดท shield
+            if (bird.shield) {
+                bird.shieldTime--;
+                if (bird.shieldTime <= 0) {
+                    bird.shield = false;
+                }
+            }
+            
+            // อัพเดท magnet
+            if (bird.magnetActive) {
+                bird.magnetTime--;
+                if (bird.magnetTime <= 0) {
+                    bird.magnetActive = false;
+                }
+            }
+        }
+        
+        function activatePowerUp(type) {
+            switch(type) {
+                case 'shield':
+                    bird.shield = true;
+                    bird.shieldTime = 300; // 5 วินาที
+                    break;
+                case 'magnet':
+                    bird.magnetActive = true;
+                    bird.magnetTime = 240; // 4 วินาที
+                    break;
+                case 'slowmo':
+                    // ชะลอเวลาชั่วคราว
+                    setTimeout(() => {
+                        const originalGravity = bird.gravity;
+                        bird.gravity *= 0.5;
+                        setTimeout(() => {
+                            bird.gravity = originalGravity;
+                        }, 3000);
+                    }, 100);
+                    break;
+            }
+        }
+        
+        function drawPowerUps() {
+            powerUps.forEach(powerUp => {
+                if (powerUp.collected) return;
+                
+                const time = Date.now() * 0.005;
+                const bobOffset = Math.sin(time + powerUp.x * 0.01) * 3;
+                
+                ctx.save();
+                ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + bobOffset);
+                ctx.rotate(time);
+                
+                // วาด power-up แต่ละประเภท
+                switch(powerUp.type) {
+                    case 'shield':
+                        ctx.fillStyle = '#00ffff';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, powerUp.width / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🛡️', 0, 4);
+                        break;
+                    case 'magnet':
+                        ctx.fillStyle = '#ff6b35';
+                        ctx.fillRect(-powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🧲', 0, 4);
+                        break;
+                    case 'slowmo':
+                        ctx.fillStyle = '#9b59b6';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, powerUp.width / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⏰', 0, 4);
+                        break;
+                }
+                
+                ctx.restore();
+            });
+        }
+        
+        function drawBirdEffects() {
+            if (bird.shield) {
+                ctx.save();
+                ctx.globalAlpha = 0.3 + Math.sin(Date.now() * 0.01) * 0.2;
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, bird.width + 10, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            if (bird.magnetActive) {
+                ctx.save();
+                ctx.globalAlpha = 0.2;
+                ctx.fillStyle = '#ff6b35';
+                ctx.beginPath();
+                ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, 50, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
         }
 
         function jump() {
@@ -503,13 +684,20 @@
             if (gameRunning) {
                 updateBird();
                 updatePipes();
+                updatePowerUps();
             }
             
             // Draw pipes
             pipes.forEach(drawPipe);
             
+            // Draw power-ups
+            drawPowerUps();
+            
             // Draw bird
             drawBird();
+            
+            // Draw bird effects
+            drawBirdEffects();
             
             requestAnimationFrame(gameLoop);
         }
