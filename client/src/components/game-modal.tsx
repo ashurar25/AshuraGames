@@ -26,10 +26,10 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
       setError(null);
       setRetryCount(0);
 
-      // Set a timeout to hide loading after 3 seconds regardless
+      // Set a timeout to hide loading after 5 seconds (increased for better loading)
       const timeout = setTimeout(() => {
         setIsLoading(false);
-      }, 3000);
+      }, 5000);
 
       // Increment play count when game is opened
       apiRequest('POST', `/api/games/${game.id}/play`).catch(console.error);
@@ -82,20 +82,30 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
 
     // Handle keyboard events for better game control
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent default behavior for game control keys when modal is open
-      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Don't forward to iframe - let the game handle it directly
+      // Only prevent default for specific game control keys when modal is open
+      const gameKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyR', 'KeyF', 'KeyC', 'KeyX', 'KeyZ'];
+      if (isOpen && gameKeys.includes(e.code)) {
+        // Only prevent default if the target is not an input element
+        if (e.target && !(e.target as HTMLElement).matches('input, textarea, select')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+      
+      // Close modal with Escape key
+      if (e.code === 'Escape' && isOpen) {
+        onClose();
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      // Prevent default behavior for game control keys when modal is open
-      if (isOpen && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Don't forward to iframe - let the game handle it directly
+      // Same logic for key up events
+      const gameKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyR', 'KeyF', 'KeyC', 'KeyX', 'KeyZ'];
+      if (isOpen && gameKeys.includes(e.code)) {
+        if (e.target && !(e.target as HTMLElement).matches('input, textarea, select')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
       }
     };
 
@@ -122,6 +132,13 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
     setError(null);
     setRetryCount(0);
     console.log('Game loaded successfully:', game?.title);
+    
+    // Focus the iframe after loading for better input handling
+    setTimeout(() => {
+      if (iframeRef.current) {
+        iframeRef.current.focus();
+      }
+    }, 100);
   };
 
   const handleIframeError = () => {
@@ -215,13 +232,14 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
               src={game.gameUrl}
               className="w-full h-full border-0 bg-gray-900"
               title={game.title}
-              allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment"
+              allow="fullscreen; gamepad; microphone; camera; autoplay; clipboard-read; clipboard-write; accelerometer; gyroscope; payment; web-share"
               allowFullScreen
-              sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation allow-presentation"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-popups allow-modals allow-downloads allow-top-navigation-by-user-activation allow-presentation allow-storage-access-by-user-activation"
               data-testid="iframe-game"
               tabIndex={0}
               onLoad={handleIframeLoad}
               onError={handleIframeError}
+              loading="eager"
               onMouseEnter={() => {
                 // Focus iframe when mouse enters
                 if (iframeRef.current) {
@@ -240,7 +258,8 @@ export default function GameModal({ game, isOpen, onClose }: GameModalProps) {
                 height: '100%',
                 backgroundColor: '#111827',
                 border: 'none',
-                outline: 'none'
+                outline: 'none',
+                imageRendering: 'pixelated'
               }}
             />
 

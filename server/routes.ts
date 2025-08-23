@@ -162,7 +162,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // เสิร์ฟไฟล์สแตติกสำหรับเกม
-  app.use('/games', express.static(path.join(process.cwd(), 'public', 'games')));
+  app.use('/games', express.static(path.join(process.cwd(), 'public', 'games'), {
+    setHeaders: (res, path) => {
+      // Cache game files for 1 hour
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      // Allow cross-origin requests for game assets
+      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    }
+  }));
 
   // Get all games
   app.get("/api/games", async (_req, res) => {
