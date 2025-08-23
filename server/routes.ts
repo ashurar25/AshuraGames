@@ -33,7 +33,7 @@ const upload = multer({
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('ประเภทไฟล์ไม่ถูกต้อง'), false);
+      cb(new Error('ประเภทไฟล์ไม่ถูกต้อง'));
     }
   }
 });
@@ -163,14 +163,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // เสิร์ฟไฟล์สแตติกสำหรับเกม
   app.use('/games', express.static(path.join(process.cwd(), 'public', 'games'), {
-    setHeaders: (res, path) => {
+    setHeaders: (res, filePath) => {
       // Cache game files for 1 hour
       res.setHeader('Cache-Control', 'public, max-age=3600');
       // Allow cross-origin requests for game assets
       res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
       res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      // Allow all iframe embedding
+      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Content-Security-Policy', 'frame-ancestors *;');
     }
   }));
+
+  // Enhanced game serving with optimization injection
+  app.get('/games/:filename', (req: Request, res: Response) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), 'public', 'games', filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+
+      // If it's an HTML file, inject optimization script
+      if (filename.endsWith('.html')) {
+        let htmlContent = fs.readFileSync(filePath, 'utf8');
+        
+        // Check if optimization script is already included
+        if (!htmlContent.includes('game-optimization.js') && !htmlContent.includes('GameOptimization')) {
+          // Inject optimization script before closing head tag
+          const optimizationScript = `
+    <script src="/games/game-optimization.js"></script>
+    <script>
+    // Enhanced mobile touch controls
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus canvas for better input handling
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.focus();
+            canvas.addEventListener('click', () => canvas.focus());
+            canvas.addEventListener('touchstart', () => canvas.focus());
+            
+            // Enhanced mobile controls
+            if (window.innerWidth < 768) {
+                canvas.style.touchAction = 'manipulation';
+                document.body.style.touchAction = 'manipulation';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    });
+    </script>
+</head>`;
+          
+          htmlContent = htmlContent.replace('</head>', optimizationScript);
+        }
+        
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('X-Frame-Options', 'ALLOWALL');
+        res.setHeader('Content-Security-Policy', 'frame-ancestors *;');
+        res.send(htmlContent);
+      } else {
+        // Serve other files normally
+        res.sendFile(filePath);
+      }
+    } catch (error) {
+      console.error('Error serving game:', error);
+      res.status(500).json({ message: 'Failed to serve game' });
+    }
+  });
 
   // Get all games
   app.get("/api/games", async (_req, res) => {
