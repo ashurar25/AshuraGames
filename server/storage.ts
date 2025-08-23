@@ -229,7 +229,9 @@ export class MemStorage implements IStorage {
   }
 
   async getAllGames(): Promise<Game[]> {
-    return Array.from(this.games.values()).sort((a, b) => b.plays - a.plays);
+    const games = Array.from(this.games.values()).sort((a, b) => b.plays - a.plays);
+    console.log(`getAllGames() returning ${games.length} games`);
+    return games;
   }
 
   async getGameById(id: string): Promise<Game | undefined> {
