@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', async (req: Request, res: Response) => {
     try {
       const { username, email, password } = req.body;
-      
+
       if (!username || !email || !password) {
         return res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน' });
       }
@@ -69,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({ message: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
       }
@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = (req as any).user;
       const { username, email, avatar } = req.body;
-      
+
       const updatedUser = await authStorage.updateUser(user.id, { username, email, avatar });
       if (!updatedUser) {
         return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
@@ -123,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = (req as any).user;
       const { gameId, score, playTime } = req.body;
-      
+
       const gameScore = await authStorage.addScore(user.id, gameId, score, playTime);
       res.status(201).json(gameScore);
     } catch (error) {
