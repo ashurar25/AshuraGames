@@ -19,6 +19,11 @@ export default function GamesGrid({ onGamePlay, selectedCategory, searchQuery }:
 
   const { data: allGames, isLoading } = useQuery<Game[]>({
     queryKey: ['/api/games'],
+    queryFn: async () => {
+      const response = await fetch('/api/games');
+      if (!response.ok) throw new Error('Failed to fetch games');
+      return response.json();
+    },
   });
 
   const { data: searchResults, isLoading: isSearching } = useQuery<Game[]>({
