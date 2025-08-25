@@ -10,6 +10,9 @@
     autoPauseOnHide: true,
     pixelArt: false,
     debug: /[?&]gfDebug=1/i.test(location.search) || false,
+    autoMuteOnPause: true,
+    showPauseOverlay: true,
+    hints: false,
   }, window.GF_CONFIG || {});
 
   function el(tag, cls, html){
@@ -18,6 +21,18 @@
     if (html != null) e.innerHTML = html;
     return e;
   }
+  // Paused overlay
+  let pausedOverlay;
+  function ensurePausedOverlay(){
+    if (pausedOverlay) return pausedOverlay;
+    pausedOverlay = el('div','gf-paused-overlay');
+    const badge = el('div','gf-paused-badge','Paused');
+    pausedOverlay.appendChild(badge);
+    document.body.appendChild(pausedOverlay);
+    return pausedOverlay;
+  }
+  function showPaused(){ ensurePausedOverlay(); pausedOverlay.classList.add('is-visible'); }
+  function hidePaused(){ if (!pausedOverlay) return; pausedOverlay.classList.remove('is-visible'); }
 
   function ensureToolbar(){
     if (document.querySelector('.game-toolbar')) return;
@@ -67,13 +82,49 @@
       if (fps) fps.style.display = state.fpsVisible ? 'block' : 'none';
     });
 
+    // Quality toggle (Low/Medium/High)
+    const qualityOrder = ['low','medium','high'];
+    const cap = (s)=> s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
+    const qualityBtn = el('button','gf-btn','🎛 Quality');
+    let currentQuality = (window.gameOptimizer && window.gameOptimizer.qualityMode) || (function(){ try { return localStorage.getItem('ashura:quality') || 'medium'; } catch(_) { return 'medium'; } })();
+    const syncQualityLabel = (mode) => { qualityBtn.textContent = `🎛 Quality: ${cap(mode)}`; };
+    syncQualityLabel(currentQuality);
+    qualityBtn.addEventListener('click', () => {
+      const idx = Math.max(0, qualityOrder.indexOf(currentQuality));
+      currentQuality = qualityOrder[(idx + 1) % qualityOrder.length];
+      if (window.setAshuraQuality) { try { window.setAshuraQuality(currentQuality); } catch(_){} }
+      syncQualityLabel(currentQuality);
+      try { toast(`Quality: ${cap(currentQuality)}`); } catch(_){}
+    });
+    // Keep label in sync with external changes
+    window.addEventListener('gf:quality', (e)=>{
+      const m = e && e.detail && e.detail.mode;
+      if (!m) return;
+      currentQuality = m;
+      syncQualityLabel(m);
+    });
+
     right.appendChild(fsBtn);
     right.appendChild(muteBtn);
     right.appendChild(fpsBtn);
+    right.appendChild(qualityBtn);
 
     bar.appendChild(left);
     bar.appendChild(right);
     document.body.appendChild(bar);
+    // Ensure a global FPS counter element exists for the FPS toggle and debug overlay
+    if (!document.getElementById('fps-counter')) {
+      const fps = el('div');
+      fps.id = 'fps-counter';
+      fps.style.position = 'fixed';
+      fps.style.top = '64px';
+      fps.style.right = '12px';
+      fps.style.zIndex = '7000';
+      fps.style.color = '#fff';
+      fps.style.font = '600 12px/1 ui-sans-serif';
+      fps.style.display = state.fpsVisible ? 'block' : 'none';
+      document.body.appendChild(fps);
+    }
   }
 
   function toggleFullscreen(){
@@ -152,6 +203,9 @@ function initRuntime(){
       autoPauseOnHide: true,
       pixelArt: false,
       debug: /[?&]gfDebug=1/i.test(location.search) || false,
+      autoMuteOnPause: true,
+      showPauseOverlay: true,
+      hints: false,
     }, window.GF_CONFIG || {});
 
     // Per-game pixel-art opt-in (CSS hook)
@@ -267,6 +321,23 @@ function initRuntime(){
         }
       }, false);
     });
+
+    // Pause/Resume side-effects (overlay + auto-mute)
+    const onPause = () => {
+      if (CFG.showPauseOverlay) showPaused();
+      if (CFG.autoMuteOnPause) setGlobalMute(true);
+    };
+    const onResume = () => {
+      if (CFG.showPauseOverlay) hidePaused();
+      if (CFG.autoMuteOnPause) setGlobalMute(false);
+    };
+    window.addEventListener('gf:pause', onPause);
+    window.addEventListener('gf:resume', onResume);
+
+    // Optional hint
+    if (CFG.hints && !('ontouchstart' in window)) {
+      setTimeout(() => { try { toast('Tip: Press F for fullscreen'); } catch(_){} }, 1200);
+    }
 
     // Telemetry (optional)
     if (CFG.debug) {

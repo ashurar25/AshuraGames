@@ -162,3 +162,30 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   .game-loader .spinner { animation: none; }
 }
+
+/* --- Paused overlay (shown when tab hidden or gf:pause) --- */
+.gf-paused-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 6500;
+  pointer-events: none;
+}
+.gf-paused-overlay.is-visible { display: flex; }
+.gf-paused-badge {
+  pointer-events: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.65);
+  color: var(--gf-fg);
+  font: 700 13px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  box-shadow: var(--gf-shadow);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* Improve FPS counter visibility slightly */
+#fps-counter { text-shadow: 0 1px 2px rgba(0,0,0,0.6); }

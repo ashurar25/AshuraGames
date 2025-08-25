@@ -1,5 +1,23 @@
 
 /* Advanced Game Optimization CSS */
+:root {
+    --gf-shake-x: 0px;
+    --gf-shake-y: 0px;
+}
+
+/* Cinematic overlay (scanlines + vignette) */
+.cinematic-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4000;
+    background:
+        radial-gradient(1200px 600px at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.25) 85%, rgba(0,0,0,0.5) 100%),
+        repeating-linear-gradient( to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px );
+    mix-blend-mode: soft-light;
+    opacity: 0.6;
+    transition: opacity .2s ease;
+}
 
 /* Base Game Container Styles */
 .game-container, #gameContainer, .game, #game {
@@ -14,6 +32,11 @@
     background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
     overflow: hidden;
     font-family: 'Arial', sans-serif;
+}
+
+/* Subtle camera shake driven by JS vars */
+body {
+    transform: translate(var(--gf-shake-x), var(--gf-shake-y));
 }
 
 /* Canvas Optimization */
@@ -542,6 +565,13 @@ button:focus, .menu-button:focus {
     pointer-events: none !important;
     border: 1px solid rgba(0, 255, 0, 0.3) !important;
 }
+
+/* Quality modes */
+.gf-quality-low .cinematic-overlay { opacity: 0.2; mix-blend-mode: normal; }
+.gf-quality-low canvas { filter: none; }
+.gf-quality-medium .cinematic-overlay { opacity: 0.45; }
+.gf-quality-high .cinematic-overlay { opacity: 0.65; }
+.gf-quality-high canvas { filter: saturate(1.05) contrast(1.05); }
 
 /* Credit/Watermark */
 .credit, .ashura-credit {
