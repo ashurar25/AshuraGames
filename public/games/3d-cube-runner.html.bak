@@ -108,9 +108,19 @@
             <p>ใช้ A/D หรือ ←/→ เพื่อหลบสิ่งกีดขวาง | Space เพื่อกระโดด</p>
         </div>
     </div>
+    <div id="fps-counter" style="position:fixed;top:64px;right:12px;z-index:7000;color:#fff;font:600 12px/1 ui-sans-serif;display:block"></div>
 
     <script src="./game-optimization.js"></script>
-    <script src="./_assets/game-frame.js"></script>
+    <!-- ASHURA:gf-config -->
+<script>
+  window.GF_CONFIG = {
+    maxDevicePixelRatio: 1.5,
+    resizeDebounceMs: 180,
+    autoPauseOnHide: true,
+    debug: false
+  };
+</script>
+<script src="./_assets/game-frame.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const gl = canvas.getContext('webgl');
@@ -384,6 +394,40 @@
             keys[e.key.toLowerCase()] = false;
         });
         
+        // Touch controls: horizontal drag = left/right, tap = jump
+        let tStartX = 0, tStartY = 0, tMoved = false;
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const t = e.touches[0];
+            tStartX = t.clientX; tStartY = t.clientY; tMoved = false;
+        }, {passive:false});
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 0) return;
+            const t = e.touches[0];
+            const dx = t.clientX - tStartX;
+            const dy = t.clientY - tStartY;
+            tMoved = Math.abs(dx) > 10 || Math.abs(dy) > 10;
+            // Reset
+            keys['a'] = keys['arrowleft'] = false;
+            keys['d'] = keys['arrowright'] = false;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 20) { keys['d'] = keys['arrowright'] = true; }
+                if (dx < -20) { keys['a'] = keys['arrowleft'] = true; }
+            }
+        }, {passive:false});
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            // Clear left/right
+            keys['a'] = keys['arrowleft'] = false;
+            keys['d'] = keys['arrowright'] = false;
+            // Tap to jump
+            if (!tMoved && !gameState.jumping) {
+                gameState.jumping = true;
+                gameState.jumpVelocity = 0.3;
+            }
+        }, {passive:false});
+        
         // Game loop
         function update() {
             if (!gameState.running) return;
@@ -507,6 +551,32 @@
                 requestAnimationFrame(gameLoop);
             }
         }
+        
+        // Hook into Game Frame runtime events
+        window.addEventListener('gf:pause', () => {
+            gameState.running = false;
+        });
+        window.addEventListener('gf:resume', () => {
+            if (!gameState.running) {
+                gameState.running = true;
+                requestAnimationFrame(gameLoop);
+            }
+        });
+        window.addEventListener('gf:resize', (e) => {
+            try {
+                const { width, height, dpr } = e.detail || {};
+                if (!width || !height) return;
+                const cssW = Math.max(0, Math.floor(width));
+                const cssH = Math.max(0, Math.floor(height));
+                const pxW = Math.max(1, Math.floor(cssW * (dpr || 1)));
+                const pxH = Math.max(1, Math.floor(cssH * (dpr || 1)));
+                canvas.style.width = cssW + 'px';
+                canvas.style.height = cssH + 'px';
+                canvas.width = pxW;
+                canvas.height = pxH;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            } catch(_) {}
+        });
         
         function gameOver() {
             gameState.running = false;

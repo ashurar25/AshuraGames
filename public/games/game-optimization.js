@@ -118,6 +118,29 @@ class GameOptimizer {
         this.stopShake = () => { active = false; document.documentElement.style.setProperty('--gf-shake-x','0px'); document.documentElement.style.setProperty('--gf-shake-y','0px'); };
     }
 
+    // Inject a lightweight SVG filter for subtle chromatic aberration once
+    ensureChromaFilter(){
+        try {
+            if (document.getElementById('gf-chroma-defs')) return;
+            const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+            svg.setAttribute('id','gf-chroma-defs');
+            svg.setAttribute('style','position:absolute; width:0; height:0; pointer-events:none;');
+            svg.setAttribute('aria-hidden','true');
+            svg.innerHTML = `
+              <defs>
+                <filter id="gf-chroma">
+                  <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="src"/>
+                  <feOffset in="src" dx="0.3" dy="0" result="r"/>
+                  <feColorMatrix in="r" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+                  <feOffset in="src" dx="-0.3" dy="0" result="b"/>
+                  <feColorMatrix in="b" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+                  <feBlend in="r" in2="b" mode="screen"/>
+                </filter>
+              </defs>`;
+            document.body.appendChild(svg);
+        } catch (_) {}
+    }
+
     applyInitialQualityFromPrefs(){
         try {
             const saved = localStorage.getItem('ashura:quality');
@@ -181,6 +204,16 @@ class GameOptimizer {
         // Update CSS hooks
         document.body.classList.remove('gf-quality-low','gf-quality-medium','gf-quality-high');
         document.body.classList.add(`gf-quality-${mode}`);
+        // Cinematic extras by quality
+        if (mode === 'high') {
+            document.body.classList.add('gf-letterbox','gf-chroma');
+            this.ensureChromaFilter();
+        } else if (mode === 'medium') {
+            document.body.classList.add('gf-letterbox');
+            document.body.classList.remove('gf-chroma');
+        } else {
+            document.body.classList.remove('gf-letterbox','gf-chroma');
+        }
         try { localStorage.setItem('ashura:quality', mode); } catch(_) {}
         // Notify listeners (e.g., toolbar)
         window.dispatchEvent(new CustomEvent('gf:quality', { detail: { mode } }));

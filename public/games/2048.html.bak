@@ -407,7 +407,14 @@
     <div class="credit">© ASHURA Games</div>
 
     <script src="./game-optimization.js"></script>
-    <script src="./_assets/game-frame.js"></script>
+    <!-- ASHURA:gf-config -->
+<script>
+  window.GF_CONFIG = {
+    resizeDebounceMs: 150,
+    debug: false
+  };
+</script>
+<script src="./_assets/game-frame.js"></script>
     <script>
         const gridElement = document.getElementById('grid');
         const scoreElement = document.getElementById('score');

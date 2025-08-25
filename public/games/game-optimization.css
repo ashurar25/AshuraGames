@@ -3,6 +3,7 @@
 :root {
     --gf-shake-x: 0px;
     --gf-shake-y: 0px;
+    --gf-high-filter: contrast(1.12) saturate(1.15) brightness(1.04);
 }
 
 /* Cinematic overlay (scanlines + vignette) */
@@ -17,6 +18,36 @@
     mix-blend-mode: soft-light;
     opacity: 0.6;
     transition: opacity .2s ease;
+}
+
+/* Optional letterbox bars when enabled */
+body.gf-letterbox::before,
+body.gf-letterbox::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.75));
+  z-index: 9998;
+  pointer-events: none;
+  transition: height 200ms ease, opacity 200ms ease;
+}
+body.gf-letterbox::before { top: 0; }
+body.gf-letterbox::after { bottom: 0; transform: rotate(180deg); }
+
+/* Tighten bars on small screens */
+@media (max-height: 700px) {
+  body.gf-letterbox::before,
+  body.gf-letterbox::after { height: 36px; }
+}
+
+/* Subtle chromatic aberration using SVG filter hook. JS injects the <svg> defs. */
+body.gf-chroma canvas,
+body.gf-chroma .game-canvas,
+body.gf-chroma .game, 
+body.gf-chroma #game {
+  filter: url('#gf-chroma');
 }
 
 /* Base Game Container Styles */
