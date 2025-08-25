@@ -216,6 +216,42 @@ function initRuntime(){
     window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
     window.addEventListener('keydown', unlockAudio, { once: true });
 
+    // Global input hygiene to reduce page jank while playing
+    const isTypingTarget = (el) => {
+      if (!el) return false;
+      const t = (el.tagName || '').toLowerCase();
+      if (t === 'input' || t === 'textarea' || el.isContentEditable) return true;
+      return false;
+    };
+    // Prevent arrow keys/space from scrolling when a canvas exists
+    window.addEventListener('keydown', (e) => {
+      try {
+        const hasCanvas = !!document.querySelector('canvas');
+        if (!hasCanvas) return;
+        if (isTypingTarget(e.target)) return;
+        const k = e.key;
+        if (
+          k === ' ' || k === 'Spacebar' ||
+          k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight' ||
+          k === 'PageUp' || k === 'PageDown' || k === 'Home' || k === 'End'
+        ) {
+          e.preventDefault();
+        }
+      } catch(_) {}
+    }, { capture: true });
+
+    // Focus the first canvas on first pointer interaction (helps keyboard capture on some browsers)
+    const focusCanvas = () => {
+      const cv = document.querySelector('canvas');
+      if (cv && typeof cv.focus === 'function') {
+        try { cv.focus({ preventScroll: true }); } catch(_) { try { cv.focus(); } catch(_) {} }
+      }
+      window.removeEventListener('pointerdown', focusCanvas);
+      window.removeEventListener('touchstart', focusCanvas);
+    };
+    window.addEventListener('pointerdown', focusCanvas, { once: true, passive: true });
+    window.addEventListener('touchstart', focusCanvas, { once: true, passive: true });
+
     // WebGL context loss handling: show loader while restoring
     const canvases = Array.from(document.querySelectorAll('canvas'));
     canvases.forEach(cv => {

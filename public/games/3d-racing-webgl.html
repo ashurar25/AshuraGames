@@ -154,6 +154,7 @@
             🚀 บูสเตอร์ (<span id="boostCount">3</span>)
         </button>
     </div>
+    <div id="fps-counter" style="position:fixed;top:64px;right:12px;z-index:7000;color:#fff;font:600 12px/1 ui-sans-serif;display:block"></div>
 
     <script src="./game-optimization.js"></script>
     <!-- ASHURA:gf-config -->
@@ -760,6 +761,39 @@
                 requestAnimationFrame(gameLoop);
             }
         }
+
+        // Hook into Game Frame runtime events
+        window.addEventListener('gf:pause', () => {
+            gameState.running = false;
+        });
+        window.addEventListener('gf:resume', () => {
+            if (!gameState.running) {
+                gameState.running = true;
+                requestAnimationFrame(gameLoop);
+            }
+        });
+        window.addEventListener('gf:resize', (e) => {
+            try {
+                const { width, height, dpr } = e.detail || {};
+                if (!width || !height) return;
+                const cssW = Math.max(0, Math.floor(width));
+                const cssH = Math.max(0, Math.floor(height));
+                const pxW = Math.max(1, Math.floor(cssW * (dpr || 1)));
+                const pxH = Math.max(1, Math.floor(cssH * (dpr || 1)));
+                // Resize main canvas
+                canvas.style.width = cssW + 'px';
+                canvas.style.height = cssH + 'px';
+                canvas.width = pxW;
+                canvas.height = pxH;
+                // Resize minimap to fixed small size relative to screen
+                const miniSize = Math.max(100, Math.min(200, Math.floor(Math.min(cssW, cssH) * 0.15)));
+                minimap.style.width = miniSize + 'px';
+                minimap.style.height = miniSize + 'px';
+                minimap.width = Math.floor(miniSize * (dpr || 1));
+                minimap.height = Math.floor(miniSize * (dpr || 1));
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            } catch (_) {}
+        });
 
         // Initialize game
         generateRoad();
