@@ -84,6 +84,8 @@ canvas {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+    transform: translate(var(--gf-shake-x, 0px), var(--gf-shake-y, 0px));
+    will-change: transform;
 }
 
 /* Game UI Elements */

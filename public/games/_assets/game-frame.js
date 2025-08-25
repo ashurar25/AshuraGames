@@ -115,7 +115,9 @@ function shake(intensity = 6, duration = 300){
     const qualityOrder = ['low','medium','high'];
     const cap = (s)=> s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
     const qualityBtn = el('button','gf-btn','🎛 Quality');
-    let currentQuality = (window.gameOptimizer && window.gameOptimizer.qualityMode) || (function(){ try { return localStorage.getItem('ashura:quality') || 'medium'; } catch(_) { return 'medium'; } })();
+    let currentQuality = (window.GF_CONFIG && window.GF_CONFIG.quality)
+      || (window.gameOptimizer && window.gameOptimizer.qualityMode)
+      || (function(){ try { return localStorage.getItem('ashura:quality') || 'medium'; } catch(_) { return 'medium'; } })();
     const syncQualityLabel = (mode) => { qualityBtn.textContent = `🎛 Quality: ${cap(mode)}`; };
     syncQualityLabel(currentQuality);
     const applyQualityClass = (mode) => {
@@ -126,6 +128,7 @@ function shake(intensity = 6, duration = 300){
         // Enable subtle chroma only on high
         if (mode === 'high') document.body.classList.add('gf-chroma');
         else document.body.classList.remove('gf-chroma');
+        try { localStorage.setItem('ashura:quality', mode); } catch(_) {}
       } catch(_){}
     };
 
@@ -138,8 +141,9 @@ function shake(intensity = 6, duration = 300){
       if (window.setAshuraQuality) { try { window.setAshuraQuality(currentQuality); } catch(_){} }
       syncQualityLabel(currentQuality);
       applyQualityClass(currentQuality);
-      try { toast(`Quality: ${cap(currentQuality)}`); } catch(_){}}
-    );
+      try { localStorage.setItem('ashura:quality', currentQuality); } catch(_) {}
+      try { toast(`Quality: ${cap(currentQuality)}`); } catch(_){}
+    });
     // Keep label in sync with external changes
     window.addEventListener('gf:quality', (e)=>{
       const m = e && e.detail && e.detail.mode;
@@ -147,11 +151,33 @@ function shake(intensity = 6, duration = 300){
       currentQuality = m;
       syncQualityLabel(m);
       applyQualityClass(m);
+      try { localStorage.setItem('ashura:quality', m); } catch(_) {}
+    });
+
+    // Letterbox toggle (persistent)
+    const applyLetterbox = (on) => {
+      try {
+        document.body.classList.toggle('gf-letterbox', !!on);
+        try { localStorage.setItem('ashura:letterbox', on ? '1' : '0'); } catch(_) {}
+      } catch(_) {}
+    };
+    const letterboxBtn = el('button','gf-btn','🎬 Letterbox');
+    const savedLB = (function(){ try { return localStorage.getItem('ashura:letterbox') === '1'; } catch(_) { return false; } })();
+    const syncLBLabel = (on)=>{ letterboxBtn.textContent = on ? '🎬 Letterbox: On' : '🎬 Letterbox: Off'; };
+    let letterboxOn = !!savedLB;
+    applyLetterbox(letterboxOn);
+    syncLBLabel(letterboxOn);
+    letterboxBtn.addEventListener('click', ()=>{
+      letterboxOn = !letterboxOn;
+      applyLetterbox(letterboxOn);
+      syncLBLabel(letterboxOn);
+      try { toast(letterboxOn ? 'Letterbox enabled' : 'Letterbox disabled'); } catch(_) {}
     });
 
     right.appendChild(fsBtn);
     right.appendChild(muteBtn);
     right.appendChild(fpsBtn);
+    right.appendChild(letterboxBtn);
     right.appendChild(qualityBtn);
 
     bar.appendChild(left);

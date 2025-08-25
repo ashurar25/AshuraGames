@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
 const root = 'c:/Users/Administrator/AshuraGames/public/games';
+const thMapPath = 'c:/Users/Administrator/AshuraGames/scripts/th_localization.json';
 
 const PIXEL_KEYS = [
   'tetris','snake','pong','pixel','flappy','pacman','memory-cards','puzzle-blocks','bubble-shooter','gulper-snake','2048'
@@ -24,6 +25,14 @@ function buildConfig({ isPixel, isHeavy }){
   // Common UX/stability flags
   base.push('    showPauseOverlay: true,');
   base.push('    autoMuteOnPause: true,');
+  // Visual quality default per class
+  if (isHeavy) {
+    base.push("    quality: 'medium',");
+  } else if (isPixel) {
+    base.push("    quality: 'medium',");
+  } else {
+    base.push("    quality: 'high',");
+  }
   if (isPixel) {
     base.push('    pixelArt: true,');
     base.push('    maxDevicePixelRatio: 1.25,');
@@ -88,9 +97,33 @@ function insertOrUpdateConfig(content, block){
   return content;
 }
 
+function applyThaiTitle(fileName, content, thMap){
+  try {
+    const key = fileName.replace(/\.html$/i,'');
+    const th = thMap[key];
+    if (!th) return content;
+    // Update <title>
+    const titleRe = /<title>([\s\S]*?)<\/title>/i;
+    if (titleRe.test(content)) {
+      content = content.replace(titleRe, (m, inner)=>{
+        const suffixMatch = (inner || '').match(/(-\s*ASHURA.*)$/i);
+        const suffix = suffixMatch ? ` ${suffixMatch[1]}` : ' - ASHURA GAMES';
+        return `<title>${th}${suffix}</title>`;
+      });
+    }
+    // Update first <h1>
+    content = content.replace(/<h1>([\s\S]*?)<\/h1>/i, `<h1>${th}</h1>`);
+    return content;
+  } catch {
+    return content;
+  }
+}
+
 function main(){
   const files = readdirSync(root).filter(f => f.toLowerCase().endsWith('.html'));
   let updated = 0;
+  let thMap = {};
+  try { thMap = JSON.parse(readFileSync(thMapPath, 'utf8')); } catch {}
   for (const fname of files) {
     const path = join(root, fname);
     let content = readFileSync(path, 'utf8');
@@ -99,6 +132,9 @@ function main(){
     const cls = classify(fname);
     const block = buildConfig(cls);
     content = insertOrUpdateConfig(content, block);
+
+    // Apply Thai titles if available
+    content = applyThaiTitle(fname, content, thMap);
 
     if (content !== original) {
       copyFileSync(path, path + '.bak');
