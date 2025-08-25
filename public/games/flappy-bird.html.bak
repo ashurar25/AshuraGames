@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html  lang="th">
+<html   lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -186,12 +186,13 @@
             velocity: 0,
             gravity: 0.5,
             jump: -8,
-            rotation: 0
+            rotation: 0,
+            trail: [], // Added for bird trail
+            shield: false, // Added for shield power-up
+            shieldTime: 0,
+            magnetActive: false, // Added for magnet power-up
+            magnetTime: 0
         };
-
-        // Power-ups
-        let powerUps = [];
-        let powerUpTimer = 0;
 
         // Pipes array
         let pipes = [];
@@ -202,6 +203,10 @@
         // Background variables
         let backgroundOffset = 0;
         const backgroundSpeed = 1;
+
+        // Power-ups
+        let powerUps = [];
+        let powerUpTimer = 0;
 
         // Update best score display
         document.getElementById('bestScore').textContent = bestScore;
@@ -284,15 +289,15 @@
             for (let i = 0; i < bird.trail.length; i++) {
                 const alpha = (i + 1) / bird.trail.length * 0.3;
                 ctx.globalAlpha = alpha;
-                ctx.fillStyle = bird.color;
+                ctx.fillStyle = bird.color || '#FFD700'; // Default to yellow if color is not set
                 ctx.fillRect(-bird.width * 0.8 / 2, -bird.height * 0.8 / 2, bird.width * 0.8, bird.height * 0.8);
             }
             ctx.globalAlpha = 1;
 
             // Draw main bird with glow effect
-            ctx.shadowColor = bird.color;
+            ctx.shadowColor = bird.color || '#FFD700'; // Default to yellow if color is not set
             ctx.shadowBlur = 10;
-            ctx.fillStyle = bird.color;
+            ctx.fillStyle = bird.color || '#FFD700'; // Default to yellow if color is not set
             ctx.fillRect(-bird.width / 2, -bird.height / 2, bird.width, bird.height);
             ctx.shadowBlur = 0;
 
@@ -416,6 +421,20 @@
         function updateScore() {
             document.getElementById('score').textContent = score;
             document.getElementById('pipes').textContent = pipesPassedCount;
+        }
+
+        function createPipe() {
+            const minHeight = 50; // Minimum height for top pipe
+            const maxHeight = canvas.height - 50 - pipeGap - minHeight; // Maximum height for top pipe
+            const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+            const bottomY = topHeight + pipeGap;
+
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                bottomY: bottomY,
+                scored: false
+            });
         }
 
         function updatePowerUps() {

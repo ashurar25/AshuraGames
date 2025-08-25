@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html  lang="th">
+<html   lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,7 +79,7 @@
 
         <div class="controls">
             <p><strong>การควบคุม:</strong></p>
-            <p>← → เลื่อน | ↓ ตกเร็ว | ↑ หมุน | C เก็บชิ้น | Spacebar ปล่อย</p>
+            <p>← → เลื่อน | ↓ เร่ง | ↑ หมุน | เว้นวรรค วาง</p> ตกเร็ว | ↑ หมุน | C เก็บชิ้น | Spacebar ปล่อย</p>
         </div>
     </div>
 

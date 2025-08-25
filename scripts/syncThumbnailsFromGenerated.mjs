@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { join, basename } from 'path';
 
 const gamesDir = 'c:/Users/Administrator/AshuraGames/public/games';
@@ -10,31 +10,43 @@ function listSlugs() {
   return files.map(f => basename(f, '.html'));
 }
 
-function latestForSlug(slug, names) {
+function chooseLatestForSlug(slug, names) {
   const prefix = `${slug}_th_`;
-  const cand = names.filter(n => n.startsWith(prefix) && n.toLowerCase().endsWith('.png'));
-  if (cand.length === 0) return null;
-  // filenames have timestamp; pick lexicographically max
-  cand.sort();
-  return cand[cand.length - 1];
+  const svg = names.filter(n => n.startsWith(prefix) && n.toLowerCase().endsWith('.svg')).sort();
+  const png = names.filter(n => n.startsWith(prefix) && n.toLowerCase().endsWith('.png')).sort();
+  // Prefer latest SVG if available, else latest PNG
+  const chosen = svg.length ? svg[svg.length - 1] : (png.length ? png[png.length - 1] : null);
+  const all = [...svg, ...png];
+  const obsolete = new Set(all);
+  if (chosen) obsolete.delete(chosen);
+  return { chosen, obsolete: Array.from(obsolete) };
 }
 
 function main(){
   const slugs = listSlugs();
-  const files = readdirSync(thumbsDir).filter(f => f.toLowerCase().endsWith('.png'));
+  const files = readdirSync(thumbsDir).filter(f => /\.(png|svg)$/i.test(f));
   let current = {};
   try { current = JSON.parse(readFileSync(thumbsJsonPath,'utf8')); } catch(_) {}
   let updated = 0;
   const out = { ...current };
 
   for (const slug of slugs) {
-    const file = latestForSlug(slug, files);
-    if (file) {
-      const url = `/generated-thumbnails/${file}`;
+    const { chosen, obsolete } = chooseLatestForSlug(slug, files);
+    if (chosen) {
+      const url = `/generated-thumbnails/${chosen}`;
       if (out[slug] !== url) {
         out[slug] = url;
         updated++;
         console.log(`[sync] ${slug} -> ${url}`);
+      }
+      // Remove obsolete covers for this slug
+      for (const name of obsolete) {
+        try {
+          unlinkSync(join(thumbsDir, name));
+          console.log(`[cleanup] removed ${name}`);
+        } catch (_) {
+          // ignore
+        }
       }
     }
   }

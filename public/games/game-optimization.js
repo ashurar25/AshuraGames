@@ -41,6 +41,106 @@ class GameOptimizer {
 
     // ... (rest of the code remains the same)
 
+    // Lightweight, engine-agnostic input helpers to avoid runtime errors
+    setupTouchControls() {
+        try {
+            // Provide minimal virtual control state; games can read window.__ASHURA_TOUCH if desired
+            if (!window.__ASHURA_TOUCH) {
+                window.__ASHURA_TOUCH = { enabled: false, x: 0, y: 0, active: false };
+            }
+            const onStart = (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                window.__ASHURA_TOUCH.active = true;
+                window.__ASHURA_TOUCH.x = t.clientX;
+                window.__ASHURA_TOUCH.y = t.clientY;
+            };
+            const onMove = (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                window.__ASHURA_TOUCH.x = t.clientX;
+                window.__ASHURA_TOUCH.y = t.clientY;
+            };
+            const onEnd = () => { window.__ASHURA_TOUCH.active = false; };
+            // Attach once
+            if (!this._touchHandlersInstalled) {
+                window.addEventListener('touchstart', onStart, { passive: false });
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onEnd, { passive: true });
+                this._touchHandlersInstalled = true;
+            }
+        } catch (_) {}
+    }
+
+    enableTouchControls() {
+        try {
+            if (!window.__ASHURA_TOUCH) window.__ASHURA_TOUCH = { enabled: false, x: 0, y: 0, active: false };
+            window.__ASHURA_TOUCH.enabled = true;
+            this.touchControls.enabled = true;
+        } catch (_) {}
+    }
+
+    setupGamepadSupport() {
+        try {
+            if (this.gamepadSupport._installed) return;
+            const scan = () => {
+                try { this.gamepadSupport.gamepads = Array.from(navigator.getGamepads ? navigator.getGamepads() : []).filter(Boolean); } catch(_) {}
+                if (this.gamepadSupport.enabled) requestAnimationFrame(scan);
+            };
+            window.addEventListener('gamepadconnected', () => { this.gamepadSupport.enabled = true; requestAnimationFrame(scan); });
+            window.addEventListener('gamepaddisconnected', () => {
+                this.gamepadSupport.gamepads = (navigator.getGamepads ? Array.from(navigator.getGamepads()) : []).filter(Boolean);
+                if (this.gamepadSupport.gamepads.length === 0) this.gamepadSupport.enabled = false;
+            });
+            this.gamepadSupport._installed = true;
+        } catch (_) {}
+    }
+
+    setupKeyboardOptimization() {
+        try {
+            // Prevent page scroll on common game keys when a canvas is present (idempotent with Game Frame)
+            if (this._kbInstalled) return;
+            const preventJank = (e) => {
+                try {
+                    const hasCanvas = !!document.querySelector('canvas');
+                    if (!hasCanvas) return;
+                    const k = e.key;
+                    if (
+                        k === ' ' || k === 'Spacebar' ||
+                        k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight'
+                    ) {
+                        e.preventDefault();
+                    }
+                } catch(_) {}
+            };
+            window.addEventListener('keydown', preventJank, { capture: true });
+            this._kbInstalled = true;
+        } catch (_) {}
+    }
+
+    setupAudioOptimization() {
+        try {
+            // Unlock web audio on first user gesture (best-effort)
+            if (this._audioInstalled) return;
+            const unlock = () => {
+                try {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    if (AC) {
+                        if (!window.__ashuraAC) window.__ashuraAC = new AC();
+                        if (window.__ashuraAC.state === 'suspended') window.__ashuraAC.resume();
+                    }
+                } catch(_) {}
+                window.removeEventListener('pointerdown', unlock);
+                window.removeEventListener('touchstart', unlock);
+                window.removeEventListener('keydown', unlock);
+            };
+            window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+            window.addEventListener('touchstart', unlock, { once: true, passive: true });
+            window.addEventListener('keydown', unlock, { once: true });
+            this._audioInstalled = true;
+        } catch (_) {}
+    }
+
     setupVisualEnhancements() {
         // Particle system optimization
         window.ParticleSystem = class {

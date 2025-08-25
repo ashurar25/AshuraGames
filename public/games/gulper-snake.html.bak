@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html  lang="th">
+<html   lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -965,7 +965,7 @@
     pixelArt: true,
     maxDevicePixelRatio: 1.25,
     resizeDebounceMs: 120,
-    debug: false
+    debug: falsealse
   };
 </script>
 <script src="./_assets/game-frame.js"></script>

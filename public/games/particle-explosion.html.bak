@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html  lang="th">
+<html   lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -157,6 +157,8 @@
                 this.x += this.vx;
                 this.y += this.vy;
                 this.vy += this.gravity;
+                this.life -= 0.01;
+            }.gravity;
                 this.life--;
 
                 // Fade out
