@@ -4,6 +4,35 @@
 
   // Lightweight config hook: set window.GF_CONFIG before this script
   // Example: window.GF_CONFIG = { maxDevicePixelRatio: 1.75, resizeDebounceMs: 150, autoPauseOnHide: true, pixelArt: false, debug: false }
+
+// --- Cinematic utilities ---
+// Lightweight camera shake: updates CSS vars --gf-shake-x / --gf-shake-y briefly
+function shake(intensity = 6, duration = 300){
+  try {
+    const start = performance.now();
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    intensity = clamp(+intensity || 0, 0, 24);
+    duration = clamp(+duration || 0, 0, 2000);
+    let raf;
+    const tick = (t)=>{
+      const el = document.documentElement; // affect root/body transform via CSS var
+      const remaining = Math.max(0, 1 - (t - start) / duration);
+      const falloff = remaining * remaining; // ease-out
+      const x = (Math.random()*2-1) * intensity * falloff;
+      const y = (Math.random()*2-1) * intensity * falloff;
+      el.style.setProperty('--gf-shake-x', x.toFixed(2) + 'px');
+      el.style.setProperty('--gf-shake-y', y.toFixed(2) + 'px');
+      if (remaining > 0) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        el.style.setProperty('--gf-shake-x', '0px');
+        el.style.setProperty('--gf-shake-y', '0px');
+        cancelAnimationFrame(raf);
+      }
+    };
+    raf = requestAnimationFrame(tick);
+  } catch(_) {}
+}
   const CFG = Object.assign({
     maxDevicePixelRatio: 1.75,
     resizeDebounceMs: 150,
@@ -89,19 +118,35 @@
     let currentQuality = (window.gameOptimizer && window.gameOptimizer.qualityMode) || (function(){ try { return localStorage.getItem('ashura:quality') || 'medium'; } catch(_) { return 'medium'; } })();
     const syncQualityLabel = (mode) => { qualityBtn.textContent = `🎛 Quality: ${cap(mode)}`; };
     syncQualityLabel(currentQuality);
+    const applyQualityClass = (mode) => {
+      try {
+        document.body.classList.remove('gf-quality-low','gf-quality-medium','gf-quality-high');
+        const cls = `gf-quality-${mode}`;
+        document.body.classList.add(cls);
+        // Enable subtle chroma only on high
+        if (mode === 'high') document.body.classList.add('gf-chroma');
+        else document.body.classList.remove('gf-chroma');
+      } catch(_){}
+    };
+
+    // Apply initial quality class
+    applyQualityClass(currentQuality);
+
     qualityBtn.addEventListener('click', () => {
       const idx = Math.max(0, qualityOrder.indexOf(currentQuality));
       currentQuality = qualityOrder[(idx + 1) % qualityOrder.length];
       if (window.setAshuraQuality) { try { window.setAshuraQuality(currentQuality); } catch(_){} }
       syncQualityLabel(currentQuality);
-      try { toast(`Quality: ${cap(currentQuality)}`); } catch(_){}
-    });
+      applyQualityClass(currentQuality);
+      try { toast(`Quality: ${cap(currentQuality)}`); } catch(_){}}
+    );
     // Keep label in sync with external changes
     window.addEventListener('gf:quality', (e)=>{
       const m = e && e.detail && e.detail.mode;
       if (!m) return;
       currentQuality = m;
       syncQualityLabel(m);
+      applyQualityClass(m);
     });
 
     right.appendChild(fsBtn);
@@ -112,6 +157,8 @@
     bar.appendChild(left);
     bar.appendChild(right);
     document.body.appendChild(bar);
+    // Inject postfx overlay once
+    ensureCinematicOverlay();
     // Ensure a global FPS counter element exists for the FPS toggle and debug overlay
     if (!document.getElementById('fps-counter')) {
       const fps = el('div');
@@ -125,6 +172,38 @@
       fps.style.display = state.fpsVisible ? 'block' : 'none';
       document.body.appendChild(fps);
     }
+  }
+
+  // PostFX: overlay and chroma filter
+  function ensureCinematicOverlay(){
+    if (!document.querySelector('.cinematic-overlay')){
+      const ov = el('div','cinematic-overlay','');
+      document.body.appendChild(ov);
+    }
+    ensureChromaFilter();
+  }
+
+  function ensureChromaFilter(){
+    if (document.getElementById('gf-chroma-defs')) return;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('style','position:fixed; width:0; height:0;');
+    svg.setAttribute('aria-hidden','true');
+    svg.id = 'gf-chroma-defs';
+    svg.innerHTML = `
+      <defs>
+        <filter id="gf-chroma">
+          <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="base"/>
+          <feOffset in="base" dx="1" dy="0" result="r"/>
+          <feOffset in="base" dx="-1" dy="0" result="b"/>
+          <feMerge>
+            <feMergeNode in="r"/>
+            <feMergeNode in="base"/>
+            <feMergeNode in="b"/>
+          </feMerge>
+        </filter>
+      </defs>`;
+    document.body.appendChild(svg);
   }
 
   function toggleFullscreen(){
@@ -179,7 +258,7 @@
 
   // Expose API
   window.GameFrame = {
-    showLoader, hideLoader, toggleFullscreen, setGlobalMute, toast
+    showLoader, hideLoader, toggleFullscreen, setGlobalMute, toast, shake
   };
 
   // Init when DOM ready

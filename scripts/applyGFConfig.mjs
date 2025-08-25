@@ -4,7 +4,7 @@ import { join } from 'path';
 const root = 'c:/Users/Administrator/AshuraGames/public/games';
 
 const PIXEL_KEYS = [
-  'tetris','snake','pong','pixel','flappy','pacman','memory-cards','puzzle-blocks','bubble-shooter','gulper-snake'
+  'tetris','snake','pong','pixel','flappy','pacman','memory-cards','puzzle-blocks','bubble-shooter','gulper-snake','2048'
 ];
 const HEAVY3D_KEYS = [
   '3d','webgl','maze','racing','space-invaders-3d','quantum-shooter-webgl','cosmic-defender-webgl','dragon-flight-3d','galactic-defender-3d','tower-defense-3d','portal-escape-3d','space-mining-3d','neural-network-3d','endless-runner-3d','ninja-runner-3d','cyber-runner-3d','crystal-caverns-3d','chess-master-3d','cooking-master-3d','basketball-shots-3d','volleyball-championship','neon-maze-3d','3d-cube-runner','3d-racing-webgl'

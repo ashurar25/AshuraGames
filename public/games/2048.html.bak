@@ -410,7 +410,11 @@
     <!-- ASHURA:gf-config -->
 <script>
   window.GF_CONFIG = {
-    resizeDebounceMs: 150,
+    showPauseOverlay: true,
+    autoMuteOnPause: true,
+    pixelArt: true,
+    maxDevicePixelRatio: 1.25,
+    resizeDebounceMs: 120,
     debug: false
   };
 </script>
