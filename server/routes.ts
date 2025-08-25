@@ -339,27 +339,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Game not found' });
       }
 
-      // Check for custom cover image first
+      // Check for custom cover image first (supports SVG and PNG)
       const thumbnailMapPath = path.join(process.cwd(), 'public', 'games', 'game-thumbnails.json');
-      
+
       try {
         if (fs.existsSync(thumbnailMapPath)) {
           const thumbnailMap = JSON.parse(fs.readFileSync(thumbnailMapPath, 'utf8'));
           // Extract filename from game URL to match with thumbnail map
           const gameFilename = game.gameUrl.replace('/games/', '').replace('.html', '');
           const customThumbnail = thumbnailMap[gameFilename];
-          
+
           if (customThumbnail) {
-            const customImagePath = path.join(process.cwd(), customThumbnail.replace('/', ''));
+            // Normalize path (handle leading slash and separators)
+            const normalizedRel = customThumbnail.startsWith('/') ? customThumbnail.slice(1) : customThumbnail;
+            const customImagePath = path.join(process.cwd(), normalizedRel.split('/').join(path.sep));
             if (fs.existsSync(customImagePath)) {
-              res.setHeader('Content-Type', 'image/png');
-              res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+              const ext = path.extname(customImagePath).toLowerCase();
+              const contentType = ext === '.svg' ? 'image/svg+xml' : ext === '.png' ? 'image/png' : 'application/octet-stream';
+              res.setHeader('Content-Type', contentType);
+              // Disable caching to avoid stale covers across environments
+              res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+              res.setHeader('Pragma', 'no-cache');
+              res.setHeader('Expires', '0');
               return res.sendFile(customImagePath);
             }
           }
         }
       } catch (error) {
-        console.log('Could not load custom thumbnails:', error.message);
+        console.log('Could not load custom thumbnails:', (error as any).message || error);
       }
 
       // Check if generated image already exists
@@ -367,7 +374,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (fs.existsSync(imagePath)) {
         res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+        // Disable caching so regenerated images are always fresh
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         return res.sendFile(imagePath);
       }
 
@@ -385,7 +395,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fs.writeFileSync(imagePath, imageBuffer);
 
       res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
+      // Disable caching for generated images as well
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.send(imageBuffer);
     } catch (error) {
       console.error('Thumbnail generation error:', error);
