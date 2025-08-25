@@ -1,8 +1,9 @@
-import { readdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join, basename } from 'path';
 
-const gamesDir = 'c:/Users/Administrator/AshuraGames/public/games';
-const thumbsDir = 'c:/Users/Administrator/AshuraGames/public/generated-thumbnails';
+const ROOT = process.cwd();
+const gamesDir = join(ROOT, 'public', 'games');
+const thumbsDir = join(ROOT, 'public', 'generated-thumbnails');
 const thumbsJsonPath = join(gamesDir, 'game-thumbnails.json');
 
 function listSlugs() {
@@ -23,6 +24,17 @@ function chooseLatestForSlug(slug, names) {
 }
 
 function main(){
+  if (!existsSync(gamesDir)) {
+    console.error(`Games directory not found: ${gamesDir}`);
+    process.exitCode = 1;
+    return;
+  }
+  if (!existsSync(thumbsDir)) {
+    console.error(`Thumbnails directory not found: ${thumbsDir}`);
+    process.exitCode = 1;
+    return;
+  }
+
   const slugs = listSlugs();
   const files = readdirSync(thumbsDir).filter(f => /\.(png|svg)$/i.test(f));
   let current = {};

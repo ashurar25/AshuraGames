@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 
-const root = 'c:/Users/Administrator/AshuraGames/public/games';
+const ROOT = process.cwd();
+const root = join(ROOT, 'public', 'games');
 
 const PIXEL_KEYS = [
   'tetris','snake','pong','pixel','flappy','pacman','memory-cards','puzzle-blocks','bubble-shooter','gulper-snake','2048'

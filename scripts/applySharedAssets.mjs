@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
-const root = 'c:/Users/Administrator/AshuraGames/public/games';
+const ROOT = process.cwd();
+const root = join(ROOT, 'public', 'games');
 
 const cssLines = [
   '    <!-- ASHURA:shared-css -->',

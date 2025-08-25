@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { join } from 'path';
 
-const root = 'c:/Users/Administrator/AshuraGames/public/games';
-const thMapPath = 'c:/Users/Administrator/AshuraGames/scripts/th_localization.json';
+const ROOT = process.cwd();
+const root = join(ROOT, 'public', 'games');
+const thMapPath = join(ROOT, 'scripts', 'th_localization.json');
 
 const PIXEL_KEYS = [
   'tetris','snake','pong','pixel','flappy','pacman','memory-cards','puzzle-blocks','bubble-shooter','gulper-snake','2048'

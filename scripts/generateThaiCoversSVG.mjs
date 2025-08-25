@@ -1,9 +1,10 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, basename } from 'path';
 
-const gamesDir = 'c:/Users/Administrator/AshuraGames/public/games';
-const thumbsDir = 'c:/Users/Administrator/AshuraGames/public/generated-thumbnails';
-const mapPath = 'c:/Users/Administrator/AshuraGames/scripts/th_localization.json';
+const ROOT = process.cwd();
+const gamesDir = join(ROOT, 'public', 'games');
+const thumbsDir = join(ROOT, 'public', 'generated-thumbnails');
+const mapPath = join(ROOT, 'scripts', 'th_localization.json');
 const thumbsJsonPath = join(gamesDir, 'game-thumbnails.json');
 
 function ensureDirs(){ if (!existsSync(thumbsDir)) mkdirSync(thumbsDir, { recursive: true }); }

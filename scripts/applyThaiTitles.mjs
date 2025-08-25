@@ -1,8 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync, copyFileSync } from 'fs';
 import { join, basename } from 'path';
 
-const gamesDir = 'c:/Users/Administrator/AshuraGames/public/games';
-const mapPath = 'c:/Users/Administrator/AshuraGames/scripts/th_localization.json';
+const ROOT = process.cwd();
+const gamesDir = join(ROOT, 'public', 'games');
+const mapPath = join(ROOT, 'scripts', 'th_localization.json');
 
 function setTitle(content, newTitle){
   // Replace <title>...</title>
