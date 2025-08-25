@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="th">
+<html  lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Enhanced - ASHURA Games</title>
+    <title>งูเวอร์ชันพิเศษ - ASHURA Games</title>
     <!-- ASHURA:shared-css -->
     <link rel="stylesheet" href="./game-enhancement.css">
     <link rel="stylesheet" href="./game-optimization.css">
@@ -119,7 +119,7 @@
 </head>
 <body>
     <div id="gameContainer">
-        <h1>🐍 งูเร็ว</h1>
+        <h1>งูเวอร์ชันพิเศษ</h1>
         <div id="gameInfo">
             <span id="score">Score: 0</span> | 
             <span id="length">Length: 1</span> | 
@@ -406,6 +406,7 @@
   window.GF_CONFIG = {
     showPauseOverlay: true,
     autoMuteOnPause: true,
+    quality: 'medium',
     pixelArt: true,
     maxDevicePixelRatio: 1.25,
     resizeDebounceMs: 120,

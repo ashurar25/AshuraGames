@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="th">
+<html  lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gulper Snake - ASHURA Games</title>
+    <title>งูดูดพลัง - ASHURA Games</title>
     <!-- ASHURA:shared-css -->
     <link rel="stylesheet" href="./game-enhancement.css">
     <link rel="stylesheet" href="./game-optimization.css">
@@ -287,7 +287,7 @@
         </div>
 
         <div id="startMenu">
-            <h1>🐍 Gulper Snake</h1>
+            <h1>งูดูดพลัง</h1>
             
             <div class="menu-section">
                 <h3>Enter Your Name</h3>
@@ -961,6 +961,7 @@
   window.GF_CONFIG = {
     showPauseOverlay: true,
     autoMuteOnPause: true,
+    quality: 'medium',
     pixelArt: true,
     maxDevicePixelRatio: 1.25,
     resizeDebounceMs: 120,

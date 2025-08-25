@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="th">
+<html  lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breakout Enhanced - ASHURA Games</title>
+    <title>ทลายอิฐ ฉบับพิเศษ - ASHURA Games</title>
     <!-- ASHURA:shared-css -->
     <link rel="stylesheet" href="./game-enhancement.css">
     <link rel="stylesheet" href="./game-optimization.css">
@@ -72,7 +72,7 @@
 </head>
 <body>
     <div id="gameContainer">
-        <h1 style="color: white; margin-bottom: 20px;">🧱 Breakout Enhanced</h1>
+        <h1 style="color: white; margin-bottom: 20px;">ทลายอิฐ ฉบับพิเศษ</h1>
         
         <div class="game-info">
             <div>Score: <span id="score">0</span></div>
@@ -468,6 +468,7 @@
   window.GF_CONFIG = {
     showPauseOverlay: true,
     autoMuteOnPause: true,
+    quality: 'high',
     resizeDebounceMs: 150,
     debug: false
   };

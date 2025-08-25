@@ -1,10 +1,10 @@
 
 <!doctype html>
-<html lang="th">
+<html  lang="th">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ASHURA Volley — Advanced (Demo)</title>
+<title>วอลเลย์บอลแอดวานซ์ ASHURA - ASHURA Games</title>
     <!-- ASHURA:shared-css -->
     <link rel="stylesheet" href="./game-enhancement.css">
     <link rel="stylesheet" href="./game-optimization.css">
@@ -33,7 +33,7 @@
 <body>
 <div id="wrap">
   <header>
-    <h1>ASHURA Volley — Advanced Physics & AI</h1>
+    <h1>วอลเลย์บอลแอดวานซ์ ASHURA</h1>
     <div class="controls">
       <div class="panel small">Mode:
         <select id="mode">
@@ -461,6 +461,7 @@ window.__ashura = { p1,p2,ball,resetRally };
   window.GF_CONFIG = {
     showPauseOverlay: true,
     autoMuteOnPause: true,
+    quality: 'high',
     resizeDebounceMs: 150,
     debug: false
   };

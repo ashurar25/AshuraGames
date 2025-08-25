@@ -18,6 +18,19 @@ function classify(name){
   return { isPixel, isHeavy };
 }
 
+function ensureLangTh(content){
+  try {
+    // If <html> already has a lang attribute, replace it with th
+    if (/<html[^>]*\blang=/.test(content)) {
+      return content.replace(/<html([^>]*?)\blang=["'][^"']*["']([^>]*)>/i, '<html$1 lang="th"$2>');
+    }
+    // Otherwise, add lang="th" to the <html> tag
+    return content.replace(/<html(\s*[^>]*)>/i, '<html lang="th"$1>');
+  } catch {
+    return content;
+  }
+}
+
 function buildConfig({ isPixel, isHeavy }){
   const base = [];
   base.push('<script>');
@@ -106,8 +119,8 @@ function applyThaiTitle(fileName, content, thMap){
     const titleRe = /<title>([\s\S]*?)<\/title>/i;
     if (titleRe.test(content)) {
       content = content.replace(titleRe, (m, inner)=>{
-        const suffixMatch = (inner || '').match(/(-\s*ASHURA.*)$/i);
-        const suffix = suffixMatch ? ` ${suffixMatch[1]}` : ' - ASHURA GAMES';
+        // Always enforce standardized suffix, ignoring any prior casing
+        const suffix = ' - ASHURA Games';
         return `<title>${th}${suffix}</title>`;
       });
     }
@@ -135,6 +148,9 @@ function main(){
 
     // Apply Thai titles if available
     content = applyThaiTitle(fname, content, thMap);
+
+    // Ensure <html lang="th"> for Thai localization
+    content = ensureLangTh(content);
 
     if (content !== original) {
       copyFileSync(path, path + '.bak');
