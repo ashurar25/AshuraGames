@@ -289,7 +289,7 @@ function shake(intensity = 6, duration = 300){
 
   // Init when DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ()=>{
+    document.addEventListener('DOMContentLoaded',()=>{
       ensureToolbar();
       initRuntime();
     });
@@ -382,6 +382,16 @@ function initRuntime(){
       if (t === 'input' || t === 'textarea' || el.isContentEditable) return true;
       return false;
     };
+
+    // Add game error recovery
+    window.addEventListener('error', (e) => {
+      console.warn('[Game Error]', e.message);
+      // Try to restart game if it crashes
+      if (window.gameState && typeof window.gameState.restart === 'function') {
+        setTimeout(() => window.gameState.restart(), 1000);
+      }
+    });
+
     // Prevent arrow keys/space from scrolling when a canvas exists
     window.addEventListener('keydown', (e) => {
       try {
