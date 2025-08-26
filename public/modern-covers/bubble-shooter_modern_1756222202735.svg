@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="grad_1239658293" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F093FB"/><stop offset="50%" stop-color="#F5576C"/><stop offset="100%" stop-color="#4FACFE"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="textShadow">
+      <feDropShadow dx="3" dy="3" stdDeviation="6" flood-color="rgba(0,0,0,0.7)"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#grad_1239658293)"/>
+  
+  <!-- Pattern Overlay -->
+  
+        <g opacity="0.2" fill="#43E97B">
+          <rect x="100" y="100" width="20" height="20"/>
+          <rect x="200" y="200" width="20" height="20"/>
+          <rect x="800" y="150" width="20" height="20"/>
+          <rect x="900" y="300" width="20" height="20"/>
+          <rect x="1000" y="250" width="20" height="20"/>
+        </g>
+  
+  <!-- Subtle overlay for depth -->
+  <rect width="100%" height="100%" fill="url(#grad_1239658293)" opacity="0.3"/>
+  
+  <!-- Main Content Area -->
+  <g filter="url(#textShadow)">
+    <!-- Game Title -->
+    <text x="80" y="438.75" 
+          font-family="'Kanit', 'Prompt', 'Noto Sans Thai', Arial, sans-serif" 
+          font-weight="800" 
+          font-size="64" 
+          fill="white">
+      ยิงบับเบิล
+    </text>
+    
+    <!-- Brand -->
+    <text x="80" y="498.75" 
+          font-family="'Kanit', 'Prompt', 'Noto Sans Thai', Arial, sans-serif" 
+          font-weight="600" 
+          font-size="24" 
+          fill="rgba(255,255,255,0.9)">
+      ASHURA GAMES
+    </text>
+  </g>
+  
+  <!-- Decorative accent -->
+  <circle cx="1050" cy="150" r="8" fill="#43E97B" opacity="0.8" filter="url(#glow)"/>
+  <circle cx="1080" cy="120" r="5" fill="white" opacity="0.6"/>
+  <circle cx="1020" cy="180" r="6" fill="#43E97B" opacity="0.7"/>
+</svg>
