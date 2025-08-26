@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Play, Star } from 'lucide-react';
 import { Game } from '@shared/schema';
+import { useState } from 'react';
 
 interface GameCardProps {
   game: Game;
@@ -9,6 +10,7 @@ interface GameCardProps {
 }
 
 export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const handlePlayClick = () => {
     onPlay(game);
   };
@@ -46,6 +48,7 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
   const badge = getCategoryBadge(game.category);
   const categoryDisplay = badge.label.split(' ')[1]; // Extract category name
   const categoryStyles = getCategoryBadge(game.category);
+  const thumbnailSrc = game.thumbnail || `/api/games/${game.id}/thumbnail`;
 
   return (
     <div 
@@ -53,20 +56,40 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
       onClick={handlePlayClick}
       data-testid={`card-game-${game.id}`}
     >
-      {/* Header without cover image */}
-      <div className="p-4 md:p-5 bg-gradient-to-r from-gray-900/60 to-gray-800/40 border-b border-white/10">
-        <div className="flex items-center justify-between mb-3">
+      {/* Cover header with thumbnail, gradient overlay, badges and quick play */}
+      <div className="relative h-36 sm:h-40 md:h-44 lg:h-48 overflow-hidden border-b border-white/10">
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 animate-pulse" />
+        )}
+        <img
+          src={thumbnailSrc}
+          alt={game.title}
+          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageLoaded(true)}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+        <div className="absolute top-3 left-3 flex items-center gap-2">
           <Badge 
             className={`text-xs px-3 py-1.5 font-semibold border-2 ${categoryStyles.bg} ${categoryStyles.text} ${categoryStyles.border} backdrop-blur-xl rounded-full`}
             data-testid="badge-category"
           >
             {categoryDisplay}
           </Badge>
+        </div>
+
+        <div className="absolute top-3 right-3">
           <Badge className="text-xs px-3 py-1.5 glass-dark text-yellow-300 border-2 border-yellow-400/40 backdrop-blur-xl rounded-full font-semibold" data-testid="badge-rating">
             ⭐ {formatRating(game.rating)}
           </Badge>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-mint-400/90 to-cyan-400/90 text-black font-semibold shadow hover:shadow-mint-500/30 transition" onClick={handlePlayClick}>
+
+        <button
+          className="absolute bottom-3 left-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-mint-400/90 to-cyan-400/90 text-black font-semibold shadow hover:shadow-mint-500/30 transition"
+          onClick={(e) => { e.stopPropagation(); handlePlayClick(); }}
+        >
           <Play className="w-4 h-4" /> เล่นเกม
         </button>
       </div>
