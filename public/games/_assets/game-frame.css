@@ -189,3 +189,22 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 
 /* Improve FPS counter visibility slightly */
 #fps-counter { text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+
+/* Game Frame Styles - Removed borders and frames */
+.game-container {
+    max-width: 100%;
+    margin: 0 auto;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+}
+
+.game-wrapper {
+    position: relative;
+    background: transparent;
+    border-radius: 0;
+    overflow: hidden;
+    border: none;
+}
