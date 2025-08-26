@@ -286,16 +286,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (customThumbnail) {
             // Normalize path (handle leading slash and separators)
             const normalizedRel = customThumbnail.startsWith('/') ? customThumbnail.slice(1) : customThumbnail;
-            const customImagePath = path.join(process.cwd(), normalizedRel.split('/').join(path.sep));
-            if (fs.existsSync(customImagePath)) {
-              const ext = path.extname(customImagePath).toLowerCase();
+            const primaryPath = path.join(process.cwd(), normalizedRel.split('/').join(path.sep));
+            const publicPrefixedPath = path.join(process.cwd(), 'public', normalizedRel.split('/').join(path.sep));
+
+            const candidate = [primaryPath, publicPrefixedPath].find(p => fs.existsSync(p));
+            if (candidate) {
+              const ext = path.extname(candidate).toLowerCase();
               const contentType = ext === '.svg' ? 'image/svg+xml' : ext === '.png' ? 'image/png' : 'application/octet-stream';
               res.setHeader('Content-Type', contentType);
               // Disable caching to avoid stale covers across environments
               res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
               res.setHeader('Pragma', 'no-cache');
               res.setHeader('Expires', '0');
-              return res.sendFile(customImagePath);
+              return res.sendFile(candidate);
             }
           }
         }

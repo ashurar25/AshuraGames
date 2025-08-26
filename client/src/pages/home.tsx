@@ -4,15 +4,15 @@ import CategoryFilter from '@/components/category-filter';
 import TrendingSection from '@/components/trending-section';
 import NewReleasesCarousel from '@/components/new-releases-carousel';
 import GamesGrid from '@/components/games-grid';
-import GameModal from '@/components/game-modal';
 import Footer from '@/components/footer';
 import { Game } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import HomeBackground from '@/components/three/HomeBackground';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+  // Removed modal state; we navigate directly to the game now
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -27,14 +27,16 @@ export default function Home() {
   };
 
   const handleGamePlay = (game: Game) => {
-    setSelectedGame(game);
-    setIsGameModalOpen(true);
+    // Open game directly (new tab preferred). Fallback to same tab if blocked.
+    const win = window.open(game.gameUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      window.location.href = game.gameUrl;
+    }
+    // Increment play count asynchronously (non-blocking)
+    void apiRequest('POST', `/api/games/${game.id}/play`).catch(console.error);
   };
 
-  const handleGameModalClose = () => {
-    setIsGameModalOpen(false);
-    setSelectedGame(null);
-  };
+  // Modal close handler removed
 
   // Add intersection observer for animations
   useEffect(() => {
@@ -65,6 +67,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" data-testid="page-home">
+      {/* Subtle mint neon/glass 3D background */}
+      <HomeBackground />
       <Header onSearch={handleSearch} searchQuery={searchQuery} />
       
       <main className="pt-20">
@@ -115,14 +119,6 @@ export default function Home() {
           </>
         )}
       </main>
-
-      {/* Game Modal */}
-      <GameModal
-        game={selectedGame}
-        isOpen={isGameModalOpen}
-        onClose={handleGameModalClose}
-      />
-
       <Footer />
     </div>
   );

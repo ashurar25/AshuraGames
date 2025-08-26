@@ -71,6 +71,16 @@ app.use((req, res, next) => {
     listenOptions.reusePort = true;
   }
 
+  // Provide a clearer message if the port is already in use
+  server.on('error', (err: any) => {
+    if (err && (err as any).code === 'EADDRINUSE') {
+      log(`Port ${port} is already in use. Another process is listening on 0.0.0.0:${port}.`);
+      log('Close the other process or free the port, then re-run: npm run dev');
+      process.exit(1);
+    }
+    throw err;
+  });
+
   server.listen(listenOptions, () => {
     log(`serving on port ${port}`);
   });

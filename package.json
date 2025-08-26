@@ -12,6 +12,8 @@
     "covers:svg": "node scripts/generateThaiCoversSVG.mjs",
     "covers:png": "node scripts/generateThaiCovers.mjs",
     "covers:sync": "node scripts/syncThumbnailsFromGenerated.mjs",
+    "verify:covers": "node scripts/verifyGamesThumbnails.mjs",
+    "covers:all": "npm run covers:svg && npm run covers:png && npm run covers:sync && npm run verify:covers",
     "gf:apply": "node scripts/applyGFConfig.mjs"
   },
   "dependencies": {
