@@ -8,26 +8,26 @@ const cssLines = [
   '    <!-- ASHURA:shared-css -->',
   '    <link rel="stylesheet" href="./game-enhancement.css">',
   '    <link rel="stylesheet" href="./game-optimization.css">',
-  '    <link rel="stylesheet" href="./_assets/game-frame.css">',
+  // game-frame.css removed
 ];
 
 const jsLines = [
   '    <!-- ASHURA:shared-js -->',
   '    <script src="./game-optimization.js"></script>',
-  '    <script src="./_assets/game-frame.js"></script>',
+  // game-frame.js removed
 ];
 
 function ensureCss(content) {
   const needEnh = !/href="\.\/game-enhancement\.css"/i.test(content);
   const needOpt = !/href="\.\/game-optimization\.css"/i.test(content);
-  const needFrame = !/href="\.\/_assets\/game-frame\.css"/i.test(content);
+  // Explicitly remove any existing game-frame.css includes
+  content = content.replace(/\n?\s*<link[^>]+href=["']\.\/_assets\/game-frame\.css["'][^>]*>\s*/ig, '\n');
 
   if (/ASHURA:shared-css/i.test(content)) {
     // Expand marker in-place if some are missing
     const missing = ['<!-- ASHURA:shared-css -->'];
     if (needEnh) missing.push('    <link rel="stylesheet" href="./game-enhancement.css">');
     if (needOpt) missing.push('    <link rel="stylesheet" href="./game-optimization.css">');
-    if (needFrame) missing.push('    <link rel="stylesheet" href="./_assets/game-frame.css">');
     if (missing.length > 1) {
       return content.replace(/<!--\s*ASHURA:shared-css\s*-->/i, missing.join('\n'));
     }
@@ -38,7 +38,6 @@ function ensureCss(content) {
   const block = ['<!-- ASHURA:shared-css -->'];
   if (needEnh) block.push('    <link rel="stylesheet" href="./game-enhancement.css">');
   if (needOpt) block.push('    <link rel="stylesheet" href="./game-optimization.css">');
-  if (needFrame) block.push('    <link rel="stylesheet" href="./_assets/game-frame.css">');
   if (block.length === 1) return content; // nothing to add
 
   // Insert after </title> if possible, else right after <head>
@@ -57,12 +56,12 @@ function ensureCss(content) {
 
 function ensureJs(content) {
   const needOpt = !/src="\.\/game-optimization\.js"/i.test(content);
-  const needFrame = !/src="\.\/_assets\/game-frame\.js"/i.test(content);
+  // Explicitly remove any existing game-frame.js includes
+  content = content.replace(/\n?\s*<script[^>]+src=["']\.\/_assets\/game-frame\.js["'][^>]*><\/script>\s*/ig, '\n');
 
   if (/ASHURA:shared-js/i.test(content)) {
     const missing = ['<!-- ASHURA:shared-js -->'];
     if (needOpt) missing.push('    <script src="./game-optimization.js"></script>');
-    if (needFrame) missing.push('    <script src="./_assets/game-frame.js"></script>');
     if (missing.length > 1) {
       return content.replace(/<!--\s*ASHURA:shared-js\s*-->/i, missing.join('\n'));
     }
@@ -71,7 +70,6 @@ function ensureJs(content) {
 
   const block = ['<!-- ASHURA:shared-js -->'];
   if (needOpt) block.push('    <script src="./game-optimization.js"></script>');
-  if (needFrame) block.push('    <script src="./_assets/game-frame.js"></script>');
   if (block.length === 1) return content;
 
   const bodyMatch = content.match(/<\/body\s*>/i);
@@ -113,3 +111,4 @@ function main() {
 }
 
 main();
+

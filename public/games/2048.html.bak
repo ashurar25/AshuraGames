@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html    lang="th">
+<html     lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -596,27 +596,23 @@
             }
         }
 
+        // Core move-left logic (no DOM side-effects here)
         function moveLeft() {
             let moved = false;
             let scoreAdded = 0;
-            const mergedPositions = []; // To store where merges happened for effects
 
             for (let i = 0; i < 4; i++) {
-                let row = grid[i].filter(val => val !== 0);
-                const currentRow = grid[i].slice(); // Keep original row for comparison
+                const row = grid[i].filter(v => v !== 0);
                 const newRow = [];
                 let j = 0;
-
                 while (j < row.length) {
                     if (j < row.length - 1 && row[j] === row[j + 1]) {
-                        const mergedValue = row[j] * 2;
-                        newRow.push(mergedValue);
-                        scoreAdded += mergedValue;
-                        mergedPositions.push({ row: i, col: newRow.length - 1, value: mergedValue, originalCol: j }); // Store original column for animation
-
-                        if (mergedValue === 2048 && !hasWon) {
+                        const merged = row[j] * 2;
+                        newRow.push(merged);
+                        scoreAdded += merged;
+                        if (merged === 2048 && !hasWon) {
                             hasWon = true;
-                            setTimeout(() => showWin(), 500);
+                            setTimeout(() => showWin(), 300);
                         }
                         j += 2;
                     } else {
@@ -624,17 +620,9 @@
                         j += 1;
                     }
                 }
-
-                // Pad the new row with zeros
-                while (newRow.length < 4) {
-                    newRow.push(0);
-                }
-
-                // Update grid and check if moved
+                while (newRow.length < 4) newRow.push(0);
                 for (let k = 0; k < 4; k++) {
-                    if (grid[i][k] !== newRow[k]) {
-                        moved = true;
-                    }
+                    if (grid[i][k] !== newRow[k]) moved = true;
                     grid[i][k] = newRow[k];
                 }
             }
@@ -643,12 +631,11 @@
                 score += scoreAdded;
                 scoreElement.textContent = score;
 
-                // Level progression
                 const newLevel = Math.floor(score / 1000) + 1;
                 if (newLevel > level) {
                     level = newLevel;
                     levelElement.textContent = level;
-                    createParticles(300, 200, '#fbbf24', 10); // Generic particle effect
+                    createParticles(300, 200, '#fbbf24', 10);
                 }
 
                 if (score > bestScore) {
@@ -656,38 +643,17 @@
                     localStorage.setItem('2048EnhancedBestScore', bestScore);
                     bestScoreElement.textContent = bestScore;
                 }
-
-                // Apply merge effects and animations
-                for (let i = 0; i < 4; i++) {
-                    const row = grid[i];
-                    let currentPosInNewRow = 0;
-                    for (let j = 0; j < 4; j++) {
-                        const originalValue = currentRow[j];
-                        const newValue = grid[i][j];
-
-                        if (originalValue !== newValue) {
-                            if (newValue !== 0 && originalValue !== 0 && originalValue === newValue / 2) {
-                                // This is a merged tile
-                                mergeEffect(j, i, newValue); // Apply merge effect
-                                animateTile(j, i, j, i, newValue); // Placeholder animation
-                            } else if (newValue !== 0 && originalValue === 0) {
-                                // This is a new tile appearing
-                                animateTile(j, i, j, i, newValue); // Placeholder animation for new tile
-                            }
-                        }
-                    }
-                }
             }
 
             return moved;
         }
 
+        // Rotate grid 90deg clockwise
         function rotateGrid() {
-            const newGrid = [];
+            const newGrid = Array.from({ length: 4 }, () => Array(4).fill(0));
             for (let i = 0; i < 4; i++) {
-                newGrid[i] = [];
                 for (let j = 0; j < 4; j++) {
-                    newGrid[i][j] = grid[3 - j][i];
+                    newGrid[j][3 - i] = grid[i][j];
                 }
             }
             grid = newGrid;
@@ -698,37 +664,26 @@
 
             let rotations = 0;
             switch (direction) {
-                case 'up': rotations = 3; break; // Rotate 3 times to make 'up' equivalent to 'left'
-                case 'right': rotations = 2; break; // Rotate 2 times for 'right'
-                case 'down': rotations = 1; break; // Rotate 1 time for 'down'
-                case 'left': rotations = 0; break; // No rotation for 'left'
+                case 'up': rotations = 3; break;
+                case 'right': rotations = 2; break;
+                case 'down': rotations = 1; break;
+                case 'left': rotations = 0; break;
             }
 
-            // Apply initial rotations
-            for (let i = 0; i < rotations; i++) {
-                rotateGrid();
-            }
-
-            const originalGridState = JSON.parse(JSON.stringify(grid)); // Save state before move
-            const moved = moveLeft(); // Perform the move logic
-
-            // If the grid state actually changed
-            if (moved) {
+            for (let r = 0; r < rotations; r++) rotateGrid();
+            const didMove = moveLeft();
+            if (didMove) {
                 moveCount++;
-                // Add new number only if a move occurred
-                if (!addNewNumber()) {
-                    // Check for game over only after adding a new number
-                    if (isGameOver()) {
-                        setTimeout(() => showGameOver(), 300);
-                    }
+                if (!addNewNumber() && isGameOver()) {
+                    setTimeout(() => showGameOver(), 300);
                 }
-                drawGrid(); // Redraw the grid to show new tiles and positions
+                drawGrid();
             }
+            for (let r = 0; r < 4 - rotations; r++) rotateGrid();
+        }
 
-            // Revert rotations to original orientation
-            for (let i = 0; i < 4 - rotations; i++) {
-                rotateGrid();
-            }
+        function initGrid() {
+            grid = Array.from({ length: 4 }, () => Array(4).fill(0));
         }
 
 

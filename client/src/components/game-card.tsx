@@ -1,6 +1,5 @@
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Star, Users } from 'lucide-react';
+import { Play, Star } from 'lucide-react';
 import { Game } from '@shared/schema';
 
 interface GameCardProps {
@@ -43,14 +42,10 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
   };
 
   const cardClass = size === 'small' ? 'min-w-[280px]' : size === 'large' ? 'w-full' : 'w-full';
-  const imageHeight = size === 'small' ? 'h-40' : size === 'large' ? 'h-48' : 'h-36';
 
   const badge = getCategoryBadge(game.category);
   const categoryDisplay = badge.label.split(' ')[1]; // Extract category name
   const categoryStyles = getCategoryBadge(game.category);
-
-  // Determine the thumbnail URL, providing a fallback
-  const thumbnailUrl = game.thumbnail || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlZDE5OGMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+🎮</90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNjAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+R2FtZTwvdGV4dD48L3N2Zz4=';
 
   return (
     <div 
@@ -58,52 +53,22 @@ export default function GameCard({ game, onPlay, size = 'medium' }: GameCardProp
       onClick={handlePlayClick}
       data-testid={`card-game-${game.id}`}
     >
-      {/* Enhanced Thumbnail Image */}
-      <div className="relative h-40 overflow-hidden">
-        <img
-          src={thumbnailUrl}
-          alt={`${game.title} Game`}
-          className={`w-full ${imageHeight} object-cover group-hover:scale-110 transition-transform duration-500 filter group-hover:brightness-110`}
-          onError={(e) => {
-            console.error(`Failed to load thumbnail for game: ${game.title}`);
-            (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MzY2ZjEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlZDE5OGMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+🎮</90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNjAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+R2FtZTwvdGV4dD48L3N2Zz4=';
-          }}
-        />
-
-        {/* Enhanced Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/50 transition-all duration-500"></div>
-
-        {/* Enhanced Category Badge */}
-        <div className="absolute top-3 left-3 z-10">
+      {/* Header without cover image */}
+      <div className="p-4 md:p-5 bg-gradient-to-r from-gray-900/60 to-gray-800/40 border-b border-white/10">
+        <div className="flex items-center justify-between mb-3">
           <Badge 
-            className={`text-xs px-3 py-1.5 font-semibold border-2 ${categoryStyles.bg} ${categoryStyles.text} ${categoryStyles.border} backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 rounded-full`}
+            className={`text-xs px-3 py-1.5 font-semibold border-2 ${categoryStyles.bg} ${categoryStyles.text} ${categoryStyles.border} backdrop-blur-xl rounded-full`}
             data-testid="badge-category"
           >
-            {categoryStyles.icon} {categoryDisplay}
+            {categoryDisplay}
           </Badge>
-        </div>
-
-        {/* Enhanced Rating Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge className="text-xs px-3 py-1.5 glass-dark text-yellow-300 border-2 border-yellow-400/40 backdrop-blur-xl shadow-lg shadow-yellow-500/20 rounded-full font-semibold" data-testid="badge-rating">
+          <Badge className="text-xs px-3 py-1.5 glass-dark text-yellow-300 border-2 border-yellow-400/40 backdrop-blur-xl rounded-full font-semibold" data-testid="badge-rating">
             ⭐ {formatRating(game.rating)}
           </Badge>
         </div>
-
-        {/* Enhanced Play Button Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-          <div className="relative">
-            <div className="absolute inset-0 w-20 h-20 rounded-full bg-gradient-to-r from-mint-400 to-cyan-400 blur-lg opacity-60 animate-pulse"></div>
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-r from-mint-400/90 to-cyan-400/90 backdrop-blur-sm flex items-center justify-center shadow-2xl shadow-mint-500/50 border-2 border-white/30 transform hover:scale-110 transition-transform duration-300">
-              <Play className="w-10 h-10 text-white ml-1 filter drop-shadow-lg" />
-            </div>
-          </div>
-        </div>
-
-        {/* Shine Effect */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 via-transparent to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-        </div>
+        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-mint-400/90 to-cyan-400/90 text-black font-semibold shadow hover:shadow-mint-500/30 transition" onClick={handlePlayClick}>
+          <Play className="w-4 h-4" /> เล่นเกม
+        </button>
       </div>
 
       {/* Enhanced Game Content */}
