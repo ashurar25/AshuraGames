@@ -1,21 +1,26 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+// Disable runtime error overlay in development
+const plugins = [react()];
+
+// Load Replit plugins if in development and REPL_ID is set
+if (process.env.NODE_ENV !== "production" && process.env.REPL_ID) {
+  try {
+    // Use dynamic import with type assertion
+    const cartographerModule = await import("@replit/vite-plugin-cartographer") as any;
+    const cartographer = cartographerModule.default || cartographerModule;
+    if (typeof cartographer === 'function') {
+      plugins.push(cartographer());
+    }
+  } catch (error) {
+    console.warn("Failed to load @replit/vite-plugin-cartographer", error);
+  }
+}
 
 export default defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
-  ],
+  plugins,
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -33,5 +38,8 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    hmr: {
+      overlay: false
+    }
   },
 });
