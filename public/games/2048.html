@@ -415,6 +415,13 @@
         const winScoreElement = document.getElementById('winScore');
         const newRecordText = document.getElementById('newRecordText');
 
+        // Missing DOM refs (fix runtime errors)
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        const bestScoreElement = document.getElementById('bestScore');
+        const levelElement = document.getElementById('level');
+        const gameOverElement = document.getElementById('gameOver');
+
         let grid = [];
         let score = 0;
         let level = 1;
@@ -669,7 +676,6 @@
             grid = Array.from({ length: 4 }, () => Array(4).fill(0));
         }
 
-
         function isGameOver() {
             if (getEmptyCells().length > 0) return false;
 
@@ -753,6 +759,16 @@
                     e.preventDefault();
                     move('down');
                     break;
+            }
+        });
+
+        // Hook into Game Frame runtime events for consistency
+        window.addEventListener('gf:pause', () => {
+            gameRunning = false;
+        });
+        window.addEventListener('gf:resume', () => {
+            if (!hasWon && gameOverElement.style.display !== 'block') {
+                gameRunning = true;
             }
         });
 

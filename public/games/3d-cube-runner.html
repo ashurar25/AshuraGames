@@ -389,6 +389,8 @@
                 if (!gameState.jumping) {
                     gameState.jumping = true;
                     gameState.jumpVelocity = 0.3;
+                    // Feedback on jump
+                    try { window.playGameSound && window.playGameSound('click'); } catch(_) {}
                 }
             }
         });
@@ -428,6 +430,8 @@
             if (!tMoved && !gameState.jumping) {
                 gameState.jumping = true;
                 gameState.jumpVelocity = 0.3;
+                // Feedback on jump
+                try { window.playGameSound && window.playGameSound('click'); } catch(_) {}
             }
         }, {passive:false});
         
@@ -585,6 +589,10 @@
             gameState.running = false;
             document.getElementById('finalScore').textContent = gameState.score;
             document.getElementById('gameOver').style.display = 'block';
+            // Feedback on game over
+            try { window.screenShake && window.screenShake(6, 400); } catch(_) {}
+            try { window.flashScreen && window.flashScreen('#ff0000', 120); } catch(_) {}
+            try { window.playGameSound && window.playGameSound('error'); } catch(_) {}
         }
         
         function restartGame() {
@@ -607,6 +615,13 @@
         
         // Initialize game
         gl.clearColor(0.5, 0.8, 1.0, 1.0); // Sky blue
+        // Trigger an initial responsive resize using container bounds
+        try {
+            const container = document.getElementById('gameContainer');
+            const rect = container.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, (window.GF_CONFIG && window.GF_CONFIG.maxDevicePixelRatio) || 2);
+            window.dispatchEvent(new CustomEvent('gf:resize', { detail: { width: rect.width, height: rect.height, dpr } }));
+        } catch(_) {}
         gameLoop();
     </script>
     <!-- ASHURA:shared-js -->

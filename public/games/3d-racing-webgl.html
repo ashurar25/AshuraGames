@@ -476,6 +476,9 @@
                 setTimeout(() => {
                     document.getElementById('gameContainer').style.filter = '';
                 }, 500);
+                // Feedback for boost
+                try { window.playGameSound && window.playGameSound('powerup'); } catch(_) {}
+                try { window.flashScreen && window.flashScreen('#ffaa00', 80); } catch(_) {}
             }
         }
 
@@ -523,6 +526,9 @@
                     car.passed = true;
                     gameState.overtaken++;
                     gameState.score += 100;
+                    // Overtake feedback
+                    try { window.playGameSound && window.playGameSound('success'); } catch(_) {}
+                    try { window.createExplosion && window.createExplosion(window.innerWidth - 180, 90, 8, '#00ffc8'); } catch(_) {}
                 }
 
                 // Reset cars that are too far behind
@@ -546,6 +552,9 @@
                     setTimeout(() => {
                         document.getElementById('gameContainer').classList.remove('collision');
                     }, 500);
+                    // Collision feedback
+                    try { window.screenShake && window.screenShake(8, 300); } catch(_) {}
+                    try { window.playGameSound && window.playGameSound('error'); } catch(_) {}
                 }
             });
 
@@ -802,6 +811,13 @@
         generateRoad();
         generateCars();
         gl.clearColor(0.5, 0.8, 1.0, 1.0);
+        // Trigger an initial responsive resize using container bounds
+        try {
+            const container = document.getElementById('gameContainer');
+            const rect = container.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, (window.GF_CONFIG && window.GF_CONFIG.maxDevicePixelRatio) || 2);
+            window.dispatchEvent(new CustomEvent('gf:resize', { detail: { width: rect.width, height: rect.height, dpr } }));
+        } catch(_) {}
         gameLoop();
     </script>
     <!-- ASHURA:shared-js -->
